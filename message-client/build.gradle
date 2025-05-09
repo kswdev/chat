@@ -18,7 +18,3 @@ dependencies {
 application {
     mainClass = 'net.study.messagesystem.MessageClient'
 }
-
-tasks.run {
-    standardInput = System.in
-}

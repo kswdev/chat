@@ -21,8 +21,7 @@ public class TerminalService {
 
         try{
             terminalService.terminal = TerminalBuilder.builder()
-                    // 시스템 터미널 사용
-                    .system(true)
+                    .system(true) // 시스템 터미널 사용
                     .build();
         } catch (IOException e) {
             System.err.println("Failed to create TerminalService: " + e.getMessage());
@@ -38,7 +37,11 @@ public class TerminalService {
     }
 
     public String readLine(String prompt) {
-        return lineReader.readLine(prompt);
+        String input = lineReader.readLine(prompt);
+        terminal.puts(InfoCmp.Capability.cursor_up);
+        terminal.puts(InfoCmp.Capability.delete_line);
+        terminal.flush();
+        return input;
     }
 
     public void printMessage(String username, String content) {
