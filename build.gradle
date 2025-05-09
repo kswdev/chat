@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+subprojects { // 모든 하위 모듈들에 이 설정을 적용합니다.
+
+    group 'net.study'
+    version '0.0.1-SNAPSHOT'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies { // 모든 하위 모듈에 추가 될 의존성 목록입니다.
+
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
