@@ -7,6 +7,7 @@ build/
 settings.gradle
 gradlew
 gradlew.bat
+data/
 
 # Editor-based HTTP Client requests
 /httpRequests/
