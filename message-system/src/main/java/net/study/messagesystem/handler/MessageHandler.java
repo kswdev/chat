@@ -5,6 +5,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.dto.Message;
+import net.study.messagesystem.entity.MessageEntity;
+import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.session.WebSocketSessionManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -22,6 +24,7 @@ public class MessageHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final WebSocketSessionManager sessionManager;
+    private final MessageRepository messageRepository;
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -48,6 +51,9 @@ public class MessageHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         try {
             Message receivedMessage = objectMapper.readValue(payload, Message.class);
+
+            messageRepository.save(new MessageEntity(receivedMessage.username(), receivedMessage.content()));
+
             sessionManager.getSessions().stream()
                     .filter(not(session -> session.getId().equals(senderSession.getId())))
                     .forEach(participantSession -> sendMessage(participantSession, receivedMessage));
