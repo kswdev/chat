@@ -12,14 +12,16 @@ spring:
       maximum-pool-size: 20
       idle-timeout: 60000
       connection-timeout: 30000
-    jpa:
-      show-sql: true
-#     open-in-view: false
+  jpa:
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
       hibernate:
-        ddl-auto: validate
-      properties:
-        hibernate:
-          format_sql: true
-    sql:
-      init:
-        mode: always
+        format_sql: true
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:schema.sql
