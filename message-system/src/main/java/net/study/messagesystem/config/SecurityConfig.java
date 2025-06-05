@@ -64,7 +64,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .addFilterAt(restApiLoginAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/api/v1/auth/login").permitAll()
+                                .requestMatchers(
+                                        "/api/v1/auth/login",
+                                        "/ws/v1/connect").permitAll()
                                 .anyRequest().authenticated())
                 .logout(logout -> logout
                                 .logoutUrl("/api/v1/auth/logout")

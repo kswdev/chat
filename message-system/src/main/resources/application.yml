@@ -25,3 +25,9 @@ spring:
     init:
       mode: always
       data-locations: classpath:schema.sql
+
+logging:
+  level:
+    sun.rmi: info
+    javax.management: info
+    root: debug
