@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS user (
     password VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    PRIMARY KEY (user_id)
-    CONSTRAINT unique_user_name UNIQUE (user_name)
+    PRIMARY KEY (user_id),
+    UNIQUE KEY unique_user_name  (user_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
