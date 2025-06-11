@@ -1,6 +1,6 @@
 spring:
   application:
-    name: chat
+    name: session-using-db-redis
   datasource:
     hikari:
       jdbc-url: jdbc:mysql://localhost:13306/chat
@@ -16,7 +16,7 @@ spring:
     show-sql: true
     open-in-view: false
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
@@ -26,8 +26,15 @@ spring:
       mode: always
       data-locations: classpath:schema.sql
 
+  data:
+    redis:
+      host: localhost
+      port: 16379
+      repositories:
+        enabled: false
+
 logging:
   level:
     sun.rmi: info
     javax.management: info
-    root: debug
+    root: info
