@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.dto.Message;
+import net.study.messagesystem.dto.domain.Message;
 import net.study.messagesystem.entity.MessageEntity;
 import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.session.WebSocketSessionManager;

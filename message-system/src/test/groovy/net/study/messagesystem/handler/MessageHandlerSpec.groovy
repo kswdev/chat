@@ -2,7 +2,7 @@ package net.study.messagesystem.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.MessageSystemApplication
-import net.study.messagesystem.dto.Message
+import net.study.messagesystem.dto.domain.Message
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.web.socket.TextMessage
