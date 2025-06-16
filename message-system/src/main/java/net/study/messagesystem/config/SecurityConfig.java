@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .addFilterAt(restApiLoginAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
+                                        "/api/v1/auth/register",
                                         "/api/v1/auth/login",
                                         "/ws/v1/connect").permitAll()
                                 .anyRequest().authenticated())
