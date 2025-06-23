@@ -16,8 +16,8 @@ public class UserService {
 
     private final SessionService service;
     private final SessionService sessionService;
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserId addUser(String username, String password) {
