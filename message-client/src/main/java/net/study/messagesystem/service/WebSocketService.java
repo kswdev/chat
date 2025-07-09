@@ -2,7 +2,7 @@ package net.study.messagesystem.service;
 
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.Session;
-import net.study.messagesystem.dto.Message;
+import net.study.messagesystem.dto.domain.Message;
 import net.study.messagesystem.handler.WebSocketMessageHandler;
 import net.study.messagesystem.handler.WebSocketSender;
 import org.glassfish.tyrus.client.ClientManager;

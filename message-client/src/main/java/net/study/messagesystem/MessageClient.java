@@ -1,6 +1,6 @@
 package net.study.messagesystem;
 
-import net.study.messagesystem.dto.Message;
+import net.study.messagesystem.dto.domain.Message;
 import net.study.messagesystem.handler.WebSocketMessageHandler;
 import net.study.messagesystem.handler.WebSocketSender;
 import net.study.messagesystem.service.TerminalService;
@@ -11,7 +11,7 @@ import java.io.IOException;
 public class MessageClient {
 
     public static void main(String[] args) {
-        final String WEBSOCKET_URL = "60.196.157.197:8080";
+        final String BASE_URL = "60.196.157.197:8080";
         final String WEBSOCKET_ENDPOINT = "/ws/v1/message";
 
         TerminalService terminalService;
@@ -24,7 +24,7 @@ public class MessageClient {
         }
 
         WebSocketSender webSocketSender = new WebSocketSender(terminalService);
-        WebSocketService webSocketService = new WebSocketService(terminalService, webSocketSender, WEBSOCKET_URL, WEBSOCKET_ENDPOINT);
+        WebSocketService webSocketService = new WebSocketService(terminalService, webSocketSender, BASE_URL, WEBSOCKET_ENDPOINT);
         webSocketService.setWebSocketMessageHandler(new WebSocketMessageHandler(terminalService));
 
         while (true) {
