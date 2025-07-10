@@ -5,13 +5,11 @@ import net.study.messagesystem.dto.login.LoginRequest;
 import net.study.messagesystem.dto.signup.SignUpRequest;
 import net.study.messagesystem.util.JsonUtil;
 
-import java.awt.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class RestApiService {
