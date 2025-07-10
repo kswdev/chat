@@ -58,10 +58,6 @@ public class RestApiService {
                 .isPresent();
     }
 
-    private Predicate<HttpResponse<String>> isStatusCodeOK() {
-        return httpResponse -> httpResponse.statusCode() == 200;
-    }
-
     private Optional<HttpResponse<String>> request(String path, String sessionId, Object body) {
         try {
             HttpRequest.Builder builder = HttpRequest
@@ -88,6 +84,10 @@ public class RestApiService {
             terminalService.printSystemMessage("Failed to request cause: %s".formatted(e.getMessage()));
             return Optional.empty();
         }
+    }
+
+    private Predicate<HttpResponse<String>> isStatusCodeOK() {
+        return httpResponse -> httpResponse.statusCode() == 200;
     }
 
     private void setSessionId(String sessionId) {

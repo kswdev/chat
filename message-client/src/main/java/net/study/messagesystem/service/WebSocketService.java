@@ -2,15 +2,12 @@ package net.study.messagesystem.service;
 
 import jakarta.websocket.ClientEndpointConfig;
 import jakarta.websocket.CloseReason;
-import jakarta.websocket.SendHandler;
 import jakarta.websocket.Session;
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
 import net.study.messagesystem.dto.websocket.inbound.KeepAliveRequest;
-import net.study.messagesystem.dto.websocket.inbound.MessageRequest;
 import net.study.messagesystem.handler.WebSocketMessageHandler;
 import net.study.messagesystem.handler.WebSocketSender;
 import net.study.messagesystem.handler.WebSocketSessionHandler;
-import net.study.messagesystem.util.JsonUtil;
 import org.glassfish.tyrus.client.ClientManager;
 
 import java.io.IOException;
@@ -46,16 +43,7 @@ public class WebSocketService {
 
     public boolean createSession(String sessionId) {
         ClientManager clientManager = ClientManager.createClient();
-        ClientEndpointConfig.Configurator configurator = new ClientEndpointConfig.Configurator() {
-            
-            @Override
-            public void beforeRequest(Map<String, List<String>> headers) {
-                headers.put("Cookie", List.of("SESSION=" + sessionId));
-            }
-        };
-
-        ClientEndpointConfig config = ClientEndpointConfig.Builder
-                .create().configurator(configurator).build();
+        ClientEndpointConfig config = createClientEndpointConfig(sessionId);
         
         try {
             session = clientManager.connectToServer(
@@ -68,6 +56,19 @@ public class WebSocketService {
             terminalService.printSystemMessage(String.format("Failed to connect to [%s]: error: %s ", websocketUrl, e.getMessage()));
             return false;
         }
+    }
+
+    private static ClientEndpointConfig createClientEndpointConfig(String sessionId) {
+        ClientEndpointConfig.Configurator configurator = new ClientEndpointConfig.Configurator() {
+
+            @Override
+            public void beforeRequest(Map<String, List<String>> headers) {
+                headers.put("Cookie", List.of("SESSION=" + sessionId));
+            }
+        };
+
+        return ClientEndpointConfig.Builder
+                .create().configurator(configurator).build();
     }
 
     public boolean closeSession() {
@@ -88,13 +89,7 @@ public class WebSocketService {
 
     public void sendMessage(BaseRequest baseRequest) {
         if (isSessionOpen()) {
-            if (baseRequest instanceof MessageRequest message) {
-                webSocketSender.sendMessage(session, message);
-                return;
-            }
-
-            JsonUtil.toJson(baseRequest)
-                    .ifPresent(payload -> session.getAsyncRemote().sendText(payload, failureLoggingHandler(payload)));
+            webSocketSender.sendMessage(session, baseRequest);
         } else {
             terminalService.printSystemMessage("WebSocket is not connected.");
         }
@@ -112,13 +107,6 @@ public class WebSocketService {
             executorService.shutdown();
             executorService = null;
         }
-    }
-
-    private SendHandler failureLoggingHandler(String payload) {
-        return result -> {
-            if (!result.isOK())
-                terminalService.printSystemMessage("%s send failed. cause: %s".formatted(payload, result.getException()));
-        };
     }
 
     private boolean isSessionOpen() {

@@ -2,7 +2,7 @@ package net.study.messagesystem.handler;
 
 import jakarta.websocket.SendHandler;
 import jakarta.websocket.Session;
-import net.study.messagesystem.dto.websocket.inbound.MessageRequest;
+import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
 import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.util.JsonUtil;
 
@@ -14,9 +14,9 @@ public class WebSocketSender {
         this.terminalService = terminalService;
     }
 
-    public void sendMessage(Session session, MessageRequest message) {
+    public void sendMessage(Session session, BaseRequest request) {
         if (session != null && session.isOpen()) {
-            JsonUtil.toJson(message)
+            JsonUtil.toJson(request)
                     .ifPresent(payload -> session.getAsyncRemote().sendText(payload, failureLoggingHandler(payload)));
         }
     }
