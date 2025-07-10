@@ -30,7 +30,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/unregister")
+    @PostMapping("/unregister")
     public ResponseEntity<String> unregister(HttpServletRequest request) {
         try {
             userService.removeUser();
