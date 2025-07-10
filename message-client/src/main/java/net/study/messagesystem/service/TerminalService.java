@@ -52,8 +52,9 @@ public class TerminalService {
         lineReader.printAbove(String.format("[System]: %s", content));
     }
 
-    public void clearTerminal() {
+    public boolean clearTerminal() {
         terminal.puts(InfoCmp.Capability.clear_screen);
         terminal.flush();
+        return true;
     }
 }
