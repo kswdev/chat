@@ -1,10 +1,13 @@
-package net.study.messagesystem.entity;
+package net.study.messagesystem.entity.user;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
+import net.study.messagesystem.entity.BaseEntity;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 @ToString
@@ -22,11 +25,19 @@ public class UserEntity extends BaseEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "connection_invite_code", nullable = false)
+    private String connectionInviteCode;
+
+    @Setter
+    @Column(name = "connection_count", nullable = false)
+    private int connectionCount;
+
     public UserEntity() {}
 
     public UserEntity(String username, String password) {
         this.username = username;
         this.password = password;
+        this.connectionInviteCode = UUID.randomUUID().toString().replace("-", "");
     }
 
     @Override
