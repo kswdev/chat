@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS message (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     PRIMARY KEY (message_sequence)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+    );
 
 CREATE TABLE IF NOT EXISTS user (
     user_id BIGINT AUTO_INCREMENT,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS user (
     PRIMARY KEY (user_id),
     UNIQUE KEY unique_user_name  (user_name)
     UNIQUE KEY unique_connection_invite_code  (connection_invite_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+    );
 
 CREATE TABLE IF NOT EXISTS user_connection (
     partner_a_user_id BIGINT NOT NULL,
@@ -31,4 +31,4 @@ CREATE TABLE IF NOT EXISTS user_connection (
     INDEX idx_partner_b_user_id (partner_b_user_id),
     INDEX idx_partner_a_user_id_status (partner_a_user_id, status),
     INDEX idx_partner_b_user_id_status (partner_b_user_id, status),
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+    );
