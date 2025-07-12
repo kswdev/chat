@@ -1,4 +1,4 @@
-package net.study.messagesystem.dto.domain;
+package net.study.messagesystem.dto.user;
 
 public record UserId(Long id) {
 

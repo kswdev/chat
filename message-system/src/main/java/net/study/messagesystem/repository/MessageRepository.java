@@ -1,6 +1,6 @@
 package net.study.messagesystem.repository;
 
-import net.study.messagesystem.entity.MessageEntity;
+import net.study.messagesystem.entity.messae.MessageEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

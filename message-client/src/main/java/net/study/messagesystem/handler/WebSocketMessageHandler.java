@@ -2,7 +2,7 @@ package net.study.messagesystem.handler;
 
 import jakarta.websocket.MessageHandler;
 import lombok.RequiredArgsConstructor;
-import net.study.messagesystem.dto.domain.Message;
+import net.study.messagesystem.dto.message.Message;
 import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.util.JsonUtil;
 

@@ -2,7 +2,7 @@ package net.study.messagesystem.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.entity.UserEntity;
+import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
