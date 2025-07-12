@@ -3,11 +3,16 @@ package net.study.messagesystem.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.dto.domain.UserId;
-import net.study.messagesystem.entity.UserEntity;
+import net.study.messagesystem.dto.user.InviteCode;
+import net.study.messagesystem.dto.user.UserId;
+import net.study.messagesystem.dto.projection.UsernameProjection;
+import net.study.messagesystem.dto.user.UserIdName;
+import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -18,6 +23,18 @@ public class UserService {
     private final SessionService sessionService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public Optional<String> getUsername(UserId userId) {
+        return userRepository.findByUserId(userId.id())
+                .map(UsernameProjection::getUsername);
+    }
+
+    public Optional<UserIdName> getUserIdName(InviteCode inviteCode) {
+        return userRepository.findByConnectionInviteCode(inviteCode.code())
+                .map(user -> new UserIdName(user.getUserId(), user.getUsername()));
+    }
+
+
 
     @Transactional
     public UserId addUser(String username, String password) {
