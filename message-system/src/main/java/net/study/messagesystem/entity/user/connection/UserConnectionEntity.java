@@ -3,13 +3,15 @@ package net.study.messagesystem.entity.user.connection;
 import jakarta.persistence.*;
 import lombok.*;
 import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagesystem.dto.user.UserId;
 import net.study.messagesystem.entity.BaseEntity;
 
 @Getter
 @Entity @Table(name = "user_connection")
 @IdClass(UserConnectionId.class)
-@NoArgsConstructor @AllArgsConstructor
-@EqualsAndHashCode(of = {"partnerAUserId", "partnerBUserId"})
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = {"partnerAUserId", "partnerBUserId"}, callSuper = false)
 public class UserConnectionEntity extends BaseEntity {
 
     @Id
@@ -27,4 +29,13 @@ public class UserConnectionEntity extends BaseEntity {
 
     @Column(name = "inviter_user_id", nullable = false)
     private Long inviterUserId;
+
+    public static UserConnectionEntity create(UserId firstUserId, UserId secondUserId, Long inviterUserId) {
+        return new UserConnectionEntity(
+                Math.min(firstUserId.id(), secondUserId.id()),
+                Math.max(firstUserId.id(), secondUserId.id()),
+                UserConnectionStatus.PENDING,
+                inviterUserId
+        );
+    }
 }
