@@ -3,7 +3,7 @@ spring:
     name: session-using-db-redis
   datasource:
     hikari:
-      jdbc-url: jdbc:mysql://localhost:13306/chat
+      jdbc-url: jdbc:mysql://localhost:13306/chat?useSSL=false&allowPublicKeyRetrieval=true
       username: dev_user
       password: dev_password
       driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,10 +21,6 @@ spring:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
-  sql:
-    init:
-      mode: always
-      data-locations: classpath:schema.sql
 
   data:
     redis:
