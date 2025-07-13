@@ -8,7 +8,7 @@ import net.study.messagesystem.constant.Constants;
 import net.study.messagesystem.dto.message.Message;
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
 import net.study.messagesystem.dto.websocket.inbound.KeepAliveRequest;
-import net.study.messagesystem.dto.websocket.inbound.MessageRequest;
+import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest;
 import net.study.messagesystem.entity.messae.MessageEntity;
 import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.service.SessionService;
@@ -58,8 +58,8 @@ public class MessageHandler extends TextWebSocketHandler {
         try {
             BaseRequest baseRequest = objectMapper.readValue(payload, BaseRequest.class);
 
-            if (baseRequest instanceof MessageRequest messageRequest) {
-                Message receivedMessage = new Message(messageRequest.getUsername(), messageRequest.getContent());
+            if (baseRequest instanceof WriteMessageRequest writeMessageRequest) {
+                Message receivedMessage = new Message(writeMessageRequest.getUsername(), writeMessageRequest.getContent());
                 messageRepository.save(new MessageEntity(receivedMessage.username(), receivedMessage.content()));
                 sessionManager.getSessions().stream()
                         .filter(not(session -> session.getId().equals(senderSession.getId())))

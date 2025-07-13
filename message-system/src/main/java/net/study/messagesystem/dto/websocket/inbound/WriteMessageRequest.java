@@ -6,17 +6,17 @@ import lombok.Getter;
 import net.study.messagesystem.constant.MessageType;
 
 @Getter
-public class MessageRequest extends BaseRequest {
+public class WriteMessageRequest extends BaseRequest {
 
     private final String username;
     private final String content;
 
     @JsonCreator
-    public MessageRequest(
+    public WriteMessageRequest(
             @JsonProperty("username") String username,
             @JsonProperty("content") String content
     ) {
-        super(MessageType.MESSAGE);
+        super(MessageType.WRITE_MESSAGE );
         this.username = username;
         this.content = content;
     }
