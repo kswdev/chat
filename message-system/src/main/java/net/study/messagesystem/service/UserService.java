@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.dto.user.InviteCode;
 import net.study.messagesystem.dto.user.UserId;
 import net.study.messagesystem.dto.projection.UsernameProjection;
-import net.study.messagesystem.dto.user.UserIdName;
+import net.study.messagesystem.dto.user.User;
 import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,9 +29,9 @@ public class UserService {
                 .map(UsernameProjection::getUsername);
     }
 
-    public Optional<UserIdName> getUserIdName(InviteCode inviteCode) {
+    public Optional<User> getUserIdName(InviteCode inviteCode) {
         return userRepository.findByConnectionInviteCode(inviteCode.code())
-                .map(user -> new UserIdName(user.getUserId(), user.getUsername()));
+                .map(user -> new User(new UserId(user.getUserId()), user.getUsername()));
     }
 
 
