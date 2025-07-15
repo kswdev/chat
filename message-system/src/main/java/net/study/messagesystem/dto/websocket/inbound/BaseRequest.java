@@ -7,8 +7,9 @@ import net.study.messagesystem.constant.MessageType;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = WriteMessageRequest.class, name = MessageType.MESSAGE),
+        @JsonSubTypes.Type(value = WriteMessageRequest.class, name = MessageType.WRITE_MESSAGE),
         @JsonSubTypes.Type(value = KeepAliveRequest.class, name = MessageType.KEEP_ALIVE),
+        @JsonSubTypes.Type(value = InviteRequest.class, name = MessageType.INVITE_REQUEST)
 })
 public abstract class BaseRequest {
     @Getter private final String type;
@@ -17,3 +18,4 @@ public abstract class BaseRequest {
         this.type = type;
     }
 }
+
