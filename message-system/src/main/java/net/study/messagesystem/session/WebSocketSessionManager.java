@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.dto.message.Message;
 import net.study.messagesystem.dto.user.UserId;
+import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingConsumer;
@@ -24,7 +25,7 @@ public class WebSocketSessionManager {
     private final Map<UserId, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final JsonUtil jsonUtil;
 
-    public void sendMessage(WebSocketSession session, Message message) {
+    public void sendMessage(WebSocketSession session, BaseMessage message) {
         jsonUtil.toJson(message).ifPresent(msg -> {
             try {
                 session.sendMessage(new TextMessage(msg));

@@ -1,8 +1,8 @@
 package net.study.messagesystem.handler.websocket;
 
 import lombok.RequiredArgsConstructor;
-import net.study.messagesystem.dto.message.Message;
 import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest;
+import net.study.messagesystem.dto.websocket.outbound.MessageNotification;
 import net.study.messagesystem.entity.messae.MessageEntity;
 import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.session.WebSocketSessionManager;
@@ -20,8 +20,8 @@ public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessa
 
     @Override
     public void handleRequest(WebSocketSession senderSession, WriteMessageRequest request) {
-        Message receivedMessage = new Message(request.getUsername(), request.getContent());
-        messageRepository.save(new MessageEntity(receivedMessage.username(), receivedMessage.content()));
+        MessageNotification receivedMessage = new MessageNotification(request.getUsername(), request.getContent());
+        messageRepository.save(new MessageEntity(receivedMessage.getUsername(), receivedMessage.getContent()));
         sessionManager.getSessions().stream()
                 .filter(not(session -> session.getId().equals(senderSession.getId())))
                 .forEach(participantSession -> sessionManager.sendMessage(participantSession, receivedMessage));
