@@ -5,6 +5,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.Constants;
+import net.study.messagesystem.dto.user.UserId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -45,7 +46,7 @@ public class CustomHttpSessionHandshakeInterceptor extends HttpSessionHandshakeI
         }
 
         attributes.put(Constants.HTTP_SESSION_ID.getValue(), sessionOpt.get().getId());
-        attributes.put(Constants.USER_ID.getValue(), userIdOpt.get());
+        attributes.put(Constants.USER_ID.getValue(), new UserId(userIdOpt.get()));
         return true;
     }
 
