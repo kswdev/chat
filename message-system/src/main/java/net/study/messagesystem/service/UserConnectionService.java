@@ -42,8 +42,8 @@ public class UserConnectionService {
 
         return switch (connectionStatus) {
             case NONE, DISCONNECTED -> handleInvite(inviterUserId, partnerUserId);
-            case PENDING, REJECTED -> handleAlreadyInvite(inviterUserId, partnerUsername);
-            case CONNECTED -> Pair.of(Optional.empty(), "Already connected with " + partnerUsername);
+            case PENDING, REJECTED  -> Pair.of(Optional.of(partnerUserId), "Already Invited to " + partnerUsername);
+            case CONNECTED          -> Pair.of(Optional.of(partnerUserId), "Already connected with " + partnerUsername);
         };
     }
 
@@ -73,10 +73,5 @@ public class UserConnectionService {
         userConnectionRepository.save(userConnection);
 
         return Pair.of(Optional.of(partnerUserId), username.get());
-    }
-
-    private Pair<Optional<UserId>, String> handleAlreadyInvite(UserId inviterUserId, String partnerUsername) {
-        log.warn("Invite user: {} to: {}, but does not deliver request", inviterUserId, partnerUsername);
-        return Pair.of(Optional.empty(), "Invite user failed");
     }
 }
