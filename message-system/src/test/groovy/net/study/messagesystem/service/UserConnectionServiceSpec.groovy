@@ -20,7 +20,7 @@ class UserConnectionServiceSpec extends Specification {
         userService.getUserIdName(inviteCodeOfTargetUser) >> Optional.of(new User(targetUserId, targetUsername))
         userService.getUsername(senderUserId) >> Optional.of(senderUsername)
 
-        userConnectionRepository.findByPartnerAUserIdAndPartnerBUserId(_ as Long, _ as Long) >> {
+        userConnectionRepository.findUserConnectionStatusByPartnerAUserIdAndPartnerBUserId(_ as Long, _ as Long) >> {
             Optional.of(Stub(UserConnectionStatusProjection) {
                 getStatus() >> beforeConnectionStatus.name()
             })
@@ -36,7 +36,7 @@ class UserConnectionServiceSpec extends Specification {
         scenario              | senderUserId  | senderUsername | targetUserId  | targetUsername | inviteCodeOfTargetUser      | usedInviteCode              | beforeConnectionStatus            | expectedResult
         'Valid invite code'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.NONE         | Pair.of(Optional.of(new UserId(2)), 'userA')
         'Valid invite code'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.DISCONNECTED | Pair.of(Optional.of(new UserId(2)), 'userA')
-        'Already connected'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.CONNECTED    | Pair.of(Optional.of(new UserId(2)), "Already connected with " + targetUsername)
+        'Already connected'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.ACCEPTED | Pair.of(Optional.of(new UserId(2)), "Already connected with " + targetUsername)
         'Already Invited'     | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.PENDING      | Pair.of(Optional.of(new UserId(2)), "Already Invited to " + targetUsername);
         'Reject Invited'      | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.REJECTED     | Pair.of(Optional.of(new UserId(2)), "Already Invited to " + targetUsername);
         'Invalid invite code' | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('nobody')    | new InviteCode('user2Code') | UserConnectionStatus.NONE         | Pair.of(Optional.empty(), "User not found");

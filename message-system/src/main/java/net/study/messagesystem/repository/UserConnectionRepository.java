@@ -13,8 +13,8 @@ import java.util.Optional;
 @Repository
 public interface UserConnectionRepository extends JpaRepository<UserConnectionEntity, UserConnectionId> {
 
-    Optional<UserConnectionStatusProjection> findByPartnerAUserIdAndPartnerBUserId(Long userIdA, Long userIdB);
-    Optional<UserConnectionStatusProjection> findByPartnerAUserIdAndPartnerBUserIdAndStatus(Long userIdA, Long userIdB, UserConnectionStatus status);
+    Optional<UserConnectionStatusProjection> findUserConnectionStatusByPartnerAUserIdAndPartnerBUserId(Long userIdA, Long userIdB);
+    Optional<UserConnectionEntity> findByPartnerAUserIdAndPartnerBUserIdAndStatus(Long userIdA, Long userIdB, UserConnectionStatus status);
 
     Optional<InviterUserIdProjection> findInviterUserIdByPartnerAUserIdAndPartnerAUserId(Long partnerAUserId, Long partnerAUserId1);
 }
