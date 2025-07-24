@@ -85,7 +85,7 @@ class MessageHandlerSpec extends Specification {
         headers.add("Content-type", "application/json")
         headers.add("Cookie", "SESSION=${sessionId}")
         def httpEntity = new HttpEntity(headers)
-        def responseEntity = new RestTemplate().exchange(url, HttpMethod.DELETE, httpEntity, String)
+        def responseEntity = new RestTemplate().exchange(url, HttpMethod.POST, httpEntity, String)
         responseEntity.body
     }
 

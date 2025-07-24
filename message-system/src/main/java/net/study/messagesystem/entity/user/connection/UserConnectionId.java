@@ -6,11 +6,11 @@ import java.io.Serializable;
 
 @Getter
 @ToString
-@EqualsAndHashCode(of = {"partnerAUserId", "partnerBUserId"})
+@EqualsAndHashCode(of = {"partnerAUser", "partnerBUser"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserConnectionId implements Serializable {
 
-    private Long partnerAUserId;
-    private Long partnerBUserId;
+    private Long partnerAUser;
+    private Long partnerBUser;
 }

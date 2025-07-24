@@ -5,6 +5,7 @@ import net.study.messagesystem.dto.projection.UserConnectionStatusProjection
 import net.study.messagesystem.dto.user.InviteCode
 import net.study.messagesystem.dto.user.User
 import net.study.messagesystem.dto.user.UserId
+import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.repository.UserConnectionRepository
 import org.springframework.data.util.Pair
 import spock.lang.Specification
@@ -13,14 +14,16 @@ class UserConnectionServiceSpec extends Specification {
 
     private final UserService userService = Stub()
     private final UserConnectionRepository userConnectionRepository = Stub()
-    private final UserConnectionService userConnectionService = new UserConnectionService(userService, userConnectionRepository)
+    private final UserConnectionLimitService userConnectionLimitService = Stub();
+    private final UserConnectionService userConnectionService = new UserConnectionService(userService, userConnectionLimitService, userConnectionRepository)
 
     def "사용자 연결 신청에 대한 테스트"() {
         given:
         userService.getUserIdName(inviteCodeOfTargetUser) >> Optional.of(new User(targetUserId, targetUsername))
         userService.getUsername(senderUserId) >> Optional.of(senderUsername)
-
-        userConnectionRepository.findUserConnectionStatusByPartnerAUserIdAndPartnerBUserId(_ as Long, _ as Long) >> {
+        userService.getUserReference(senderUserId) >> UserEntity.testUser(senderUserId.id())
+        userService.getUserReference(targetUserId) >> UserEntity.testUser(targetUserId.id())
+        userConnectionRepository.findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(_ as Long, _ as Long) >> {
             Optional.of(Stub(UserConnectionStatusProjection) {
                 getStatus() >> beforeConnectionStatus.name()
             })
@@ -36,7 +39,7 @@ class UserConnectionServiceSpec extends Specification {
         scenario              | senderUserId  | senderUsername | targetUserId  | targetUsername | inviteCodeOfTargetUser      | usedInviteCode              | beforeConnectionStatus            | expectedResult
         'Valid invite code'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.NONE         | Pair.of(Optional.of(new UserId(2)), 'userA')
         'Valid invite code'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.DISCONNECTED | Pair.of(Optional.of(new UserId(2)), 'userA')
-        'Already connected'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.ACCEPTED | Pair.of(Optional.of(new UserId(2)), "Already connected with " + targetUsername)
+        'Already connected'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.ACCEPTED     | Pair.of(Optional.of(new UserId(2)), "Already connected with " + targetUsername)
         'Already Invited'     | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.PENDING      | Pair.of(Optional.of(new UserId(2)), "Already Invited to " + targetUsername);
         'Reject Invited'      | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.REJECTED     | Pair.of(Optional.of(new UserId(2)), "Already Invited to " + targetUsername);
         'Invalid invite code' | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('nobody')    | new InviteCode('user2Code') | UserConnectionStatus.NONE         | Pair.of(Optional.empty(), "User not found");

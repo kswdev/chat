@@ -3,24 +3,32 @@ package net.study.messagesystem.entity.user.connection;
 import jakarta.persistence.*;
 import lombok.*;
 import net.study.messagesystem.constant.UserConnectionStatus;
-import net.study.messagesystem.dto.user.UserId;
 import net.study.messagesystem.entity.BaseEntity;
+import net.study.messagesystem.entity.user.UserEntity;
+import org.springframework.data.util.Pair;
+
+@NamedEntityGraph(name = "UserConnectionEntity.withAll", attributeNodes = {
+        @NamedAttributeNode("partnerAUser"),
+        @NamedAttributeNode("partnerBUser")
+})
 
 @Getter
 @Entity @Table(name = "user_connection")
 @IdClass(UserConnectionId.class)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode(of = {"partnerAUserId", "partnerBUserId"}, callSuper = false)
+@EqualsAndHashCode(of = {"partnerAUser", "partnerBUser"}, callSuper = false)
 public class UserConnectionEntity extends BaseEntity {
 
     @Id
-    @Column(name = "partner_a_user_id")
-    private Long partnerAUserId;
+    @JoinColumn(name = "partner_a_user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private UserEntity partnerAUser;
 
     @Id
-    @Column(name = "partner_b_user_id")
-    private Long partnerBUserId;
+    @JoinColumn(name = "partner_b_user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private UserEntity partnerBUser;
 
     @Setter
     @Enumerated(EnumType.STRING)
@@ -30,12 +38,50 @@ public class UserConnectionEntity extends BaseEntity {
     @Column(name = "inviter_user_id", nullable = false)
     private Long inviterUserId;
 
-    public static UserConnectionEntity create(UserId firstUserId, UserId secondUserId, Long inviterUserId) {
+    @Transient
+    public final int LIMIT_CONNECTIONS = 1_000;
+
+    public static UserConnectionEntity create(UserEntity partnerAUser, UserEntity partnerBUser, Long inviterUserId) {
+        Pair<UserEntity, UserEntity> result = compareUsersById(partnerAUser, partnerBUser);
+
         return new UserConnectionEntity(
-                Math.min(firstUserId.id(), secondUserId.id()),
-                Math.max(firstUserId.id(), secondUserId.id()),
+                result.getFirst(),
+                result.getSecond(),
                 UserConnectionStatus.PENDING,
                 inviterUserId
         );
+    }
+
+    private static Pair<UserEntity, UserEntity> compareUsersById(UserEntity partnerAUser, UserEntity partnerBUser) {
+        if (partnerAUser.getUserId() < partnerBUser.getUserId()) {
+            return Pair.of(partnerAUser, partnerBUser);
+        } else {
+            return Pair.of(partnerBUser, partnerAUser);
+        }
+    }
+
+    public void connect() {
+        checkIfConnectionReachedLimit();
+        increaseConnectionCount();
+        status = UserConnectionStatus.ACCEPTED;
+    }
+
+    private void checkIfConnectionReachedLimit() {
+        if (partnerAUser.getConnectionCount() >= LIMIT_CONNECTIONS)
+            throw new IllegalStateException(getErrorMessage(partnerAUser.getUserId()));
+
+        if (partnerBUser.getConnectionCount() >= LIMIT_CONNECTIONS)
+            throw new IllegalStateException(getErrorMessage(partnerBUser.getUserId()));
+    }
+
+    private String getErrorMessage(Long userId) {
+        return userId.equals(inviterUserId)
+                ? "Connection limit reached by other user"
+                : "Connection limit reached";
+    }
+
+    private void increaseConnectionCount() {
+        partnerAUser.setConnectionCount(partnerAUser.getConnectionCount() + 1);
+        partnerBUser.setConnectionCount(partnerBUser.getConnectionCount() + 1);
     }
 }

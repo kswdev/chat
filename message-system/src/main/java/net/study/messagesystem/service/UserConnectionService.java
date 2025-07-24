@@ -8,6 +8,7 @@ import net.study.messagesystem.dto.projection.UserConnectionStatusProjection;
 import net.study.messagesystem.dto.user.InviteCode;
 import net.study.messagesystem.dto.user.UserId;
 import net.study.messagesystem.dto.user.User;
+import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity;
 import net.study.messagesystem.repository.UserConnectionRepository;
 import org.springframework.data.util.Pair;
@@ -95,7 +96,7 @@ public class UserConnectionService {
     }
 
     private Optional<UserId> getInviteUserId(UserId partnerAUserId, UserId partnerBUserId) {
-        return userConnectionRepository.findInviterUserIdByPartnerAUserIdAndPartnerAUserId(
+        return userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerAUser_userId(
                 Math.min(partnerAUserId.id(), partnerBUserId.id()),
                 Math.max(partnerAUserId.id(), partnerBUserId.id())
         ).map(inviterUserId -> new UserId(inviterUserId.getInviterUserId()));
@@ -103,7 +104,7 @@ public class UserConnectionService {
 
     private UserConnectionStatus getConnectionStatus(UserId inviterUserId, UserId partnerUserId) {
         return userConnectionRepository
-                .findUserConnectionStatusByPartnerAUserIdAndPartnerBUserId(
+                .findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(
                         Math.min(inviterUserId.id(), partnerUserId.id()),
                         Math.max(inviterUserId.id(), partnerUserId.id())
                 )
@@ -120,8 +121,11 @@ public class UserConnectionService {
             return Pair.of(Optional.empty(), "User not found");
         }
 
+        UserEntity inviter = userService.getUserReference(inviterUserId);
+        UserEntity partner = userService.getUserReference(partnerUserId);
+
         UserConnectionEntity userConnection = UserConnectionEntity.create(
-                inviterUserId, partnerUserId, inviterUserId.id()
+                inviter, partner, inviterUserId.id()
         );
 
         userConnectionRepository.save(userConnection);

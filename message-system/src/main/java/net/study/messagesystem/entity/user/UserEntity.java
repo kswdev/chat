@@ -1,9 +1,7 @@
 package net.study.messagesystem.entity.user;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import net.study.messagesystem.entity.BaseEntity;
 
 import java.util.Objects;
@@ -13,6 +11,9 @@ import java.util.UUID;
 @ToString
 @Entity
 @Table(name = "user")
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = {"userId"}, callSuper = false)
 public class UserEntity extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,23 +33,15 @@ public class UserEntity extends BaseEntity {
     @Column(name = "connection_count", nullable = false)
     private int connectionCount;
 
-    public UserEntity() {}
-
     public UserEntity(String username, String password) {
         this.username = username;
         this.password = password;
         this.connectionInviteCode = UUID.randomUUID().toString().replace("-", "");
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        UserEntity that = (UserEntity) o;
-        return Objects.equals(userId, that.userId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(userId);
+    public static UserEntity testUser(Long userId) {
+        UserEntity user = new UserEntity();
+        user.userId = userId;
+        return user;
     }
 }

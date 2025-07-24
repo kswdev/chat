@@ -38,6 +38,10 @@ public class UserService {
                 .map(user -> new UserId(user.getUserId()));
     }
 
+    public UserEntity getUserReference(UserId userId) {
+        return userRepository.getReferenceById(userId.id());
+    }
+
     @Transactional
     public UserId addUser(String username, String password) {
         UserEntity savedUser = userRepository.save(new UserEntity(username, passwordEncoder.encode(password)));
