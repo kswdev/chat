@@ -32,6 +32,15 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(Optional.empty(), "Cannot invite self"));
     }
 
+    public Pair<Optional<UserId>, String> accept(UserId accepterUserId, String inviterUsername) {
+        return getInviterUserId(inviterUsername)
+                .filter(inviterUserId -> isNotAcceptSameUser(accepterUserId, inviterUserId))
+                .filter(inviterUserId -> isValidInvitation(accepterUserId, inviterUserId))
+                .filter(inviterUserId -> isPendingStatus(accepterUserId, inviterUserId))
+                .flatMap(inviterUserId -> tryConnect(accepterUserId, inviterUserId))
+                .orElseGet(() -> Pair.of(Optional.empty(), "accept failed."));
+    }
+
     private boolean isNotInviteSameUser(UserId inviterUserId, UserId partnerUserId) {
         if (inviterUserId.equals(partnerUserId)) {
             log.warn("User tried to invite themselves: {}", inviterUserId);
@@ -58,15 +67,6 @@ public class UserConnectionService {
         };
     }
 
-    public Pair<Optional<UserId>, String> accept(UserId accepterUserId, String inviterUsername) {
-        return getInviterUserId(inviterUsername)
-                .filter(inviterUserId -> isNotAcceptSameUser(accepterUserId, inviterUserId))
-                .filter(inviterUserId -> isValidInvitation(accepterUserId, inviterUserId))
-                .filter(inviterUserId -> isPendingStatus(inviterUserId, accepterUserId))
-                .flatMap(inviterUserId -> tryConnect(accepterUserId, inviterUserId))
-                .orElseGet(() -> Pair.of(Optional.empty(), "accept failed"));
-    }
-
     private Optional<UserId> getInviterUserId(String inviterUsername) {
         return userService.getUserId(inviterUsername)
                 .or(() -> {
@@ -84,15 +84,15 @@ public class UserConnectionService {
     }
 
     private boolean isValidInvitation(UserId accepterUserId, UserId inviterUserId) {
-        return getInviteUserId(accepterUserId, inviterUserId)
+        return getInviterUserId(accepterUserId, inviterUserId)
                 .filter(invitationSenderUserId -> invitationSenderUserId.equals(inviterUserId))
                 .isPresent();
     }
 
-    private boolean isPendingStatus(UserId inviterUserId, UserId accepterUserId) {
-        UserConnectionStatus status = getConnectionStatus(inviterUserId, accepterUserId);
+    private boolean isPendingStatus(UserId accepterUserId, UserId inviterUserId) {
+        UserConnectionStatus status = getConnectionStatus(accepterUserId, inviterUserId);
         if (status == UserConnectionStatus.ACCEPTED) {
-            log.warn("Already connected: {} <-> {}", inviterUserId, accepterUserId);
+            log.warn("Already connected.");
             return false;
         }
         return status == UserConnectionStatus.PENDING;
@@ -116,7 +116,7 @@ public class UserConnectionService {
         }
     }
 
-    private Optional<UserId> getInviteUserId(UserId partnerAUserId, UserId partnerBUserId) {
+    private Optional<UserId> getInviterUserId(UserId partnerAUserId, UserId partnerBUserId) {
         return userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerAUser_userId(
                 Math.min(partnerAUserId.id(), partnerBUserId.id()),
                 Math.max(partnerAUserId.id(), partnerBUserId.id())

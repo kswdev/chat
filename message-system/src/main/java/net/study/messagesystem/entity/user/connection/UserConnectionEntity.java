@@ -52,18 +52,28 @@ public class UserConnectionEntity extends BaseEntity {
         );
     }
 
-    private static Pair<UserEntity, UserEntity> compareUsersById(UserEntity partnerAUser, UserEntity partnerBUser) {
-        if (partnerAUser.getUserId() < partnerBUser.getUserId()) {
-            return Pair.of(partnerAUser, partnerBUser);
-        } else {
-            return Pair.of(partnerBUser, partnerAUser);
-        }
+    public static UserConnectionEntity testConnection(UserEntity partnerAUser, UserEntity partnerBUser, UserConnectionStatus userConnectionStatus, Long inviterUserId) {
+        Pair<UserEntity, UserEntity> result = compareUsersById(partnerAUser, partnerBUser);
+        return new UserConnectionEntity(
+                result.getFirst(),
+                result.getSecond(),
+                userConnectionStatus,
+                inviterUserId
+        );
     }
 
     public void connect() {
         checkIfConnectionReachedLimit();
         increaseConnectionCount();
         status = UserConnectionStatus.ACCEPTED;
+    }
+
+    private static Pair<UserEntity, UserEntity> compareUsersById(UserEntity partnerAUser, UserEntity partnerBUser) {
+        if (partnerAUser.getUserId() < partnerBUser.getUserId()) {
+            return Pair.of(partnerAUser, partnerBUser);
+        } else {
+            return Pair.of(partnerBUser, partnerAUser);
+        }
     }
 
     private void checkIfConnectionReachedLimit() {
