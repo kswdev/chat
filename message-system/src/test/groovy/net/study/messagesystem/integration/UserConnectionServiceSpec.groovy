@@ -27,7 +27,7 @@ class UserConnectionServiceSpec extends Specification {
 
     def "연결 요청 수락은 연결 제한 수를 넘길 수 없다."() {
         given:
-        (0..19).collect{
+        (0..19).each{
             def entity = new UserEntity("testUser${it}", "testPass")
             userRepository.save(entity)
         }
@@ -35,7 +35,7 @@ class UserConnectionServiceSpec extends Specification {
         def userIdA = userService.getUserId("testUser0").get()
         def inviteCodeA = userService.getInviteCode(userIdA).get()
 
-        (1..9).collect{
+        (1..9).each{
             userConnectionService.invite(userService.getUserId("testUser${it}").get(), inviteCodeA)
             userConnectionService.accept(userIdA, "testUser${it}")
         }
@@ -62,7 +62,7 @@ class UserConnectionServiceSpec extends Specification {
         results.count{it.isPresent()} == 1
 
         cleanup:
-        (0..19).collect {
+        (0..19).each {
             def userId = userService.getUserId("testUser${it}").get()
             userRepository.deleteById(userId.id())
         }
