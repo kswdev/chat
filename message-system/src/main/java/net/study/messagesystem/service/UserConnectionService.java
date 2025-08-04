@@ -51,7 +51,7 @@ public class UserConnectionService {
                 .map(inviterUserId -> {
                     try {
                         reject(rejecterUserId, inviterUserId);
-                        return Pair.of(true, inviterUsername.get());
+                        return Pair.of(true, inviterUsername);
                     } catch (Exception ex) {
                         log.error("reject failed. cause: {}", ex.getMessage());
                         return Pair.of(false, "Reject failed.");
