@@ -38,8 +38,16 @@ public class UserConnectionEntity extends BaseEntity {
     @Column(name = "inviter_user_id", nullable = false)
     private Long inviterUserId;
 
+    @Setter
     @Transient
-    public final int LIMIT_CONNECTIONS = 1_000;
+    public int LIMIT_CONNECTIONS = 1_0;
+
+    public UserConnectionEntity(UserEntity partnerAUser, UserEntity partnerBUser, UserConnectionStatus status, Long inviterUserId) {
+        this.partnerAUser = partnerAUser;
+        this.partnerBUser = partnerBUser;
+        this.status = status;
+        this.inviterUserId = inviterUserId;
+    }
 
     public static UserConnectionEntity create(UserEntity partnerAUser, UserEntity partnerBUser, Long inviterUserId) {
         Pair<UserEntity, UserEntity> result = compareUsersById(partnerAUser, partnerBUser);

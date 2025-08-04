@@ -117,7 +117,7 @@ public class UserConnectionService {
     }
 
     private Optional<UserId> getInviterUserId(UserId partnerAUserId, UserId partnerBUserId) {
-        return userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerAUser_userId(
+        return userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(
                 Math.min(partnerAUserId.id(), partnerBUserId.id()),
                 Math.max(partnerAUserId.id(), partnerBUserId.id())
         ).map(inviterUserId -> new UserId(inviterUserId.getInviterUserId()));
