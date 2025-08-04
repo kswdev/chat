@@ -2,6 +2,7 @@ package net.study.messagesystem.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.study.messagesystem.dto.projection.ConnectionCountProjection;
 import net.study.messagesystem.dto.projection.InviteCodeProjection;
 import net.study.messagesystem.dto.projection.UsernameProjection;
 import net.study.messagesystem.dto.user.InviteCode;
@@ -27,6 +28,11 @@ public class UserService {
     public Optional<String> getUsername(UserId userId) {
         return userRepository.findByUserId(userId.id())
                 .map(UsernameProjection::getUsername);
+    }
+
+    public Optional<Long> getConnectionCount(UserId userId) {
+        return userRepository.findCountByUserId(userId.id())
+                .map(ConnectionCountProjection::getConnectionCount);
     }
 
     public Optional<InviteCode> getInviteCode(UserId userId) {

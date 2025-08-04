@@ -1,6 +1,7 @@
 package net.study.messagesystem.repository;
 
 import jakarta.persistence.LockModeType;
+import net.study.messagesystem.dto.projection.ConnectionCountProjection;
 import net.study.messagesystem.dto.projection.InviteCodeProjection;
 import net.study.messagesystem.dto.projection.UsernameProjection;
 import net.study.messagesystem.entity.user.UserEntity;
@@ -13,10 +14,15 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsername(String username);
+
     Optional<UserEntity> findByConnectionInviteCode(String connectionInviteCode);
 
     Optional<UsernameProjection> findByUserId(Long userId);
+
     Optional<InviteCodeProjection> findInviteCodeByUserId(Long userId);
+
+    Optional<ConnectionCountProjection> findCountByUserId(Long userId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<UserEntity> findForUpdateByUserId(Long userId);
 }
