@@ -7,6 +7,8 @@ public class MessageType {
     public static final String INVITE_RESPONSE = "INVITE_RESPONSE";
     public static final String ACCEPT_REQUEST = "ACCEPT_REQUEST";
     public static final String ACCEPT_RESPONSE = "ACCEPT_RESPONSE";
+    public static final String REJECT_REQUEST = "REJECT_REQUEST";
+    public static final String REJECT_RESPONSE = "REJECT_RESPONSE";
     public static final String WRITE_MESSAGE = "WRITE_MESSAGE";
 
     // Notification

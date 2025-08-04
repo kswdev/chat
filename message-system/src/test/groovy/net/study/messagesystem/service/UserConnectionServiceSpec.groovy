@@ -17,8 +17,7 @@ class UserConnectionServiceSpec extends Specification {
     private final UserService userService = Stub()
     private final UserConnectionRepository userConnectionRepository = Stub()
 
-    private final UserConnectionLimitService userConnectionLimitService = new UserConnectionLimitService(userConnectionRepository);
-    private final UserConnectionService userConnectionService = new UserConnectionService(userService, userConnectionLimitService, userConnectionRepository)
+    private final UserConnectionService userConnectionService = new UserConnectionService(userService, userConnectionRepository)
 
     def "사용자 연결 신청에 대한 테스트"() {
         given:

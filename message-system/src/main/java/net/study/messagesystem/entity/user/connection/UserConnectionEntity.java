@@ -102,4 +102,8 @@ public class UserConnectionEntity extends BaseEntity {
         partnerAUser.setConnectionCount(partnerAUser.getConnectionCount() + 1);
         partnerBUser.setConnectionCount(partnerBUser.getConnectionCount() + 1);
     }
+
+    public void reject() {
+        status = UserConnectionStatus.REJECTED;
+    }
 }

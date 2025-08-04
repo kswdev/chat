@@ -6,7 +6,6 @@ import net.study.messagesystem.dto.user.UserId
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.repository.UserConnectionRepository
 import net.study.messagesystem.repository.UserRepository
-import net.study.messagesystem.service.UserConnectionLimitService
 import net.study.messagesystem.service.UserConnectionService
 import net.study.messagesystem.service.UserService
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,6 @@ class UserConnectionServiceSpec extends Specification {
 
     @Autowired private UserService userService
     @Autowired private UserConnectionService userConnectionService
-    @Autowired private UserConnectionLimitService userConnectionLimitService
     @Autowired private UserRepository userRepository
     @Autowired private UserConnectionRepository userConnectionRepository
 
