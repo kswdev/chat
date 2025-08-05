@@ -28,9 +28,9 @@ public class UserConnectionService {
     @Transactional
     public Pair<Optional<UserId>, String> invite(UserId inviterUserId, InviteCode inviteCode) {
         return getInviterUser(inviteCode)
-                .filter(partner -> isNotSameUser(inviterUserId, partner.userId()) )
+                .filter(partner -> isNotSameUser(inviterUserId, partner.userId()))
                 .flatMap(partner -> tryInvite(inviterUserId, partner))
-                .orElseGet(() -> Pair.of(Optional.empty(), "Cannot invite self"));
+                .orElseGet(() -> Pair.of(Optional.empty(), "Invite failed."));
     }
 
     @Transactional

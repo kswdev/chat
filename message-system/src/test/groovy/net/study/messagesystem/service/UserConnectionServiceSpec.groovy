@@ -44,8 +44,8 @@ class UserConnectionServiceSpec extends Specification {
         'Already connected'   | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.ACCEPTED     | Pair.of(Optional.of(new UserId(2)), "Already connected with " + targetUsername)
         'Already Invited'     | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.PENDING      | Pair.of(Optional.of(new UserId(2)), "Already Invited to " + targetUsername);
         'Reject Invited'      | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('user2Code') | new InviteCode('user2Code') | UserConnectionStatus.REJECTED     | Pair.of(Optional.of(new UserId(2)), "Already Invited to " + targetUsername);
-        'Invalid invite code' | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('nobody')    | new InviteCode('user2Code') | UserConnectionStatus.NONE         | Pair.of(Optional.empty(), "User not found");
-        'Self Invite'         | new UserId(1) | 'userA'        | new UserId(1) | 'userB'        | new InviteCode('user1Code') | new InviteCode('user1Code') | UserConnectionStatus.NONE         | Pair.of(Optional.empty(), "Cannot invite self");
+        'Invalid invite code' | new UserId(1) | 'userA'        | new UserId(2) | 'userB'        | new InviteCode('nobody')    | new InviteCode('user2Code') | UserConnectionStatus.NONE         | Pair.of(Optional.empty(), "Invite failed.");
+        'Self Invite'         | new UserId(1) | 'userA'        | new UserId(1) | 'userB'        | new InviteCode('user1Code') | new InviteCode('user1Code') | UserConnectionStatus.NONE         | Pair.of(Optional.empty(), "Invite failed.");
     }
 
     def "사용자 연결 신청에 대한 요청 수락 테스트"() {
@@ -53,7 +53,7 @@ class UserConnectionServiceSpec extends Specification {
         userService.getUserId(inviterUsername) >> Optional.of(inviterUserId)
         userService.getUsername(accepterUserId) >> Optional.of(accepterUsername)
 
-        userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerAUser_userId(
+        userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(
                 Math.min(inviterUserId.id(), accepterUserId.id()),
                 Math.max(inviterUserId.id(), accepterUserId.id())
         ) >> Optional.of(Stub(InviterUserIdProjection) {
