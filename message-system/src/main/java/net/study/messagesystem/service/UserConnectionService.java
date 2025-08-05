@@ -27,7 +27,7 @@ public class UserConnectionService {
 
     @Transactional
     public Pair<Optional<UserId>, String> invite(UserId inviterUserId, InviteCode inviteCode) {
-        return getInviterUser(inviteCode)
+        return userService.getUserIdName(inviteCode).or(Optional::empty)
                 .filter(partner -> isNotSameUser(inviterUserId, partner.userId()))
                 .flatMap(partner -> tryInvite(inviterUserId, partner))
                 .orElseGet(() -> Pair.of(Optional.empty(), "Invite failed."));
@@ -35,7 +35,7 @@ public class UserConnectionService {
 
     @Transactional
     public Pair<Optional<UserId>, String> accept(UserId accepterUserId, String inviterUsername) {
-        return getTargetUser(inviterUsername)
+        return userService.getUserId(inviterUsername).or(Optional::empty)
                 .filter(inviterUserId -> isNotSameUser(accepterUserId, inviterUserId))
                 .filter(inviterUserId -> isValidInvitation(accepterUserId, inviterUserId))
                 .filter(inviterUserId -> isPendingStatus(accepterUserId, inviterUserId))
@@ -48,16 +48,8 @@ public class UserConnectionService {
                 .filter(inviterUserId -> isNotSameUser(rejecterUserId, inviterUserId))
                 .filter(inviterUserId -> isValidInvitation(rejecterUserId, inviterUserId))
                 .filter(inviterUserId -> isPendingStatus(rejecterUserId, inviterUserId))
-                .map(inviterUserId -> {
-                    try {
-                        reject(rejecterUserId, inviterUserId);
-                        return Pair.of(true, inviterUsername);
-                    } catch (Exception ex) {
-                        log.error("reject failed. cause: {}", ex.getMessage());
-                        return Pair.of(false, "Reject failed.");
-                    }
-                })
-                .orElse(Pair.of(false, "Reject failed"));
+                .map(inviterUserId -> tryReject(rejecterUserId, inviterUserId, inviterUsername))
+                .orElseGet(() -> Pair.of(false, "Reject failed"));
     }
 
     private boolean isNotSameUser(UserId userId1, UserId userId2) {
@@ -68,15 +60,6 @@ public class UserConnectionService {
         return true;
     }
 
-
-    private Optional<User> getInviterUser(InviteCode inviteCode) {
-        return userService.getUserIdName(inviteCode)
-                .or(() -> {
-                    log.warn("User not found: {}", inviteCode.code());
-                    return Optional.empty();
-                });
-    }
-
     private Optional<Pair<Optional<UserId>, String>> tryInvite(UserId inviterUserId, User partner) {
         UserConnectionStatus connectionStatus = getConnectionStatus(inviterUserId, partner.userId());
 
@@ -85,14 +68,6 @@ public class UserConnectionService {
             case PENDING, REJECTED  -> Optional.of(Pair.of(Optional.of(partner.userId()), "Already Invited to " + partner.username()));
             case ACCEPTED           -> Optional.of(Pair.of(Optional.of(partner.userId()), "Already connected with " + partner.username()));
         };
-    }
-
-    private Optional<UserId> getTargetUser(String username) {
-        return userService.getUserId(username)
-                .or(() -> {
-                    log.warn("Invalid username: {}", username);
-                    return Optional.empty();
-                });
     }
 
     private boolean isValidInvitation(UserId accepterUserId, UserId inviterUserId) {
@@ -110,10 +85,6 @@ public class UserConnectionService {
 
     private boolean isPendingStatus(UserId accepterUserId, UserId inviterUserId) {
         UserConnectionStatus status = getConnectionStatus(accepterUserId, inviterUserId);
-        if (status == UserConnectionStatus.ACCEPTED) {
-            log.warn("Already connected.");
-            return false;
-        }
         return status == UserConnectionStatus.PENDING;
     }
 
@@ -166,6 +137,16 @@ public class UserConnectionService {
         }
     }
 
+    private Pair<Boolean, String> tryReject(UserId rejecterUserId, UserId inviterUserId, String inviterUsername) {
+        try {
+            reject(rejecterUserId, inviterUserId);
+            return Pair.of(true, inviterUsername);
+        } catch (Exception ex) {
+            log.error("reject failed. cause: {}", ex.getMessage());
+            return Pair.of(false, "Reject failed.");
+        }
+    }
+
     private void connect(UserId accepterUserId, UserId inviterUserId) {
         UserConnectionEntity connectionEntity = getConnectionEntity(accepterUserId, inviterUserId, UserConnectionStatus.PENDING);
         connectionEntity.connect();
@@ -181,7 +162,7 @@ public class UserConnectionService {
         Long secondUserId = Math.max(accepterUserId.id(), inviterUserId.id());
 
         return userConnectionRepository
-                .findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(firstUserId, secondUserId, UserConnectionStatus.PENDING)
+                .findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(firstUserId, secondUserId, status)
                 .orElseThrow(() -> new EntityNotFoundException("Invalid status"));
     }
 }
