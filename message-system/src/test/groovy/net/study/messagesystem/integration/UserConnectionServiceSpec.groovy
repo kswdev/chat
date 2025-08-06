@@ -2,7 +2,7 @@ package net.study.messagesystem.integration
 
 import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.MessageSystemApplication
-import net.study.messagesystem.dto.user.UserId
+import net.study.messagesystem.dto.domain.user.UserId
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.repository.UserConnectionRepository
 import net.study.messagesystem.repository.UserRepository

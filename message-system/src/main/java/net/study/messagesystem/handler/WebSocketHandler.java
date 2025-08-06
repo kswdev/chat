@@ -4,7 +4,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.Constants;
-import net.study.messagesystem.dto.user.UserId;
+import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
 import net.study.messagesystem.handler.websocket.RequestHandlerDispatcher;
 import net.study.messagesystem.session.WebSocketSessionManager;

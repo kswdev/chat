@@ -3,7 +3,7 @@ package net.study.messagesystem.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.dto.signup.SignUpRequest;
+import net.study.messagesystem.dto.rest.signup.SignUpRequest;
 import net.study.messagesystem.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

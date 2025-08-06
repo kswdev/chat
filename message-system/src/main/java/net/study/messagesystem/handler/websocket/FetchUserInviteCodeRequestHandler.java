@@ -4,23 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.Constants;
 import net.study.messagesystem.constant.MessageType;
-import net.study.messagesystem.constant.UserConnectionStatus;
-import net.study.messagesystem.dto.user.InviteCode;
-import net.study.messagesystem.dto.user.UserId;
+import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.FetchUserInviteCodeRequest;
-import net.study.messagesystem.dto.websocket.inbound.InviteRequest;
 import net.study.messagesystem.dto.websocket.outbound.ErrorResponse;
 import net.study.messagesystem.dto.websocket.outbound.FetchUserInviteCodeResponse;
-import net.study.messagesystem.dto.websocket.outbound.InviteNotification;
-import net.study.messagesystem.dto.websocket.outbound.InviteResponse;
-import net.study.messagesystem.service.UserConnectionService;
 import net.study.messagesystem.service.UserService;
 import net.study.messagesystem.session.WebSocketSessionManager;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
-
-import java.util.Optional;
 
 @Slf4j
 @Component

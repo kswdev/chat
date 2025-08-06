@@ -1,4 +1,4 @@
-package net.study.messagesystem.dto.user;
+package net.study.messagesystem.dto.domain.user;
 
 public record User(UserId userId, String username) {
 }

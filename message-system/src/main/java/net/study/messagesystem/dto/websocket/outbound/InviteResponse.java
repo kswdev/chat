@@ -3,7 +3,7 @@ package net.study.messagesystem.dto.websocket.outbound;
 import lombok.Getter;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.constant.UserConnectionStatus;
-import net.study.messagesystem.dto.user.InviteCode;
+import net.study.messagesystem.dto.domain.user.InviteCode;
 
 @Getter
 public class InviteResponse extends BaseMessage{
