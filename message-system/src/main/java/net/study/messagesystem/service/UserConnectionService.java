@@ -77,10 +77,12 @@ public class UserConnectionService {
     }
 
     private Optional<UserId> getTargetUser(UserId partnerAUserId, UserId partnerBUserId) {
-        return userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(
-                Math.min(partnerAUserId.id(), partnerBUserId.id()),
-                Math.max(partnerAUserId.id(), partnerBUserId.id())
-        ).map(inviterUserId -> new UserId(inviterUserId.getInviterUserId()));
+        Pair<Long, Long> userIdAscending = getUserIdAscending(partnerAUserId, partnerBUserId);
+        Long firstUserId = userIdAscending.getFirst();
+        Long secondUserId = userIdAscending.getSecond();
+
+        return userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(firstUserId, secondUserId)
+                .map(inviterUserId -> new UserId(inviterUserId.getInviterUserId()));
     }
 
     private boolean isPendingStatus(UserId accepterUserId, UserId inviterUserId) {
@@ -89,11 +91,12 @@ public class UserConnectionService {
     }
 
     private UserConnectionStatus getConnectionStatus(UserId inviterUserId, UserId partnerUserId) {
+        Pair<Long, Long> userIdAscending = getUserIdAscending(inviterUserId, partnerUserId);
+        Long firstUserId = userIdAscending.getFirst();
+        Long secondUserId = userIdAscending.getSecond();
+
         return userConnectionRepository
-                .findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(
-                        Math.min(inviterUserId.id(), partnerUserId.id()),
-                        Math.max(inviterUserId.id(), partnerUserId.id())
-                )
+                .findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(firstUserId, secondUserId)
                 .map(UserConnectionStatusProjection::getStatus)
                 .map(UserConnectionStatus::valueOf)
                 .orElse(UserConnectionStatus.NONE);
@@ -158,11 +161,17 @@ public class UserConnectionService {
     }
 
     private UserConnectionEntity getConnectionEntity(UserId accepterUserId, UserId inviterUserId, UserConnectionStatus status) {
-        Long firstUserId = Math.min(accepterUserId.id(), inviterUserId.id());
-        Long secondUserId = Math.max(accepterUserId.id(), inviterUserId.id());
+        Pair<Long, Long> userIdAscending = getUserIdAscending(accepterUserId, inviterUserId);
+        Long firstUserId = userIdAscending.getFirst();
+        Long secondUserId = userIdAscending.getSecond();
 
         return userConnectionRepository
                 .findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(firstUserId, secondUserId, status)
                 .orElseThrow(() -> new EntityNotFoundException("Invalid status"));
+    }
+
+    private Pair<Long, Long> getUserIdAscending(UserId userAId, UserId userBId) {
+        return Pair.of(Math.min(userAId.id(), userBId.id()),
+                       Math.max(userAId.id(), userBId.id()));
     }
 }

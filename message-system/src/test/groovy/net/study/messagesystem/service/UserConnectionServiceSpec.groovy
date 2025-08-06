@@ -50,30 +50,30 @@ class UserConnectionServiceSpec extends Specification {
 
     def "사용자 연결 신청에 대한 요청 수락 테스트"() {
         given:
-        userService.getUserId(inviterUsername) >> Optional.of(inviterUserId)
-        userService.getUsername(accepterUserId) >> Optional.of(accepterUsername)
+        userService.getUserId(targetUsername) >> Optional.of(targetUserId)
+        userService.getUsername(senderUserId) >> Optional.of(senderUsername)
 
         userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(
-                Math.min(inviterUserId.id(), accepterUserId.id()),
-                Math.max(inviterUserId.id(), accepterUserId.id())
+                Math.min(targetUserId.id(), senderUserId.id()),
+                Math.max(targetUserId.id(), senderUserId.id())
         ) >> Optional.of(Stub(InviterUserIdProjection) {
-            getInviterUserId() >> inviterUserId.id()
+            getInviterUserId() >> targetUserId.id()
         })
 
         userConnectionRepository.findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(
-                Math.min(inviterUserId.id(), accepterUserId.id()),
-                Math.max(inviterUserId.id(), accepterUserId.id())
+                Math.min(targetUserId.id(), senderUserId.id()),
+                Math.max(targetUserId.id(), senderUserId.id())
         ) >> Optional.of(Stub(UserConnectionStatusProjection) {
             getStatus() >> connectionStatus
         })
 
         userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
-                Math.min(inviterUserId.id(), accepterUserId.id()),
-                Math.max(inviterUserId.id(), accepterUserId.id()),
+                Math.min(targetUserId.id(), senderUserId.id()),
+                Math.max(targetUserId.id(), senderUserId.id()),
                 connectionStatus
         ) >> {
-            UserEntity inviter = UserEntity.testUser(inviterUserId.id())
-            UserEntity accepter = UserEntity.testUser(accepterUserId.id())
+            UserEntity inviter = UserEntity.testUser(targetUserId.id())
+            UserEntity accepter = UserEntity.testUser(senderUserId.id())
 
             if (inviter.getUserId() == 5L || inviter.getUserId() == 7L)
                 inviter.setConnectionCount(1_000)
@@ -84,23 +84,67 @@ class UserConnectionServiceSpec extends Specification {
                     inviter,
                     accepter,
                     connectionStatus,
-                    inviterUserId.id()
+                    targetUserId.id()
             ))
         }
 
         when:
-        Pair<Optional<UserId>, String> result = userConnectionService.accept(accepterUserId, inviterUsername)
+        Pair<Optional<UserId>, String> result = userConnectionService.accept(senderUserId, targetUsername)
 
         then:
         result == expectedResult
 
         where:
-        scenario            | accepterUserId | accepterUsername | inviterUserId | inviterUsername | connectionStatus              | expectedResult
-        'Valid accept'      | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'         | UserConnectionStatus.PENDING  | Pair.of(Optional.of(inviterUserId), accepterUsername)
-        'Already connected' | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'         | UserConnectionStatus.ACCEPTED | Pair.of(Optional.empty(), 'accept failed.')
-        'Self accept'       | new UserId(1)  | 'userA'          | new UserId(1) | 'userA'         | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'accept failed.')
-        'Invalid invite'    | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'         | UserConnectionStatus.REJECTED | Pair.of(Optional.empty(), 'accept failed.')
-        'Invalid invite'    | new UserId(5)  | 'userE'          | new UserId(1) | 'userA'         | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'Connection limit reached')
-        'Invalid invite'    | new UserId(2)  | 'userB'          | new UserId(7) | 'userG'         | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'Connection limit reached by other user')
+        scenario            | senderUserId   | senderUsername   | targetUserId  | targetUsername | inviterUserId | connectionStatus             | expectedResult
+        'Valid accept'      | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING | Pair.of(Optional.of(targetUserId), senderUsername)
+        'Already connected' | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.ACCEPTED | Pair.of(Optional.empty(), 'accept failed.')
+        'Self accept'       | new UserId(1)  | 'userA'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'accept failed.')
+        'Invalid invite'    | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(3) | UserConnectionStatus.REJECTED | Pair.of(Optional.empty(), 'accept failed.')
+        'Already rejected'  | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.REJECTED | Pair.of(Optional.empty(), 'accept failed.')
+        'Limit by self'     | new UserId(5)  | 'userE'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'Connection limit reached')
+        'Limit by other'    | new UserId(2)  | 'userB'          | new UserId(7) | 'userG'        | new UserId(7) | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'Connection limit reached by other user')
+    }
+
+    def "사용자 연결 신청 거절에 대한 테스트"() {
+        given:
+        userService.getUserId(targetUsername) >> Optional.of(targetUserId)
+
+        userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(
+                Math.min(senderUserId.id(), targetUserId.id()),
+                Math.max(senderUserId.id(), targetUserId.id())
+        ) >> Optional.of(Stub(InviterUserIdProjection) {
+            getInviterUserId() >> inviterUserId.id()
+        })
+
+        userConnectionRepository.findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(
+                Math.min(senderUserId.id(), targetUserId.id()),
+                Math.max(senderUserId.id(), targetUserId.id())
+        ) >> Optional.of(Stub(UserConnectionStatusProjection) {
+            getStatus() >> connectionStatus
+        })
+
+        userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
+                Math.min(senderUserId.id(), targetUserId.id()),
+                Math.max(senderUserId.id(), targetUserId.id()),
+                UserConnectionStatus.PENDING
+        ) >> {
+            UserEntity userA = UserEntity.testUser(senderUserId.id())
+            UserEntity userB = UserEntity.testUser(targetUserId.id())
+
+            return Optional.of(UserConnectionEntity.create(userB, userA, targetUserId.id()))
+        }
+
+        when:
+        def result = userConnectionService.reject(senderUserId, targetUsername)
+
+        then:
+        result == expectResult
+
+        where:
+        scenario           | senderUserId  | senderUsername | targetUserId  | targetUsername | inviterUserId | connectionStatus              | expectResult
+        'Valid reject'     | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(true, targetUsername)
+        'Same user reject' | new UserId(2) | 'userB'        | new UserId(2) | 'userB'        | new UserId(2) | UserConnectionStatus.PENDING  | Pair.of(false, "Reject failed")
+        'Invalid reject'   | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(3) | UserConnectionStatus.PENDING  | Pair.of(false, "Reject failed")
+        'Already rejected' | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.REJECTED | Pair.of(false, "Reject failed")
     }
 }
