@@ -8,6 +8,7 @@ import net.study.messagesystem.dto.projection.UserConnectionStatusProjection;
 import net.study.messagesystem.dto.domain.user.InviteCode;
 import net.study.messagesystem.dto.domain.user.User;
 import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.dto.projection.UserIdUsernameProjection;
 import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity;
 import net.study.messagesystem.repository.UserConnectionRepository;
@@ -15,7 +16,9 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -43,6 +46,7 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(Optional.empty(), "accept failed."));
     }
 
+    @Transactional
     public Pair<Boolean, String> reject(UserId rejecterUserId, String inviterUsername) {
         return userService.getUserId(inviterUsername)
                 .filter(inviterUserId -> isNotSameUser(rejecterUserId, inviterUserId))
@@ -50,6 +54,15 @@ public class UserConnectionService {
                 .filter(inviterUserId -> isPendingStatus(rejecterUserId, inviterUserId))
                 .map(inviterUserId -> tryReject(rejecterUserId, inviterUserId, inviterUsername))
                 .orElseGet(() -> Pair.of(false, "Reject failed"));
+    }
+
+    public List<User> getUsersByStatus(UserId userId, UserConnectionStatus status) {
+        List<UserIdUsernameProjection> userA = userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), status);
+        List<UserIdUsernameProjection> userB = userConnectionRepository.findByPartnerBUser_userIdAndStatus(userId.id(), status);
+
+        return Stream.concat(userA.stream(), userB.stream())
+                .map(item -> new User(new UserId(item.getUserId()), item.getUsername()))
+                .toList();
     }
 
     private boolean isNotSameUser(UserId userId1, UserId userId2) {
