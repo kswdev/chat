@@ -41,7 +41,6 @@ public class UserConnectionService {
         return userService.getUserId(inviterUsername).or(Optional::empty)
                 .filter(inviterUserId -> isNotSameUser(accepterUserId, inviterUserId))
                 .filter(inviterUserId -> isValidInvitation(accepterUserId, inviterUserId))
-                .filter(inviterUserId -> isPendingStatus(accepterUserId, inviterUserId))
                 .flatMap(inviterUserId -> tryConnect(accepterUserId, inviterUserId))
                 .orElseGet(() -> Pair.of(Optional.empty(), "accept failed."));
     }
@@ -51,9 +50,17 @@ public class UserConnectionService {
         return userService.getUserId(inviterUsername)
                 .filter(inviterUserId -> isNotSameUser(rejecterUserId, inviterUserId))
                 .filter(inviterUserId -> isValidInvitation(rejecterUserId, inviterUserId))
-                .filter(inviterUserId -> isPendingStatus(rejecterUserId, inviterUserId))
                 .map(inviterUserId -> tryReject(rejecterUserId, inviterUserId, inviterUsername))
                 .orElseGet(() -> Pair.of(false, "Reject failed"));
+    }
+
+    @Transactional
+    public Pair<Boolean, String> disconnect(UserId senderUserId, String partnerUsername) {
+        return userService.getUserId(partnerUsername).or(Optional::empty)
+                .filter(partnerUserId -> isNotSameUser(senderUserId, partnerUserId))
+                .filter(partnerUserId -> isValidInvitation(senderUserId, partnerUserId))
+                .map(partnerUserId -> tryDisconnect(senderUserId, partnerUserId, partnerUsername))
+                .orElseGet(() -> Pair.of(false, "Disconnect failed"));
     }
 
     public List<User> getUsersByStatus(UserId userId, UserConnectionStatus status) {
@@ -96,11 +103,6 @@ public class UserConnectionService {
 
         return userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(firstUserId, secondUserId)
                 .map(inviterUserId -> new UserId(inviterUserId.getInviterUserId()));
-    }
-
-    private boolean isPendingStatus(UserId accepterUserId, UserId inviterUserId) {
-        UserConnectionStatus status = getConnectionStatus(accepterUserId, inviterUserId);
-        return status == UserConnectionStatus.PENDING;
     }
 
     private UserConnectionStatus getConnectionStatus(UserId inviterUserId, UserId partnerUserId) {
@@ -161,6 +163,21 @@ public class UserConnectionService {
             log.error("reject failed. cause: {}", ex.getMessage());
             return Pair.of(false, "Reject failed.");
         }
+    }
+
+    private Pair<Boolean, String> tryDisconnect(UserId senderUserId, UserId partnerUserId, String partnerUsername) {
+        try {
+            disconnect(senderUserId, partnerUserId);
+            return Pair.of(true, partnerUsername);
+        } catch (Exception ex) {
+            log.error("disconnect failed. cause: {}", ex.getMessage());
+            return Pair.of(false, "Disconnect failed.");
+        }
+    }
+
+    private void disconnect(UserId senderUserId, UserId partnerUserId) {
+        UserConnectionEntity connectionEntity = getConnectionEntity(senderUserId, partnerUserId, UserConnectionStatus.ACCEPTED);
+        connectionEntity.disconnect();
     }
 
     private void connect(UserId accepterUserId, UserId inviterUserId) {

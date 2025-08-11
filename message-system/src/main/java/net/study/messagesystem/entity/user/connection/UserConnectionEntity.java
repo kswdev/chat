@@ -7,6 +7,10 @@ import net.study.messagesystem.entity.BaseEntity;
 import net.study.messagesystem.entity.user.UserEntity;
 import org.springframework.data.util.Pair;
 
+import java.util.Arrays;
+
+import static net.study.messagesystem.constant.UserConnectionStatus.*;
+
 @NamedEntityGraph(name = "UserConnectionEntity.withAll", attributeNodes = {
         @NamedAttributeNode("partnerAUser"),
         @NamedAttributeNode("partnerBUser")
@@ -55,7 +59,7 @@ public class UserConnectionEntity extends BaseEntity {
         return new UserConnectionEntity(
                 result.getFirst(),
                 result.getSecond(),
-                UserConnectionStatus.PENDING,
+                PENDING,
                 inviterUserId
         );
     }
@@ -71,9 +75,17 @@ public class UserConnectionEntity extends BaseEntity {
     }
 
     public void connect() {
+        checkIfStatus(PENDING);
         checkIfConnectionReachedLimit();
         increaseConnectionCount();
-        status = UserConnectionStatus.ACCEPTED;
+        status = ACCEPTED;
+    }
+
+    public void disconnect() {
+        checkIfConnectionReachedZero();
+        checkIfStatus(ACCEPTED, REJECTED);
+        decreaseConnectionCount();
+        status = DISCONNECTED;
     }
 
     private static Pair<UserEntity, UserEntity> compareUsersById(UserEntity partnerAUser, UserEntity partnerBUser) {
@@ -84,12 +96,25 @@ public class UserConnectionEntity extends BaseEntity {
         }
     }
 
+    private void checkIfStatus(UserConnectionStatus... status) {
+        if (Arrays.stream(status).noneMatch(s -> s.equals(this.status)))
+            throw new IllegalStateException("Connection status should "+ Arrays.toString(status) +" but : " + this.status);
+    }
+
     private void checkIfConnectionReachedLimit() {
         if (partnerAUser.getConnectionCount() >= LIMIT_CONNECTIONS)
             throw new IllegalStateException(getErrorMessage(partnerAUser.getUserId()));
 
         if (partnerBUser.getConnectionCount() >= LIMIT_CONNECTIONS)
             throw new IllegalStateException(getErrorMessage(partnerBUser.getUserId()));
+    }
+
+    private void checkIfConnectionReachedZero() {
+        if (partnerAUser.getConnectionCount() <= 0)
+            throw new IllegalStateException("Connection limit reached already zero: " + partnerAUser.getUserId());
+
+        if (partnerBUser.getConnectionCount() <= 0)
+            throw new IllegalStateException("Connection limit reached already zero: " + partnerBUser.getUserId());
     }
 
     private String getErrorMessage(Long userId) {
@@ -103,7 +128,13 @@ public class UserConnectionEntity extends BaseEntity {
         partnerBUser.setConnectionCount(partnerBUser.getConnectionCount() + 1);
     }
 
+    private void decreaseConnectionCount() {
+        partnerAUser.setConnectionCount(partnerAUser.getConnectionCount() - 1);
+        partnerBUser.setConnectionCount(partnerBUser.getConnectionCount() - 1);
+    }
+
     public void reject() {
-        status = UserConnectionStatus.REJECTED;
+        checkIfStatus(PENDING);
+        status = REJECTED;
     }
 }
