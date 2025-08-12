@@ -31,8 +31,8 @@ public interface UserConnectionRepository extends JpaRepository<UserConnectionEn
                 SELECT uc.partnerBUser.userId AS userId,
                        u.username AS username
                   FROM UserConnectionEntity uc
-            INNER JOIN UserEntity u ON uc.partnerBUser.userId == u.userId
-                 WHERE uc.partnerAUser.userId == :userId AND uc.status == :status
+            INNER JOIN UserEntity u ON uc.partnerBUser.userId = u.userId
+                 WHERE uc.partnerAUser.userId = :userId AND uc.status = :status
            """)
     List<UserIdUsernameProjection> findByPartnerAUser_userIdAndStatus(Long userId, UserConnectionStatus status);
 
@@ -40,8 +40,8 @@ public interface UserConnectionRepository extends JpaRepository<UserConnectionEn
                 SELECT uc.partnerAUser.userId AS userId,
                        u.username AS username
                   FROM UserConnectionEntity uc
-            INNER JOIN UserEntity u ON uc.partnerAUser.userId == u.userId
-                 WHERE uc.partnerBUser.userId == :userId AND uc.status == :status
+            INNER JOIN UserEntity u ON uc.partnerAUser.userId = u.userId
+                 WHERE uc.partnerBUser.userId = :userId AND uc.status = :status
            """)
     List<UserIdUsernameProjection> findByPartnerBUser_userIdAndStatus(Long userId, UserConnectionStatus status);
 }
