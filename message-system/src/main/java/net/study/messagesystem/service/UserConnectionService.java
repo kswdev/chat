@@ -58,7 +58,6 @@ public class UserConnectionService {
     public Pair<Boolean, String> disconnect(UserId senderUserId, String partnerUsername) {
         return userService.getUserId(partnerUsername).or(Optional::empty)
                 .filter(partnerUserId -> isNotSameUser(senderUserId, partnerUserId))
-                .filter(partnerUserId -> isValidInvitation(senderUserId, partnerUserId))
                 .map(partnerUserId -> tryDisconnect(senderUserId, partnerUserId, partnerUsername))
                 .orElseGet(() -> Pair.of(false, "Disconnect failed"));
     }
@@ -171,7 +170,7 @@ public class UserConnectionService {
             return Pair.of(true, partnerUsername);
         } catch (Exception ex) {
             log.error("disconnect failed. cause: {}", ex.getMessage());
-            return Pair.of(false, "Disconnect failed.");
+            return Pair.of(false, "Disconnect failed");
         }
     }
 

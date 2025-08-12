@@ -147,4 +147,53 @@ class UserConnectionServiceSpec extends Specification {
         'Invalid reject'   | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(3) | UserConnectionStatus.PENDING  | Pair.of(false, "Reject failed")
         'Already rejected' | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.REJECTED | Pair.of(false, "Reject failed")
     }
+
+    def "사용자 연결 끊기 요청에 대한 테스트" () {
+        given:
+        userService.getUserId(targetUsername) >> Optional.of(targetUserId)
+        userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(
+                Math.min(senderUserId.id(), targetUserId.id()),
+                Math.max(senderUserId.id(), targetUserId.id())
+        ) >> Optional.of(Stub(InviterUserIdProjection) {
+            getInviterUserId() >> inviterUserId.id()
+        })
+
+        userConnectionRepository.findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(
+                Math.min(senderUserId.id(), targetUserId.id()),
+                Math.max(senderUserId.id(), targetUserId.id())
+        ) >> Optional.of(Stub(UserConnectionStatusProjection) {
+            getStatus() >> connectionStatus
+        })
+
+        userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
+                Math.min(senderUserId.id(), targetUserId.id()),
+                Math.max(senderUserId.id(), targetUserId.id()),
+                UserConnectionStatus.ACCEPTED
+        ) >> {
+            UserEntity userA = UserEntity.testUser(senderUserId.id())
+            UserEntity userB = UserEntity.testUser(targetUserId.id())
+
+            if (userA.getUserId() != 8) {
+                userA.setConnectionCount(1)
+                userB.setConnectionCount(1)
+            }
+
+            return Optional.of(UserConnectionEntity.testConnection(userB, userA, connectionStatus ,inviterUserId.id()))
+        }
+
+        when:
+        Pair<Boolean, String> result = userConnectionService.disconnect(senderUserId, targetUsername)
+
+        then:
+        result == expectResult
+
+        where:
+        scenario               | senderUserId  | senderUsername | targetUserId  | targetUsername | inviterUserId | connectionStatus              | expectResult
+        'Valid disconnect'     | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.ACCEPTED | Pair.of(true, targetUsername)
+        'Valid disconnect'     | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.REJECTED | Pair.of(true, targetUsername)
+        'limit reached zero'   | new UserId(8) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.ACCEPTED | Pair.of(false, "Disconnect failed")
+        'PENDING disconnect'   | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(false, "Disconnect failed")
+        'Already disconnect'   | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(false, "Disconnect failed")
+        'Same user disconnect' | new UserId(2) | 'userB'        | new UserId(2) | 'userB'        | new UserId(2) | UserConnectionStatus.ACCEPTED | Pair.of(false, "Disconnect failed")
+    }
 }
