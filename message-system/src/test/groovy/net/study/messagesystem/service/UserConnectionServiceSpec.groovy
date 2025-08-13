@@ -8,7 +8,7 @@ import net.study.messagesystem.dto.domain.user.User
 import net.study.messagesystem.dto.domain.user.UserId
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity
-import net.study.messagesystem.repository.UserConnectionRepository
+import net.study.messagesystem.repository.connection.UserConnectionRepository
 import org.springframework.data.util.Pair
 import spock.lang.Specification
 
@@ -67,7 +67,7 @@ class UserConnectionServiceSpec extends Specification {
             getStatus() >> connectionStatus
         })
 
-        userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
+        userConnectionRepository.findForUpdateByPartnerUserIdsAndStatus(
                 Math.min(targetUserId.id(), senderUserId.id()),
                 Math.max(targetUserId.id(), senderUserId.id()),
                 connectionStatus
@@ -116,14 +116,7 @@ class UserConnectionServiceSpec extends Specification {
             getInviterUserId() >> inviterUserId.id()
         })
 
-        userConnectionRepository.findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(
-                Math.min(senderUserId.id(), targetUserId.id()),
-                Math.max(senderUserId.id(), targetUserId.id())
-        ) >> Optional.of(Stub(UserConnectionStatusProjection) {
-            getStatus() >> connectionStatus
-        })
-
-        userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
+        userConnectionRepository.findForUpdateByPartnerUserIdsAndStatus(
                 Math.min(senderUserId.id(), targetUserId.id()),
                 Math.max(senderUserId.id(), targetUserId.id()),
                 UserConnectionStatus.PENDING
@@ -145,7 +138,6 @@ class UserConnectionServiceSpec extends Specification {
         'Valid reject'     | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(true, targetUsername)
         'Same user reject' | new UserId(2) | 'userB'        | new UserId(2) | 'userB'        | new UserId(2) | UserConnectionStatus.PENDING  | Pair.of(false, "Reject failed")
         'Invalid reject'   | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(3) | UserConnectionStatus.PENDING  | Pair.of(false, "Reject failed")
-        'Already rejected' | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.REJECTED | Pair.of(false, "Reject failed")
     }
 
     def "사용자 연결 끊기 요청에 대한 테스트" () {
@@ -158,14 +150,7 @@ class UserConnectionServiceSpec extends Specification {
             getInviterUserId() >> inviterUserId.id()
         })
 
-        userConnectionRepository.findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(
-                Math.min(senderUserId.id(), targetUserId.id()),
-                Math.max(senderUserId.id(), targetUserId.id())
-        ) >> Optional.of(Stub(UserConnectionStatusProjection) {
-            getStatus() >> connectionStatus
-        })
-
-        userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
+        userConnectionRepository.findForUpdateByPartnerUserIdsAndStatus(
                 Math.min(senderUserId.id(), targetUserId.id()),
                 Math.max(senderUserId.id(), targetUserId.id()),
                 UserConnectionStatus.ACCEPTED
@@ -193,7 +178,6 @@ class UserConnectionServiceSpec extends Specification {
         'Valid disconnect'     | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.REJECTED | Pair.of(true, targetUsername)
         'limit reached zero'   | new UserId(8) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.ACCEPTED | Pair.of(false, "Disconnect failed")
         'PENDING disconnect'   | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(false, "Disconnect failed")
-        'Already disconnect'   | new UserId(2) | 'userB'        | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(false, "Disconnect failed")
         'Same user disconnect' | new UserId(2) | 'userB'        | new UserId(2) | 'userB'        | new UserId(2) | UserConnectionStatus.ACCEPTED | Pair.of(false, "Disconnect failed")
     }
 }

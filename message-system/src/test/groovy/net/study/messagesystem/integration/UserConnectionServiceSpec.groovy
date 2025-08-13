@@ -4,10 +4,9 @@ import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.MessageSystemApplication
 import net.study.messagesystem.constant.UserConnectionStatus
 import net.study.messagesystem.dto.domain.user.UserId
-import net.study.messagesystem.dto.projection.InviteCodeProjection
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.entity.user.connection.UserConnectionId
-import net.study.messagesystem.repository.UserConnectionRepository
+import net.study.messagesystem.repository.connection.UserConnectionRepository
 import net.study.messagesystem.repository.UserRepository
 import net.study.messagesystem.service.UserConnectionService
 import net.study.messagesystem.service.UserService

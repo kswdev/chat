@@ -24,12 +24,12 @@ import static net.study.messagesystem.constant.UserConnectionStatus.*;
 @EqualsAndHashCode(of = {"partnerAUser", "partnerBUser"}, callSuper = false)
 public class UserConnectionEntity extends BaseEntity {
 
-    @Id
+    @Id @Setter
     @JoinColumn(name = "partner_a_user_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity partnerAUser;
 
-    @Id
+    @Id @Setter
     @JoinColumn(name = "partner_b_user_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity partnerBUser;

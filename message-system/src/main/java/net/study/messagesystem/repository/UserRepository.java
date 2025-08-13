@@ -24,5 +24,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<ConnectionCountProjection> findCountByUserId(Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<UserEntity> findForUpdateByUserId(Long userId);
+    UserEntity findForUpdateByUserId(Long userId);
 }

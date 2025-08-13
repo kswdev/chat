@@ -11,7 +11,8 @@ import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.projection.UserIdUsernameProjection;
 import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity;
-import net.study.messagesystem.repository.UserConnectionRepository;
+import net.study.messagesystem.repository.UserRepository;
+import net.study.messagesystem.repository.connection.UserConnectionRepository;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class UserConnectionService {
 
     private final UserService userService;
     private final UserConnectionRepository userConnectionRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public Pair<Optional<UserId>, String> invite(UserId inviterUserId, InviteCode inviteCode) {
@@ -164,7 +166,7 @@ public class UserConnectionService {
         }
     }
 
-    private Pair<Boolean, String> tryDisconnect(UserId senderUserId, UserId partnerUserId, String partnerUsername) {
+    protected Pair<Boolean, String> tryDisconnect(UserId senderUserId, UserId partnerUserId, String partnerUsername) {
         try {
             disconnect(senderUserId, partnerUserId);
             return Pair.of(true, partnerUsername);
@@ -194,8 +196,11 @@ public class UserConnectionService {
         Long firstUserId = userIdAscending.getFirst();
         Long secondUserId = userIdAscending.getSecond();
 
+        UserEntity partnerAUser = userRepository.findForUpdateByUserId(firstUserId);
+        UserEntity partnerBUser = userRepository.findForUpdateByUserId(secondUserId);
+
         return userConnectionRepository
-                .findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(firstUserId, secondUserId, status)
+                .findForUpdateByPartnerUserIdsAndStatus(firstUserId, secondUserId, status)
                 .orElseThrow(() -> new EntityNotFoundException("Invalid status"));
     }
 

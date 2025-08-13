@@ -1,30 +1,27 @@
-package net.study.messagesystem.repository;
+package net.study.messagesystem.repository.connection;
 
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.PessimisticLockScope;
+import jakarta.persistence.QueryHint;
 import net.study.messagesystem.constant.UserConnectionStatus;
 import net.study.messagesystem.dto.projection.InviterUserIdProjection;
 import net.study.messagesystem.dto.projection.UserConnectionStatusProjection;
 import net.study.messagesystem.dto.projection.UserIdUsernameProjection;
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity;
 import net.study.messagesystem.entity.user.connection.UserConnectionId;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserConnectionRepository extends JpaRepository<UserConnectionEntity, UserConnectionId> {
+public interface UserConnectionRepository
+        extends JpaRepository<UserConnectionEntity, UserConnectionId>
+                ,UserConnectionCustomRepository
+{
 
     Optional<UserConnectionStatusProjection> findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(Long userIdA, Long userIdB);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @EntityGraph("UserConnectionEntity.withAll")
-    Optional<UserConnectionEntity> findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(Long userIdA, Long userIdB, UserConnectionStatus status);
-
     Optional<InviterUserIdProjection> findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(Long partnerAUserId, Long partnerAUserId1);
 
     @Query("""
