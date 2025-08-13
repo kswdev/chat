@@ -3,7 +3,7 @@ package net.study.messagesystem.config;
 import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.auth.CustomHttpSessionHandshakeInterceptor;
 
-import net.study.messagesystem.handler.WebsocketHandler;
+import net.study.messagesystem.handler.WebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -14,7 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @RequiredArgsConstructor
 public class WebSocketHandlerConfig implements WebSocketConfigurer {
 
-    private final WebsocketHandler webSocketHandler;
+    private final WebSocketHandler webSocketHandler;
     private final CustomHttpSessionHandshakeInterceptor customHttpSessionHandshakeInterceptor;
 
     @Override

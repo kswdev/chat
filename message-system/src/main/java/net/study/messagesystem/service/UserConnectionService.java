@@ -27,8 +27,9 @@ import java.util.stream.Stream;
 public class UserConnectionService {
 
     private final UserService userService;
+    private final UserConnectionLimitService userConnectionLimitService;
+
     private final UserConnectionRepository userConnectionRepository;
-    private final UserRepository userRepository;
 
     @Transactional
     public Pair<Optional<UserId>, String> invite(UserId inviterUserId, InviteCode inviteCode) {
@@ -38,7 +39,6 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(Optional.empty(), "Invite failed."));
     }
 
-    @Transactional
     public Pair<Optional<UserId>, String> accept(UserId accepterUserId, String inviterUsername) {
         return userService.getUserId(inviterUsername).or(Optional::empty)
                 .filter(inviterUserId -> isNotSameUser(accepterUserId, inviterUserId))
@@ -47,7 +47,6 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(Optional.empty(), "accept failed."));
     }
 
-    @Transactional
     public Pair<Boolean, String> reject(UserId rejecterUserId, String inviterUsername) {
         return userService.getUserId(inviterUsername)
                 .filter(inviterUserId -> isNotSameUser(rejecterUserId, inviterUserId))
@@ -56,7 +55,6 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(false, "Reject failed"));
     }
 
-    @Transactional
     public Pair<Boolean, String> disconnect(UserId senderUserId, String partnerUsername) {
         return userService.getUserId(partnerUsername).or(Optional::empty)
                 .filter(partnerUserId -> isNotSameUser(senderUserId, partnerUserId))
@@ -146,7 +144,7 @@ public class UserConnectionService {
         }
 
         try {
-            this.connect(accepterUserId, inviterUserId);
+            userConnectionLimitService.connect(accepterUserId, inviterUserId);
             return Optional.of(Pair.of(Optional.of(inviterUserId), accepterUsername.get()));
         } catch (EntityNotFoundException e) {
             log.error("accept failed. cause: {}", e.getMessage());
@@ -158,7 +156,7 @@ public class UserConnectionService {
 
     private Pair<Boolean, String> tryReject(UserId rejecterUserId, UserId inviterUserId, String inviterUsername) {
         try {
-            reject(rejecterUserId, inviterUserId);
+            userConnectionLimitService.reject(rejecterUserId, inviterUserId);
             return Pair.of(true, inviterUsername);
         } catch (Exception ex) {
             log.error("reject failed. cause: {}", ex.getMessage());
@@ -168,7 +166,7 @@ public class UserConnectionService {
 
     protected Pair<Boolean, String> tryDisconnect(UserId senderUserId, UserId partnerUserId, String partnerUsername) {
         try {
-            disconnect(senderUserId, partnerUserId);
+            userConnectionLimitService.disconnect(senderUserId, partnerUserId);
             return Pair.of(true, partnerUsername);
         } catch (Exception ex) {
             log.error("disconnect failed. cause: {}", ex.getMessage());
@@ -176,36 +174,8 @@ public class UserConnectionService {
         }
     }
 
-    private void disconnect(UserId senderUserId, UserId partnerUserId) {
-        UserConnectionEntity connectionEntity = getConnectionEntity(senderUserId, partnerUserId, UserConnectionStatus.ACCEPTED);
-        connectionEntity.disconnect();
-    }
-
-    private void connect(UserId accepterUserId, UserId inviterUserId) {
-        UserConnectionEntity connectionEntity = getConnectionEntity(accepterUserId, inviterUserId, UserConnectionStatus.PENDING);
-        connectionEntity.connect();
-    }
-
-    private void reject(UserId rejecterUserId, UserId inviterUserId) {
-        UserConnectionEntity connectionEntity = getConnectionEntity(rejecterUserId, inviterUserId, UserConnectionStatus.PENDING);
-        connectionEntity.reject();
-    }
-
-    private UserConnectionEntity getConnectionEntity(UserId accepterUserId, UserId inviterUserId, UserConnectionStatus status) {
-        Pair<Long, Long> userIdAscending = getUserIdAscending(accepterUserId, inviterUserId);
-        Long firstUserId = userIdAscending.getFirst();
-        Long secondUserId = userIdAscending.getSecond();
-
-        UserEntity partnerAUser = userRepository.findForUpdateByUserId(firstUserId);
-        UserEntity partnerBUser = userRepository.findForUpdateByUserId(secondUserId);
-
-        return userConnectionRepository
-                .findForUpdateByPartnerUserIdsAndStatus(firstUserId, secondUserId, status)
-                .orElseThrow(() -> new EntityNotFoundException("Invalid status"));
-    }
-
     private Pair<Long, Long> getUserIdAscending(UserId userAId, UserId userBId) {
         return Pair.of(Math.min(userAId.id(), userBId.id()),
-                       Math.max(userAId.id(), userBId.id()));
+                Math.max(userAId.id(), userBId.id()));
     }
 }

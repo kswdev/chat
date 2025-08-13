@@ -24,6 +24,10 @@ public interface UserConnectionRepository
     Optional<UserConnectionStatusProjection> findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(Long userIdA, Long userIdB);
     Optional<InviterUserIdProjection> findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(Long partnerAUserId, Long partnerAUserId1);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph("UserConnectionEntity.withAll")
+    Optional<UserConnectionEntity> findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(Long userIdA, Long userIdB, UserConnectionStatus status);
+
     @Query("""
                 SELECT uc.partnerBUser.userId AS userId,
                        u.username AS username
