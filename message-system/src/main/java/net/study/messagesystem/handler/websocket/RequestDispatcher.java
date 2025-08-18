@@ -14,12 +14,12 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Component
-public class RequestHandlerDispatcher {
+public class RequestDispatcher {
 
     private final Map<Class<? extends BaseRequest>, BaseRequestHandler<? extends BaseRequest>> handlers = new HashMap<>();
 
     @Autowired
-    private RequestHandlerDispatcher(List<BaseRequestHandler<? extends BaseRequest>> baseRequestHandlers) {
+    private RequestDispatcher(List<BaseRequestHandler<? extends BaseRequest>> baseRequestHandlers) {
         for (BaseRequestHandler<? extends BaseRequest> handler : baseRequestHandlers) {
             Class<? extends BaseRequest> type = handler.getRequestType();
             this.handlers.put(type, handler);

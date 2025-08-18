@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.Constants;
 import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
-import net.study.messagesystem.handler.websocket.RequestHandlerDispatcher;
+import net.study.messagesystem.handler.websocket.RequestDispatcher;
 import net.study.messagesystem.session.WebSocketSessionManager;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Component;
@@ -23,7 +23,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private final JsonUtil jsonUtil;
     private final WebSocketSessionManager sessionManager;
-    private final RequestHandlerDispatcher requestHandlerDispatcher;
+    private final RequestDispatcher requestDispatcher;
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -51,7 +51,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         String payload = message.getPayload();
         jsonUtil.fromJson(payload, BaseRequest.class)
-                .ifPresent(meg -> requestHandlerDispatcher.dispatch(senderSession, meg));
+                .ifPresent(meg -> requestDispatcher.dispatch(senderSession, meg));
     }
 
     private UserId getUserId(WebSocketSession session) {
