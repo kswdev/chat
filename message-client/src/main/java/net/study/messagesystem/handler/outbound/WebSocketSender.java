@@ -1,4 +1,4 @@
-package net.study.messagesystem.handler;
+package net.study.messagesystem.handler.outbound;
 
 import jakarta.websocket.SendHandler;
 import jakarta.websocket.Session;
