@@ -2,7 +2,7 @@ package net.study.messagesystem.handler;
 
 import jakarta.websocket.SendHandler;
 import jakarta.websocket.Session;
-import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
+import net.study.messagesystem.dto.websocket.outbound.BaseRequest;
 import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.util.JsonUtil;
 

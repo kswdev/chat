@@ -1,6 +1,6 @@
 package net.study.messagesystem;
 
-import net.study.messagesystem.dto.websocket.inbound.MessageRequest;
+import net.study.messagesystem.dto.websocket.outbound.MessageRequest;
 import net.study.messagesystem.handler.CommandHandler;
 import net.study.messagesystem.handler.WebSocketMessageHandler;
 import net.study.messagesystem.handler.WebSocketSender;

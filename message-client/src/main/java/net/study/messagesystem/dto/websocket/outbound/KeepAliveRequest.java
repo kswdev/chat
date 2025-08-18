@@ -1,4 +1,4 @@
-package net.study.messagesystem.dto.websocket.inbound;
+package net.study.messagesystem.dto.websocket.outbound;
 
 import net.study.messagesystem.constant.MessageType;
 
