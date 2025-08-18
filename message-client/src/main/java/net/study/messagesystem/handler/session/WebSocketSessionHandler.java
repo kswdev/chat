@@ -1,4 +1,4 @@
-package net.study.messagesystem.handler;
+package net.study.messagesystem.handler.session;
 
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.Endpoint;
