@@ -5,9 +5,9 @@ import jakarta.websocket.CloseReason;
 import jakarta.websocket.Session;
 import net.study.messagesystem.dto.websocket.outbound.BaseRequest;
 import net.study.messagesystem.dto.websocket.outbound.KeepAliveRequest;
-import net.study.messagesystem.handler.WebSocketMessageHandler;
-import net.study.messagesystem.handler.WebSocketSender;
-import net.study.messagesystem.handler.WebSocketSessionHandler;
+import net.study.messagesystem.handler.inbound.WebSocketMessageHandler;
+import net.study.messagesystem.handler.outbound.WebSocketSender;
+import net.study.messagesystem.handler.session.WebSocketSessionHandler;
 import org.glassfish.tyrus.client.ClientManager;
 
 import java.io.IOException;
