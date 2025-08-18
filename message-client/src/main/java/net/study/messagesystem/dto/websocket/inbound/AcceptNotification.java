@@ -1,4 +1,4 @@
-package net.study.messagesystem.dto.websocket.outbound;
+package net.study.messagesystem.dto.websocket.inbound;
 
 import lombok.Getter;
 import net.study.messagesystem.constant.MessageType;
