@@ -17,7 +17,7 @@ public class MessageType {
 
     // Notification
     public static final String NOTIFY_MESSAGE = "NOTIFY_MESSAGE";
-    public static final String NOTIFY_CONNECT = "NOTIFY_CONNECT";
+    public static final String NOTIFY_ACCEPT = "NOTIFY_ACCEPT";
     public static final String ASK_INVITE = "ASK_INVITE";
     public static final String KEEP_ALIVE = "KEEP_ALIVE";
     public static final String ERROR = "ERROR";
