@@ -2,6 +2,7 @@ package net.study.messagesystem.handler.inbound;
 
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.dto.websocket.inbound.BaseMessage;
+import net.study.messagesystem.dto.websocket.inbound.FetchUserInviteCodeResponse;
 import net.study.messagesystem.dto.websocket.inbound.InviteResponse;
 import net.study.messagesystem.dto.websocket.inbound.MessageNotification;
 import net.study.messagesystem.service.TerminalService;
@@ -22,7 +23,8 @@ public class ResponseDispatcher {
 
     private void preparedHandlers() {
         handlers.put(MessageType.NOTIFY_MESSAGE, (msg) -> message((MessageNotification) msg));
-        handlers.put(MessageType.FETCH_USER_INVITE_CODE_RESPONSE, (msg) -> inviteCode((InviteResponse) msg));
+        handlers.put(MessageType.INVITE_RESPONSE, (msg) -> invite((InviteResponse) msg));
+        handlers.put(MessageType.FETCH_USER_INVITE_CODE_RESPONSE, (msg) -> fetchUserInviteCode((FetchUserInviteCodeResponse) msg));
     }
 
     public void dispatch(BaseMessage message) {
@@ -34,7 +36,11 @@ public class ResponseDispatcher {
         terminalService.printMessage(messageNotification.getUsername(), messageNotification.getContent());
     }
 
-    private void inviteCode(InviteResponse inviteResponse) {
-        terminalService.printSystemMessage("My invite code: %s".formatted(inviteResponse.getInviteCode().code()));
+    private void fetchUserInviteCode(FetchUserInviteCodeResponse inviteCodeResponse) {
+        terminalService.printSystemMessage("My invite code: %s".formatted(inviteCodeResponse.getInviteCode().code()));
+    }
+
+    private void invite(InviteResponse inviteResponse) {
+        terminalService.printSystemMessage("Invite: %s, result: %s".formatted(inviteResponse.getInviteCode().code(), inviteResponse.getStatus()));
     }
 }

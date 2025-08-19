@@ -1,6 +1,8 @@
 package net.study.messagesystem.handler;
 
+import net.study.messagesystem.dto.user.InviteCode;
 import net.study.messagesystem.dto.websocket.outbound.FetchUserInviteCodeRequest;
+import net.study.messagesystem.dto.websocket.outbound.InviteRequest;
 import net.study.messagesystem.service.RestApiService;
 import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.service.WebSocketService;
@@ -29,6 +31,7 @@ public class CommandHandler {
         commands.put("login", this::login);
         commands.put("logout", this::logout);
         commands.put("clear", this::clear);
+        commands.put("invite", this::invite);
         commands.put("inviteCode", this::inviteCode);
         commands.put("exit", this::exit);
         commands.put("help", this::help);
@@ -90,6 +93,14 @@ public class CommandHandler {
         return true;
     }
 
+    private Boolean invite(String[] params) {
+        if (params.length > 0) {
+            webSocketService.sendMessage(new InviteRequest(new InviteCode(params[0])));
+            terminalService.printSystemMessage("Request user Invite.");
+        }
+        return true;
+    }
+
     private Boolean clear(String[] params) {
         terminalService.clearTerminal();
         terminalService.printSystemMessage("Terminal cleared.");
@@ -110,6 +121,7 @@ public class CommandHandler {
             '/login' Login a user. Usage: '/login <Username> <Password>'
             '/logout' Logout a user. Usage: '/logout'
             '/inviteCode' Get inviteCode: '/inviteCode'
+            '/invite' Invite a user: '/invite <InviteCode>'
             '/clear' Clear terminal. Usage: '/clear'
             '/exit' Exit the client. Usage: '/exit'
         """);
