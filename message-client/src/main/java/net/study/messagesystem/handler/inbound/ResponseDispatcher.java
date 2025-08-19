@@ -1,10 +1,7 @@
 package net.study.messagesystem.handler.inbound;
 
 import net.study.messagesystem.constant.MessageType;
-import net.study.messagesystem.dto.websocket.inbound.BaseMessage;
-import net.study.messagesystem.dto.websocket.inbound.FetchUserInviteCodeResponse;
-import net.study.messagesystem.dto.websocket.inbound.InviteResponse;
-import net.study.messagesystem.dto.websocket.inbound.MessageNotification;
+import net.study.messagesystem.dto.websocket.inbound.*;
 import net.study.messagesystem.service.TerminalService;
 
 import java.util.HashMap;
@@ -25,6 +22,7 @@ public class ResponseDispatcher {
         handlers.put(MessageType.NOTIFY_MESSAGE, (msg) -> message((MessageNotification) msg));
         handlers.put(MessageType.INVITE_RESPONSE, (msg) -> invite((InviteResponse) msg));
         handlers.put(MessageType.FETCH_USER_INVITE_CODE_RESPONSE, (msg) -> fetchUserInviteCode((FetchUserInviteCodeResponse) msg));
+        handlers.put(MessageType.ASK_INVITE, (msg) -> askInvite((InviteNotification) msg));
     }
 
     public void dispatch(BaseMessage message) {
@@ -42,5 +40,9 @@ public class ResponseDispatcher {
 
     private void invite(InviteResponse inviteResponse) {
         terminalService.printSystemMessage("Invite: %s, result: %s".formatted(inviteResponse.getInviteCode().code(), inviteResponse.getStatus()));
+    }
+
+    private void askInvite(InviteNotification inviteNotification) {
+        terminalService.printSystemMessage("Do you want to accept invite from %s?".formatted(inviteNotification.getUsername()));
     }
 }
