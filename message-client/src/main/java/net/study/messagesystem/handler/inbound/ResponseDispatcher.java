@@ -54,7 +54,7 @@ public class ResponseDispatcher {
     }
 
     private void accept(AcceptResponse acceptResponse) {
-        terminalService.printSystemMessage("Accept invite from %s".formatted(acceptResponse.getUsername()));
+        terminalService.printSystemMessage("Connect %s".formatted(acceptResponse.getUsername()));
     }
 
     private void acceptNotification(AcceptNotification acceptNotification) {
