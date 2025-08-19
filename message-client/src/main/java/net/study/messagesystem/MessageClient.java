@@ -8,6 +8,7 @@ import net.study.messagesystem.handler.outbound.WebSocketSender;
 import net.study.messagesystem.service.RestApiService;
 import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.service.WebSocketService;
+import net.study.messagesystem.util.JsonUtil;
 
 import java.io.IOException;
 
@@ -21,6 +22,7 @@ public class MessageClient {
 
         try {
             terminalService = TerminalService.create();
+            JsonUtil.setTerminalService(terminalService);
         } catch (IOException e) {
             System.err.println("Failed to create TerminalService: " + e.getMessage());
             return;

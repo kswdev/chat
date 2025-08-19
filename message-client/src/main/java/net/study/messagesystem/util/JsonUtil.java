@@ -10,7 +10,7 @@ public class JsonUtil {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static TerminalService terminalService;
 
-    private static void setTerminalService(TerminalService terminalService) {
+    public static void setTerminalService(TerminalService terminalService) {
         JsonUtil.terminalService = terminalService;
     }
 
