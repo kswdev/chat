@@ -1,9 +1,10 @@
 package net.study.messagesystem;
 
-import net.study.messagesystem.dto.websocket.outbound.MessageRequest;
+import net.study.messagesystem.dto.websocket.outbound.WriteMessageRequest;
 import net.study.messagesystem.handler.CommandHandler;
-import net.study.messagesystem.handler.WebSocketMessageHandler;
-import net.study.messagesystem.handler.WebSocketSender;
+import net.study.messagesystem.handler.inbound.ResponseDispatcher;
+import net.study.messagesystem.handler.inbound.WebSocketMessageHandler;
+import net.study.messagesystem.handler.outbound.WebSocketSender;
 import net.study.messagesystem.service.RestApiService;
 import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.service.WebSocketService;
@@ -25,7 +26,8 @@ public class MessageClient {
             return;
         }
 
-        WebSocketMessageHandler webSocketMessageHandler = new WebSocketMessageHandler(terminalService);
+        ResponseDispatcher responseDispatcher = new ResponseDispatcher(terminalService);
+        WebSocketMessageHandler webSocketMessageHandler = new WebSocketMessageHandler(responseDispatcher);
         WebSocketSender webSocketSender = new WebSocketSender(terminalService);
         WebSocketService webSocketService = new WebSocketService(
                 webSocketMessageHandler,
@@ -48,7 +50,7 @@ public class MessageClient {
 
             } else if (!input.isEmpty()) {
                 terminalService.printMessage("<me>", input);
-                webSocketService.sendMessage(new MessageRequest("test client", input));
+                webSocketService.sendMessage(new WriteMessageRequest("test client", input));
             }
         }
     }

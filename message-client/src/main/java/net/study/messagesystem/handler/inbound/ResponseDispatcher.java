@@ -2,6 +2,7 @@ package net.study.messagesystem.handler.inbound;
 
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.dto.websocket.inbound.BaseMessage;
+import net.study.messagesystem.dto.websocket.inbound.InviteResponse;
 import net.study.messagesystem.dto.websocket.inbound.MessageNotification;
 import net.study.messagesystem.service.TerminalService;
 
@@ -20,7 +21,8 @@ public class ResponseDispatcher {
     }
 
     private void preparedHandlers() {
-        handlers.put(MessageType.NOTIFY_MESSAGE, this::messageNotification);
+        handlers.put(MessageType.NOTIFY_MESSAGE,
+                (msg) -> message((MessageNotification) msg));
     }
 
     public void dispatch(BaseMessage message) {
@@ -28,8 +30,11 @@ public class ResponseDispatcher {
                 .accept(message);
     }
 
-    private void messageNotification(BaseMessage baseMessage) {
-        MessageNotification messageNotification = (MessageNotification) baseMessage;
+    private void message(MessageNotification messageNotification) {
         terminalService.printMessage(messageNotification.getUsername(), messageNotification.getContent());
+    }
+
+    private void inviteCode(InviteResponse inviteResponse) {
+        terminalService.printSystemMessage("My invite code: %s".formatted(inviteResponse.getInviteCode().code()));
     }
 }
