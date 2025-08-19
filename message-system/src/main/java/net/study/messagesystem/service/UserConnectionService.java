@@ -8,7 +8,7 @@ import net.study.messagesystem.dto.domain.user.InviteCode;
 import net.study.messagesystem.dto.domain.user.User;
 import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.projection.UserConnectionStatusProjection;
-import net.study.messagesystem.dto.projection.UserIdUsernameProjection;
+import net.study.messagesystem.dto.projection.UserIdUsernameInviterUserIdProjection;
 import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity;
 import net.study.messagesystem.repository.connection.UserConnectionRepository;
@@ -34,7 +34,7 @@ public class UserConnectionService {
     public Pair<Optional<UserId>, String> invite(UserId inviterUserId, InviteCode inviteCode) {
         return userService.getUserIdName(inviteCode).or(Optional::empty)
                 .filter(partner -> isNotSameUser(inviterUserId, partner.userId()))
-                .flatMap(partner -> tryInvite(inviterUserId, partner))
+                .map(partner -> tryInvite(inviterUserId, partner))
                 .orElseGet(() -> Pair.of(Optional.empty(), "Invite failed."));
     }
 
@@ -42,7 +42,7 @@ public class UserConnectionService {
         return userService.getUserId(inviterUsername).or(Optional::empty)
                 .filter(inviterUserId -> isNotSameUser(accepterUserId, inviterUserId))
                 .filter(inviterUserId -> isValidInvitation(accepterUserId, inviterUserId))
-                .flatMap(inviterUserId -> tryConnect(accepterUserId, inviterUserId))
+                .map(inviterUserId -> tryConnect(accepterUserId, inviterUserId))
                 .orElseGet(() -> Pair.of(Optional.empty(), "accept failed."));
     }
 
@@ -62,12 +62,18 @@ public class UserConnectionService {
     }
 
     public List<User> getUsersByStatus(UserId userId, UserConnectionStatus status) {
-        List<UserIdUsernameProjection> userA = userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), status);
-        List<UserIdUsernameProjection> userB = userConnectionRepository.findByPartnerBUser_userIdAndStatus(userId.id(), status);
+        List<UserIdUsernameInviterUserIdProjection> userA = userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), status);
+        List<UserIdUsernameInviterUserIdProjection> userB = userConnectionRepository.findByPartnerBUser_userIdAndStatus(userId.id(), status);
 
-        return Stream.concat(userA.stream(), userB.stream())
-                .map(item -> new User(new UserId(item.getUserId()), item.getUsername()))
-                .toList();
+        if (status == UserConnectionStatus.ACCEPTED)
+            return Stream.concat(userA.stream(), userB.stream())
+                    .map(item -> new User(new UserId(item.getUserId()), item.getUsername()))
+                    .toList();
+        else
+            return Stream.concat(userA.stream(), userB.stream())
+                    .filter(item -> !item.getInviterUserId().equals(userId.id()))
+                    .map(item -> new User(new UserId(item.getUserId()), item.getUsername()))
+                    .toList();
     }
 
     private boolean isNotSameUser(UserId userId1, UserId userId2) {
@@ -78,13 +84,13 @@ public class UserConnectionService {
         return true;
     }
 
-    private Optional<Pair<Optional<UserId>, String>> tryInvite(UserId inviterUserId, User partner) {
+    private Pair<Optional<UserId>, String> tryInvite(UserId inviterUserId, User partner) {
         UserConnectionStatus connectionStatus = getConnectionStatus(inviterUserId, partner.userId());
 
         return switch (connectionStatus) {
-            case NONE, DISCONNECTED -> Optional.of(processInvite(inviterUserId, partner.userId()));
-            case PENDING, REJECTED  -> Optional.of(Pair.of(Optional.of(partner.userId()), "Already Invited to " + partner.username()));
-            case ACCEPTED           -> Optional.of(Pair.of(Optional.of(partner.userId()), "Already connected with " + partner.username()));
+            case NONE, DISCONNECTED -> processInvite(inviterUserId, partner.userId());
+            case PENDING, REJECTED  -> Pair.of(Optional.of(partner.userId()), "Already Invited to " + partner.username());
+            case ACCEPTED           -> Pair.of(Optional.of(partner.userId()), "Already connected with " + partner.username());
         };
     }
 
@@ -135,21 +141,21 @@ public class UserConnectionService {
         return Pair.of(Optional.of(partnerUserId), username.get());
     }
 
-    private Optional<Pair<Optional<UserId>, String>> tryConnect(UserId accepterUserId, UserId inviterUserId) {
+    private Pair<Optional<UserId>, String> tryConnect(UserId accepterUserId, UserId inviterUserId) {
         Optional<String> accepterUsername = userService.getUsername(accepterUserId);
         if (accepterUsername.isEmpty()) {
             log.error("Invalid userId: {}", accepterUserId);
-            return Optional.empty();
+            return Pair.of(Optional.empty(), "Invalid userId");
         }
 
         try {
             userConnectionLimitService.connect(accepterUserId, inviterUserId);
-            return Optional.of(Pair.of(Optional.of(inviterUserId), accepterUsername.get()));
+            return Pair.of(Optional.of(inviterUserId), accepterUsername.get());
         } catch (EntityNotFoundException e) {
             log.error("accept failed. cause: {}", e.getMessage());
-            return Optional.empty();
+            return Pair.of(Optional.empty(), "Invalid status or userId.");
         } catch (IllegalStateException e) {
-            return Optional.of(Pair.of(Optional.empty(), e.getMessage()));
+            return Pair.of(Optional.empty(), e.getMessage());
         }
     }
 

@@ -17,7 +17,8 @@ class UserConnectionServiceSpec extends Specification {
     private final UserService userService = Stub()
     private final UserConnectionRepository userConnectionRepository = Stub()
 
-    private final UserConnectionService userConnectionService = new UserConnectionService(userService, userConnectionRepository)
+    private final UserConnectionLimitService userConnectionLimitService = new UserConnectionLimitService(userConnectionRepository)
+    private final UserConnectionService userConnectionService = new UserConnectionService(userService, userConnectionLimitService, userConnectionRepository)
 
     def "사용자 연결 신청에 대한 테스트"() {
         given:
@@ -57,7 +58,7 @@ class UserConnectionServiceSpec extends Specification {
                 Math.min(targetUserId.id(), senderUserId.id()),
                 Math.max(targetUserId.id(), senderUserId.id())
         ) >> Optional.of(Stub(InviterUserIdProjection) {
-            getInviterUserId() >> targetUserId.id()
+            getInviterUserId() >> inviterUserId.id()
         })
 
         userConnectionRepository.findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(
@@ -67,7 +68,7 @@ class UserConnectionServiceSpec extends Specification {
             getStatus() >> connectionStatus
         })
 
-        userConnectionRepository.findForUpdateByPartnerUserIdsAndStatus(
+        userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
                 Math.min(targetUserId.id(), senderUserId.id()),
                 Math.max(targetUserId.id(), senderUserId.id()),
                 connectionStatus
@@ -95,12 +96,12 @@ class UserConnectionServiceSpec extends Specification {
         result == expectedResult
 
         where:
-        scenario            | senderUserId   | senderUsername   | targetUserId  | targetUsername | inviterUserId | connectionStatus             | expectedResult
-        'Valid accept'      | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING | Pair.of(Optional.of(targetUserId), senderUsername)
-        'Already connected' | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.ACCEPTED | Pair.of(Optional.empty(), 'accept failed.')
+        scenario            | senderUserId   | senderUsername   | targetUserId  | targetUsername | inviterUserId | connectionStatus              | expectedResult
+        'Valid accept'      | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(Optional.of(targetUserId), senderUsername)
+        'Already connected' | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.ACCEPTED | Pair.of(Optional.empty(), 'Invalid status or userId.');
         'Self accept'       | new UserId(1)  | 'userA'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'accept failed.')
-        'Invalid invite'    | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(3) | UserConnectionStatus.REJECTED | Pair.of(Optional.empty(), 'accept failed.')
-        'Already rejected'  | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.REJECTED | Pair.of(Optional.empty(), 'accept failed.')
+        'Invalid invite'    | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(3) | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'accept failed.')
+        'Already rejected'  | new UserId(2)  | 'userB'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.REJECTED | Pair.of(Optional.empty(), 'Invalid status or userId.');
         'Limit by self'     | new UserId(5)  | 'userE'          | new UserId(1) | 'userA'        | new UserId(1) | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'Connection limit reached')
         'Limit by other'    | new UserId(2)  | 'userB'          | new UserId(7) | 'userG'        | new UserId(7) | UserConnectionStatus.PENDING  | Pair.of(Optional.empty(), 'Connection limit reached by other user')
     }
@@ -116,7 +117,7 @@ class UserConnectionServiceSpec extends Specification {
             getInviterUserId() >> inviterUserId.id()
         })
 
-        userConnectionRepository.findForUpdateByPartnerUserIdsAndStatus(
+        userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
                 Math.min(senderUserId.id(), targetUserId.id()),
                 Math.max(senderUserId.id(), targetUserId.id()),
                 UserConnectionStatus.PENDING
@@ -150,7 +151,7 @@ class UserConnectionServiceSpec extends Specification {
             getInviterUserId() >> inviterUserId.id()
         })
 
-        userConnectionRepository.findForUpdateByPartnerUserIdsAndStatus(
+        userConnectionRepository.findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(
                 Math.min(senderUserId.id(), targetUserId.id()),
                 Math.max(senderUserId.id(), targetUserId.id()),
                 UserConnectionStatus.ACCEPTED
