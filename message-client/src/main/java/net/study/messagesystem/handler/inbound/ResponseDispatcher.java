@@ -21,8 +21,8 @@ public class ResponseDispatcher {
     }
 
     private void preparedHandlers() {
-        handlers.put(MessageType.NOTIFY_MESSAGE,
-                (msg) -> message((MessageNotification) msg));
+        handlers.put(MessageType.NOTIFY_MESSAGE, (msg) -> message((MessageNotification) msg));
+        handlers.put(MessageType.FETCH_USER_INVITE_CODE_RESPONSE, (msg) -> inviteCode((InviteResponse) msg));
     }
 
     public void dispatch(BaseMessage message) {
