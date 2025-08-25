@@ -3,7 +3,6 @@ package net.study.messagesystem.repository.connection;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.PessimisticLockScope;
 import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.constant.UserConnectionStatus;
 import net.study.messagesystem.entity.user.connection.QUserConnectionEntity;
