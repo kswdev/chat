@@ -151,11 +151,11 @@ public class UserConnectionService {
         try {
             userConnectionLimitService.connect(accepterUserId, inviterUserId);
             return Pair.of(Optional.of(inviterUserId), accepterUsername.get());
-        } catch (EntityNotFoundException e) {
-            log.error("accept failed. cause: {}", e.getMessage());
-            return Pair.of(Optional.empty(), "Invalid status or userId.");
         } catch (IllegalStateException e) {
             return Pair.of(Optional.empty(), e.getMessage());
+        } catch (Exception e) {
+            log.error("accept failed. cause: {}", e.getMessage());
+            return Pair.of(Optional.empty(), "Invalid status or userId.");
         }
     }
 
