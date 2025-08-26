@@ -7,7 +7,7 @@ import net.study.messagesystem.entity.BaseEntity;
 @Getter
 @Entity @Table(name = "user_connection")
 @IdClass(ChannelId.class)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = {"channelId", "userId"}, callSuper = false)
 public class UserChannelEntity extends BaseEntity {
