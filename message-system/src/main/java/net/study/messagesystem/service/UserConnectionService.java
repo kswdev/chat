@@ -1,6 +1,5 @@
 package net.study.messagesystem.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.UserConnectionStatus;
@@ -109,7 +108,7 @@ public class UserConnectionService {
                 .map(inviterUserId -> new UserId(inviterUserId.getInviterUserId()));
     }
 
-    private UserConnectionStatus getConnectionStatus(UserId inviterUserId, UserId partnerUserId) {
+    public UserConnectionStatus getConnectionStatus(UserId inviterUserId, UserId partnerUserId) {
         Pair<Long, Long> userIdAscending = getUserIdAscending(inviterUserId, partnerUserId);
         Long firstUserId = userIdAscending.getFirst();
         Long secondUserId = userIdAscending.getSecond();
