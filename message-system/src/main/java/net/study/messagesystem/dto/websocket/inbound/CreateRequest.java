@@ -15,7 +15,7 @@ public class CreateRequest extends BaseRequest {
     @JsonCreator
     public CreateRequest(
             @JsonProperty("title") String title,
-            @JsonProperty("title") String participantUsername
+            @JsonProperty("participantUsername") String participantUsername
     ) {
         super(MessageType.CREATE_REQUEST);
         this.title = title;
