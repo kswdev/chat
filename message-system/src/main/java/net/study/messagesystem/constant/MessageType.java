@@ -13,8 +13,10 @@ public class MessageType {
     public static final String REJECT_RESPONSE = "REJECT_RESPONSE";
     public static final String DISCONNECT_REQUEST = "DISCONNECT_REQUEST";
     public static final String DISCONNECT_RESPONSE = "DISCONNECT_RESPONSE";
-    public static final String CREATE_REQUEST = "CREATE_CHANNEL_REQUEST";
-    public static final String CREATE_RESPONSE = "CREATE_CHANNEL_RESPONSE";
+    public static final String CREATE_REQUEST = "CREATE_REQUEST";
+    public static final String CREATE_RESPONSE = "CREATE_RESPONSE";
+    public static final String ENTER_REQUEST = "ENTER_REQUEST";
+    public static final String ENTER_RESPONSE = "ENTER_RESPONSE";
     public static final String WRITE_MESSAGE = "WRITE_MESSAGE";
 
     // Notification
