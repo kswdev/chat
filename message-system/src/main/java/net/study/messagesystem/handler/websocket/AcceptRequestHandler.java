@@ -2,7 +2,7 @@ package net.study.messagesystem.handler.websocket;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.Constants;
+import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.AcceptRequest;
@@ -27,7 +27,7 @@ public class AcceptRequestHandler implements BaseRequestHandler<AcceptRequest> {
 
     @Override
     public void handleRequest(WebSocketSession senderSession, AcceptRequest request) {
-        UserId accepterUserId = (UserId) senderSession.getAttributes().get(Constants.USER_ID.getValue());
+        UserId accepterUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
         Pair<Optional<UserId>, String> result = userConnectionService.accept(accepterUserId, request.getUsername());
 
         result.getFirst()

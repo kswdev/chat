@@ -3,7 +3,7 @@ package net.study.messagesystem.handler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.Constants;
+import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
 import net.study.messagesystem.handler.websocket.RequestDispatcher;
@@ -55,6 +55,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     private UserId getUserId(WebSocketSession session) {
-        return (UserId) session.getAttributes().get(Constants.USER_ID.getValue());
+        return (UserId) session.getAttributes().get(IdKey.USER_ID.getValue());
     }
 }

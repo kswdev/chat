@@ -2,7 +2,7 @@ package net.study.messagesystem.handler.websocket;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.Constants;
+import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.constant.UserConnectionStatus;
 import net.study.messagesystem.dto.domain.user.UserId;
@@ -28,7 +28,7 @@ public class InviteRequestHandler implements BaseRequestHandler<InviteRequest> {
 
     @Override
     public void handleRequest(WebSocketSession senderSession, InviteRequest request) {
-        UserId inviterUserId = (UserId) senderSession.getAttributes().get(Constants.USER_ID.getValue());
+        UserId inviterUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
         Pair<Optional<UserId>, String> result = userConnectionService.invite(inviterUserId, request.getUserInviteCode());
 
         result.getFirst()

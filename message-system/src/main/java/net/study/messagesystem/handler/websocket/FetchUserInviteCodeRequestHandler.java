@@ -2,7 +2,7 @@ package net.study.messagesystem.handler.websocket;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.Constants;
+import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.FetchUserInviteCodeRequest;
@@ -23,7 +23,7 @@ public class FetchUserInviteCodeRequestHandler implements BaseRequestHandler<Fet
 
     @Override
     public void handleRequest(WebSocketSession senderSession, FetchUserInviteCodeRequest request) {
-        UserId requestUserId = (UserId) senderSession.getAttributes().get(Constants.USER_ID.getValue());
+        UserId requestUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
 
         userService.getInviteCode(requestUserId)
                    .ifPresentOrElse(

@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.Constants;
+import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.dto.domain.user.UserId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
@@ -45,8 +45,8 @@ public class CustomHttpSessionHandshakeInterceptor extends HttpSessionHandshakeI
             return false;
         }
 
-        attributes.put(Constants.HTTP_SESSION_ID.getValue(), sessionOpt.get().getId());
-        attributes.put(Constants.USER_ID.getValue(), new UserId(userIdOpt.get()));
+        attributes.put(IdKey.HTTP_SESSION_ID.getValue(), sessionOpt.get().getId());
+        attributes.put(IdKey.USER_ID.getValue(), new UserId(userIdOpt.get()));
         return true;
     }
 
