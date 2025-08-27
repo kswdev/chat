@@ -14,7 +14,8 @@ import net.study.messagesystem.constant.MessageType;
         @JsonSubTypes.Type(value = AcceptRequest.class, name = MessageType.ACCEPT_REQUEST),
         @JsonSubTypes.Type(value = DisconnectRequest.class, name = MessageType.DISCONNECT_REQUEST),
         @JsonSubTypes.Type(value = RejectRequest.class, name = MessageType.REJECT_REQUEST),
-        @JsonSubTypes.Type(value = InviteRequest.class, name = MessageType.INVITE_REQUEST)
+        @JsonSubTypes.Type(value = InviteRequest.class, name = MessageType.INVITE_REQUEST),
+        @JsonSubTypes.Type(value = CreateRequest.class, name = MessageType.CREATE_REQUEST)
 })
 public abstract class BaseRequest {
     @Getter private final String type;
