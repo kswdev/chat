@@ -8,11 +8,13 @@ import net.study.messagesystem.dto.domain.channel.Channel;
 import net.study.messagesystem.dto.domain.channel.ChannelId;
 import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.projection.ChannelTitleProjection;
+import net.study.messagesystem.dto.projection.UserIdProjection;
 import net.study.messagesystem.entity.channel.ChannelEntity;
 import net.study.messagesystem.entity.channel.UserChannelEntity;
 import net.study.messagesystem.repository.channel.ChannelRepository;
 import net.study.messagesystem.repository.channel.UserChannelRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,18 @@ public class ChannelService {
         return userChannelRepository.existsByUserIdAndChannelId(userId.id(), channelId.id());
     }
 
+    public List<UserId> getParticipantsUserIds(ChannelId channelId) {
+        return userChannelRepository.findUserIdsByChannelId(channelId.id()).stream()
+                .map(UserIdProjection::getUserId)
+                .map(UserId::new)
+                .toList();
+    }
+
+    public boolean isOnline(ChannelId channelId, UserId userId) {
+        return sessionService.isOnline(userId, channelId);
+    }
+
+    @Transactional
     public Pair<Optional<Channel>, ResultType> create(UserId senderUserId, UserId participantId, String title) {
         if (title != null && title.isEmpty()) {
             log.warn("Invalid args: title is empty");
