@@ -17,16 +17,16 @@ public class MessageEntity extends BaseEntity {
     @Column(name = "message_sequence")
     private Long messageSequence;
 
-    @Column(name = "user_name", nullable = false)
-    private String username;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @Column(name = "content", nullable = false)
     private String content;
 
     public MessageEntity() {}
 
-    public MessageEntity(String username, String content) {
-        this.username = username;
+    public MessageEntity(Long userId, String content) {
+        this.userId = userId;
         this.content = content;
     }
 
