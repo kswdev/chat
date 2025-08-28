@@ -8,7 +8,7 @@ import java.io.Serializable;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = {"userId", "channelId"})
-public class ChannelId implements Serializable{
+public class UserChannelId implements Serializable{
 
     private Long userId;
     private Long channelId;
