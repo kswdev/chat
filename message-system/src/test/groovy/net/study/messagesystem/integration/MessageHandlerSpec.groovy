@@ -1,8 +1,13 @@
-package net.study.messagesystem.handler
+package net.study.messagesystem.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.MessageSystemApplication
+import net.study.messagesystem.dto.domain.channel.ChannelId
+import net.study.messagesystem.dto.domain.user.UserId
 import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest
+import net.study.messagesystem.service.ChannelService
+import net.study.messagesystem.service.UserService
+import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -30,42 +35,46 @@ class MessageHandlerSpec extends Specification {
     @LocalServerPort
     int port
 
-    @Autowired ObjectMapper objectMapper;
+    @Autowired private UserService userService;
+    @Autowired private ObjectMapper objectMapper;
+    @SpringBean private ChannelService channelService = Stub();
 
     def "Group Chat Basic Test"() {
         given:
         register("testUserA", "testPassA")
         register("testUserB", "testPassB")
-        register("testUserC", "testPassC")
+
+        channelService.getParticipantsUserIds(_ as ChannelId) >> List.of(
+                userService.getUserId("testUserA").get(),
+                userService.getUserId("testUserB").get())
+
+        channelService.isOnline(_ as ChannelId, _ as UserId) >> true
+
         def sessionIdA = login("testUserA", "testPassA")
         def sessionIdB = login("testUserB", "testPassB")
-        def sessionIdC = login("testUserC", "testPassC")
-        def (clientA, clientB, clientC) = [createClient(sessionIdA), createClient(sessionIdB), createClient(sessionIdC)]
+        def (clientA, clientB) = [createClient(sessionIdA), createClient(sessionIdB)]
 
         when:
-        clientA.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessageRequest("clientA", "안녕하세요 clientA 입니다."))))
-        clientB.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessageRequest("clientB", "안녕하세요 clientB 입니다."))))
-        clientC.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessageRequest("clientC", "안녕하세요 clientC 입니다."))))
+        clientA.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessageRequest(new ChannelId(1L), "testUserA", "안녕하세요 testUserA 입니다."))))
+        clientB.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessageRequest(new ChannelId(1L), "testUserB", "안녕하세요 testUserB 입니다."))))
 
         then:
-        def resultA = clientA.queue.poll(1, TimeUnit.SECONDS) + clientA.queue.poll(1, TimeUnit.SECONDS)
-        def resultB = clientB.queue.poll(1, TimeUnit.SECONDS) + clientB.queue.poll(1, TimeUnit.SECONDS)
-        def resultC = clientC.queue.poll(1, TimeUnit.SECONDS) + clientC.queue.poll(1, TimeUnit.SECONDS)
-        resultA.contains("clientB") && resultA.contains("clientC")
-        resultB.contains("clientA") && resultB.contains("clientC")
-        resultC.contains("clientA") && resultC.contains("clientB")
+        def resultA = clientA.queue.poll(1, TimeUnit.SECONDS)
+        def resultB = clientB.queue.poll(1, TimeUnit.SECONDS)
+
+        resultA.contains("testUserB")
+        resultB.contains("testUserA")
+
         and:
         clientA.queue.isEmpty()
         clientB.queue.isEmpty()
-        clientC.queue.isEmpty()
 
         cleanup:
         unRegister(sessionIdA)
         unRegister(sessionIdB)
-        unRegister(sessionIdC)
+
         clientA.session?.close()
         clientB.session?.close()
-        clientC.session?.close()
     }
 
     def register(String username, String password) {
