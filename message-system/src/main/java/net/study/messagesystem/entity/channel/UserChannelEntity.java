@@ -5,7 +5,7 @@ import lombok.*;
 import net.study.messagesystem.entity.BaseEntity;
 
 @Getter
-@Entity @Table(name = "user_connection")
+@Entity @Table(name = "user_channel")
 @IdClass(UserChannelId.class)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
