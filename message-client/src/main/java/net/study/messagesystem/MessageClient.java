@@ -7,6 +7,7 @@ import net.study.messagesystem.handler.inbound.WebSocketMessageHandler;
 import net.study.messagesystem.handler.outbound.WebSocketSender;
 import net.study.messagesystem.service.RestApiService;
 import net.study.messagesystem.service.TerminalService;
+import net.study.messagesystem.service.UserService;
 import net.study.messagesystem.service.WebSocketService;
 import net.study.messagesystem.util.JsonUtil;
 
@@ -28,18 +29,12 @@ public class MessageClient {
             return;
         }
 
-        ResponseDispatcher responseDispatcher = new ResponseDispatcher(terminalService);
-        WebSocketMessageHandler webSocketMessageHandler = new WebSocketMessageHandler(responseDispatcher);
-        WebSocketSender webSocketSender = new WebSocketSender(terminalService);
-        WebSocketService webSocketService = new WebSocketService(
-                webSocketMessageHandler,
-                terminalService,
-                webSocketSender,
-                BASE_URL, WEBSOCKET_ENDPOINT
-        );
-
+        UserService userService = new UserService();
         RestApiService restApiService = new RestApiService(terminalService, BASE_URL);
-        CommandHandler commandHandler = new CommandHandler(restApiService, webSocketService, terminalService);
+        WebSocketService webSocketService = createWebSocketService(terminalService, userService, BASE_URL, WEBSOCKET_ENDPOINT);
+        CommandHandler commandHandler = new CommandHandler(userService, restApiService, webSocketService, terminalService);
+
+        terminalService.printSystemMessage("'/help' Help for commands. ex) /help");
 
         while (true) {
             String input = terminalService.readLine("Enter message: ");
@@ -55,5 +50,18 @@ public class MessageClient {
                 webSocketService.sendMessage(new WriteMessageRequest("test client", input));
             }
         }
+    }
+
+    private static WebSocketService createWebSocketService(TerminalService terminalService, UserService userService, String BASE_URL, String WEBSOCKET_ENDPOINT) {
+        WebSocketSender webSocketSender = new WebSocketSender(terminalService);
+        ResponseDispatcher responseDispatcher = new ResponseDispatcher(terminalService);
+        WebSocketMessageHandler webSocketMessageHandler = new WebSocketMessageHandler(responseDispatcher);
+
+        return new WebSocketService(
+                BASE_URL, WEBSOCKET_ENDPOINT,
+                userService,
+                terminalService,
+                webSocketSender,
+                webSocketMessageHandler);
     }
 }

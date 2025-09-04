@@ -6,11 +6,13 @@ import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.Session;
 import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.service.TerminalService;
+import net.study.messagesystem.service.UserService;
 import net.study.messagesystem.service.WebSocketService;
 
 @RequiredArgsConstructor
 public class WebSocketSessionHandler extends Endpoint {
 
+    private final UserService userService;
     private final TerminalService terminalService;
     private final WebSocketService webSocketService;
 
@@ -21,6 +23,7 @@ public class WebSocketSessionHandler extends Endpoint {
 
     @Override
     public void onClose(Session session, CloseReason closeReason) {
+        userService.logout();
         webSocketService.closeSession();
         terminalService.printSystemMessage("WebSocket Disconnected: " + closeReason.getReasonPhrase());
     }

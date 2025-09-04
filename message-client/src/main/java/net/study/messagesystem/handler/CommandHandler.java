@@ -5,6 +5,7 @@ import net.study.messagesystem.dto.user.InviteCode;
 import net.study.messagesystem.dto.websocket.outbound.*;
 import net.study.messagesystem.service.RestApiService;
 import net.study.messagesystem.service.TerminalService;
+import net.study.messagesystem.service.UserService;
 import net.study.messagesystem.service.WebSocketService;
 
 import java.util.HashMap;
@@ -13,12 +14,14 @@ import java.util.function.Function;
 
 public class CommandHandler {
 
+    private final UserService userService;
     private final RestApiService restApiService;
     private final WebSocketService webSocketService;
     private final TerminalService terminalService;
     private final Map<String, Function<String[], Boolean>> commands = new HashMap<>();
 
-    public CommandHandler(RestApiService restApiService, WebSocketService webSocketService, TerminalService terminalService) {
+    public CommandHandler(UserService userService, RestApiService restApiService, WebSocketService webSocketService, TerminalService terminalService) {
+        this.userService = userService;
         this.restApiService = restApiService;
         this.webSocketService = webSocketService;
         this.terminalService = terminalService;
@@ -52,7 +55,7 @@ public class CommandHandler {
     }
 
     private Boolean register(String[] params) {
-        if (params.length > 1) {
+        if (userService.isInLobby() && params.length > 1) {
             if (restApiService.register(params[0], params[1]))
                 terminalService.printSystemMessage("Register success.");
             else
@@ -62,19 +65,23 @@ public class CommandHandler {
     }
 
     private Boolean unregister(String[] params) {
-        webSocketService.closeSession();
-        if (restApiService.unregister())
-            terminalService.printSystemMessage("Unregister success.");
-        else
-            terminalService.printSystemMessage("Unregister failed.");
+        if (userService.isInLobby()) {
+            webSocketService.closeSession();
+            if (restApiService.unregister())
+                terminalService.printSystemMessage("Unregister success.");
+            else
+                terminalService.printSystemMessage("Unregister failed.");
+        }
         return true;
     }
 
     private Boolean login(String[] params) {
-        if (params.length > 1) {
+        if (userService.isInLobby() && params.length > 1) {
             if (restApiService.login(params[0], params[1])) {
-                if (webSocketService.createSession(restApiService.getSessionId()))
+                if (webSocketService.createSession(restApiService.getSessionId())) {
+                    userService.login(params[0]);
                     terminalService.printSystemMessage("Login success.");
+                }
             } else
                 terminalService.printSystemMessage("Login failed.");
         }
@@ -83,6 +90,7 @@ public class CommandHandler {
 
     private Boolean logout(String[] params) {
         if (restApiService.logout()) {
+            userService.logout();
             terminalService.printSystemMessage("Logout success.");
         } else {
             terminalService.printSystemMessage("Logout failed.");
@@ -93,25 +101,31 @@ public class CommandHandler {
     }
 
     private Boolean inviteCode(String[] params) {
-        webSocketService.sendMessage(new FetchUserInviteCodeRequest());
-        terminalService.printSystemMessage("Get invite code.");
+        if (userService.isInLobby()) {
+            webSocketService.sendMessage(new FetchUserInviteCodeRequest());
+            terminalService.printSystemMessage("Get invite code.");
+        }
         return true;
     }
 
     private Boolean connections(String[] params) {
-        webSocketService.sendMessage(new FetchUserConnectionsRequest(UserConnectionStatus.ACCEPTED));
-        terminalService.printSystemMessage("Get connections list");
+        if (userService.isInLobby()) {
+            webSocketService.sendMessage(new FetchUserConnectionsRequest(UserConnectionStatus.ACCEPTED));
+            terminalService.printSystemMessage("Get connections list");
+        }
         return true;
     }
 
     private Boolean pending(String[] params) {
-        webSocketService.sendMessage(new FetchUserConnectionsRequest(UserConnectionStatus.PENDING));
-        terminalService.printSystemMessage("Get pending list");
+        if (userService.isInLobby()) {
+            webSocketService.sendMessage(new FetchUserConnectionsRequest(UserConnectionStatus.PENDING));
+            terminalService.printSystemMessage("Get pending list");
+        }
         return true;
     }
 
     private Boolean invite(String[] params) {
-        if (params.length > 0) {
+        if (userService.isInLobby() && params.length > 0) {
             webSocketService.sendMessage(new InviteRequest(new InviteCode(params[0])));
             terminalService.printSystemMessage("Request user Invite.");
         }
@@ -119,7 +133,7 @@ public class CommandHandler {
     }
 
     private Boolean accept(String[] params) {
-        if (params.length > 0) {
+        if (userService.isInLobby() && params.length > 0) {
             webSocketService.sendMessage(new AcceptRequest(params[0]));
             terminalService.printSystemMessage("Accept invite from %s".formatted(params[0]));
         }
@@ -127,7 +141,7 @@ public class CommandHandler {
     }
 
     private Boolean reject(String[] params) {
-        if (params.length > 0) {
+        if (userService.isInLobby() && params.length > 0) {
             webSocketService.sendMessage(new RejectRequest(params[0]));
             terminalService.printSystemMessage("reject invite from %s".formatted(params[0]));
         }
@@ -135,7 +149,7 @@ public class CommandHandler {
     }
 
     private Boolean disconnect(String[] params) {
-        if (params.length > 0) {
+        if (userService.isInLobby() && params.length > 0) {
             webSocketService.sendMessage(new DisconnectRequest(params[0]));
             terminalService.printSystemMessage("Disconnect %s".formatted(params[0]));
         }
@@ -156,11 +170,10 @@ public class CommandHandler {
 
     private Boolean help(String[] params) {
         terminalService.printSystemMessage("""
-            Commands:
+            Commands For Lobby
             '/register' Register a new user. Usage: '/register <Username> <Password>'
             '/unregister' Unregister a user. Usage: '/unregister'
             '/login' Login a user. Usage: '/login <Username> <Password>'
-            '/logout' Logout a user. Usage: '/logout'
             '/inviteCode' Get inviteCode: '/inviteCode'
             '/invite' Invite a user: '/invite <InviteCode>'
             '/accept' Accept invite from a user: '/accept <Username>'
@@ -168,6 +181,11 @@ public class CommandHandler {
             '/disconnect' disconnect from a user: '/disconnect <Username>'
             '/connections' Get connections list: '/connections'
             '/pending' Get pending list: '/pending'
+
+            Commands For Channel
+
+            Commands For Lobby/Channel
+            '/logout' Logout a user. Usage: '/logout'
             '/clear' Clear terminal. Usage: '/clear'
             '/exit' Exit the client. Usage: '/exit'
         """);

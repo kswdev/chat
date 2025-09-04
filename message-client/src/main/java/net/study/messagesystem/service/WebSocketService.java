@@ -20,25 +20,30 @@ import java.util.concurrent.TimeUnit;
 
 public class WebSocketService {
 
-    private final WebSocketMessageHandler webSocketMessageHandler;
+
+    private final String websocketUrl;
+    private final UserService userService;
     private final TerminalService terminalService;
     private final WebSocketSender webSocketSender;
-    private final String websocketUrl;
+    private final WebSocketMessageHandler webSocketMessageHandler;
 
-    private ScheduledExecutorService executorService;
 
     private Session session;
+    private ScheduledExecutorService executorService;
 
     public WebSocketService(
-            WebSocketMessageHandler webSocketMessageHandler,
+            String websocketUrl, String endpoint,
+            UserService userService,
             TerminalService terminalService,
             WebSocketSender webSocketSender,
-            String websocketUrl, String endpoint)
-    {
-        this.webSocketMessageHandler = webSocketMessageHandler;
+            WebSocketMessageHandler webSocketMessageHandler
+
+    ) {
+        this.websocketUrl = "ws://" + websocketUrl + endpoint;
+        this.userService = userService;
         this.terminalService = terminalService;
         this.webSocketSender = webSocketSender;
-        this.websocketUrl = "ws://" + websocketUrl + endpoint;
+        this.webSocketMessageHandler = webSocketMessageHandler;
     }
 
     public boolean createSession(String sessionId) {
@@ -47,8 +52,7 @@ public class WebSocketService {
         
         try {
             session = clientManager.connectToServer(
-                    new WebSocketSessionHandler(terminalService, this), config, new URI(websocketUrl)
-            );
+                    new WebSocketSessionHandler(userService, terminalService, this), config, new URI(websocketUrl));
             session.addMessageHandler(webSocketMessageHandler);
             enableKeepAlive();
             return true;
