@@ -1,7 +1,5 @@
 package net.study.messagesystem.dto.websocket.outbound;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import net.study.messagesystem.constant.MessageType;
 
