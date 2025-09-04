@@ -1,6 +1,7 @@
 package net.study.messagesystem.handler;
 
 import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagesystem.dto.channel.ChannelId;
 import net.study.messagesystem.dto.user.InviteCode;
 import net.study.messagesystem.dto.websocket.outbound.*;
 import net.study.messagesystem.service.RestApiService;
@@ -37,6 +38,8 @@ public class CommandHandler {
         commands.put("invite", this::invite);
         commands.put("inviteCode", this::inviteCode);
         commands.put("accept", this::accept);
+        commands.put("create", this::create);
+        commands.put("enter", this::enter);
         commands.put("reject", this::reject);
         commands.put("disconnect", this::disconnect);
         commands.put("connections", this::connections);
@@ -140,6 +143,22 @@ public class CommandHandler {
         return true;
     }
 
+    private Boolean create(String[] params) {
+        if (userService.isInLobby() && params.length > 1) {
+            webSocketService.sendMessage(new CreateRequest(params[0], params[1]));
+            terminalService.printSystemMessage("Create a direct channel success.");
+        }
+        return true;
+    }
+
+    private Boolean enter(String[] params) {
+        if (userService.isInLobby() && params.length > 0) {
+            webSocketService.sendMessage(new EnterRequest(new ChannelId(Long.valueOf(params[0]))));
+            terminalService.printSystemMessage("Enter the channel success.");
+        }
+        return true;
+    }
+
     private Boolean reject(String[] params) {
         if (userService.isInLobby() && params.length > 0) {
             webSocketService.sendMessage(new RejectRequest(params[0]));
@@ -174,13 +193,15 @@ public class CommandHandler {
             '/register' Register a new user. Usage: '/register <Username> <Password>'
             '/unregister' Unregister a user. Usage: '/unregister'
             '/login' Login a user. Usage: '/login <Username> <Password>'
-            '/inviteCode' Get inviteCode: '/inviteCode'
-            '/invite' Invite a user: '/invite <InviteCode>'
-            '/accept' Accept invite from a user: '/accept <Username>'
-            '/reject' reject invite from a user: '/reject <Username>'
-            '/disconnect' disconnect from a user: '/disconnect <Username>'
-            '/connections' Get connections list: '/connections'
-            '/pending' Get pending list: '/pending'
+            '/inviteCode' Get inviteCode. Usage: '/inviteCode'
+            '/invite' Invite a user. Usage: '/invite <InviteCode>'
+            '/accept' Accept invite from a user. Usage: '/accept <Username>'
+            '/create' Create a direct channel. Usage: '/create <Title> <Username>'
+            '/enter' Enter the channel. Usage: '/enter <ChannelId>'
+            '/reject' Reject invite from a user. Usage: '/reject <Username>'
+            '/disconnect' Disconnect from a user. Usage: '/disconnect <Username>'
+            '/connections' Get connections list. Usage: '/connections'
+            '/pending' Get pending list. Usage: '/pending'
 
             Commands For Channel
 
