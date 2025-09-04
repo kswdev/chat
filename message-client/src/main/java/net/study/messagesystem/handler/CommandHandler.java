@@ -153,8 +153,13 @@ public class CommandHandler {
 
     private Boolean enter(String[] params) {
         if (userService.isInLobby() && params.length > 0) {
-            webSocketService.sendMessage(new EnterRequest(new ChannelId(Long.valueOf(params[0]))));
-            terminalService.printSystemMessage("Request enter the channel success.");
+            try {
+                ChannelId channelId = new ChannelId(Long.valueOf(params[0]));
+                webSocketService.sendMessage(new EnterRequest(channelId));
+                terminalService.printSystemMessage("Request enter the channel success.");
+            } catch (NumberFormatException e) {
+                terminalService.printSystemMessage(e.getMessage());
+            }
         }
         return true;
     }
