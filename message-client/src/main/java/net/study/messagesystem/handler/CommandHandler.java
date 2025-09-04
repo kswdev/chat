@@ -146,7 +146,7 @@ public class CommandHandler {
     private Boolean create(String[] params) {
         if (userService.isInLobby() && params.length > 1) {
             webSocketService.sendMessage(new CreateRequest(params[0], params[1]));
-            terminalService.printSystemMessage("Create a direct channel success.");
+            terminalService.printSystemMessage("Request create a direct channel.");
         }
         return true;
     }
@@ -154,7 +154,7 @@ public class CommandHandler {
     private Boolean enter(String[] params) {
         if (userService.isInLobby() && params.length > 0) {
             webSocketService.sendMessage(new EnterRequest(new ChannelId(Long.valueOf(params[0]))));
-            terminalService.printSystemMessage("Enter the channel success.");
+            terminalService.printSystemMessage("Request enter the channel success.");
         }
         return true;
     }
