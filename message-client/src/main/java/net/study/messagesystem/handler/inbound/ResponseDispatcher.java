@@ -3,6 +3,7 @@ package net.study.messagesystem.handler.inbound;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.dto.websocket.inbound.*;
 import net.study.messagesystem.service.TerminalService;
+import net.study.messagesystem.service.UserService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,10 +11,15 @@ import java.util.function.Consumer;
 
 public class ResponseDispatcher {
 
+    private final UserService userService;
     private final TerminalService terminalService;
     private final Map<String, Consumer<BaseMessage>> handlers = new HashMap<>();
 
-    public ResponseDispatcher(TerminalService terminalService) {
+    public ResponseDispatcher(
+            UserService userService,
+            TerminalService terminalService
+    ) {
+        this.userService = userService;
         this.terminalService = terminalService;
         preparedHandlers();
     }
@@ -45,11 +51,12 @@ public class ResponseDispatcher {
     }
 
     private void enter(EnterResponse enterResponse) {
-        terminalService.printSystemMessage("title: %s, channelId: %s".formatted(enterResponse.getTitle(), enterResponse.getChannelId().id()));
+        userService.moveToChannel(enterResponse.getChannelId());
+        terminalService.printSystemMessage("Enter Channel %s: %s".formatted(enterResponse.getChannelId().id(), enterResponse.getTitle()));
     }
 
     private void create(CreateResponse createResponse) {
-        terminalService.printSystemMessage("title: %s, channelId: %s".formatted(createResponse.getTitle(), createResponse.getChannelId().id()));
+        terminalService.printSystemMessage("Create Channel %s: %s".formatted(createResponse.getChannelId().id(), createResponse.getTitle()));
     }
 
     private void invite(InviteResponse inviteResponse) {

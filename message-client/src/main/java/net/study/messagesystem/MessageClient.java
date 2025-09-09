@@ -54,7 +54,7 @@ public class MessageClient {
 
     private static WebSocketService createWebSocketService(TerminalService terminalService, UserService userService, String BASE_URL, String WEBSOCKET_ENDPOINT) {
         WebSocketSender webSocketSender = new WebSocketSender(terminalService);
-        ResponseDispatcher responseDispatcher = new ResponseDispatcher(terminalService);
+        ResponseDispatcher responseDispatcher = new ResponseDispatcher(userService, terminalService);
         WebSocketMessageHandler webSocketMessageHandler = new WebSocketMessageHandler(responseDispatcher);
 
         return new WebSocketService(
