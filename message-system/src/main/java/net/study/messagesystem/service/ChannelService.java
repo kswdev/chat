@@ -4,6 +4,7 @@ import com.mysema.commons.lang.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.ResultType;
+import net.study.messagesystem.constant.UserConnectionStatus;
 import net.study.messagesystem.dto.domain.channel.Channel;
 import net.study.messagesystem.dto.domain.channel.ChannelId;
 import net.study.messagesystem.dto.domain.user.UserId;
@@ -25,6 +26,7 @@ import java.util.Optional;
 public class ChannelService {
 
     private final SessionService sessionService;
+    private final UserConnectionService userConnectionService;
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
 
@@ -48,6 +50,11 @@ public class ChannelService {
         if (title != null && title.isEmpty()) {
             log.warn("Invalid args: title is empty");
             return Pair.of(Optional.empty(), ResultType.INVALID_ARGS);
+        }
+
+        if(userConnectionService.getConnectionStatus(senderUserId, participantId) != UserConnectionStatus.ACCEPTED) {
+            log.warn("user connection status not accepted. participantId: {}", participantId);
+            return Pair.of(Optional.empty(), ResultType.NOT_ALLOWED);
         }
 
         try {
