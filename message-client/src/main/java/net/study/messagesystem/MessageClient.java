@@ -47,7 +47,7 @@ public class MessageClient {
 
             } else if (!input.isEmpty() && userService.isInChannel()) {
                 terminalService.printMessage("<me>", input);
-                webSocketService.sendMessage(new WriteMessageRequest("test client", input));
+                webSocketService.sendMessage(new WriteMessageRequest(userService.getChannelId(), userService.getUsername(), input));
             }
         }
     }
