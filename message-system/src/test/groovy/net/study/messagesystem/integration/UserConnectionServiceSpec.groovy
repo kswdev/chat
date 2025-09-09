@@ -101,7 +101,6 @@ class UserConnectionServiceSpec extends Specification {
         (0..19).each {
             userService.getUserId("testUser${it}")
                        .ifPresent {userId ->
-                           userRepository.deleteById(userId.id())
                            userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), UserConnectionStatus.PENDING).each{
                                userConnectionRepository.deleteById(new UserConnectionId(
                                        Math.min(userId.id(), it.getUserId()),
@@ -138,8 +137,8 @@ class UserConnectionServiceSpec extends Specification {
                                        Math.max(userId.id(), it.getUserId())
                                ))
                            }
+                           userRepository.deleteById(userId.id())
                        }
-
         }
     }
 }
