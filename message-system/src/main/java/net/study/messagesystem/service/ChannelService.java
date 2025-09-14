@@ -41,8 +41,8 @@ public class ChannelService {
                 .toList();
     }
 
-    public boolean isOnline(ChannelId channelId, UserId userId) {
-        return sessionService.isOnline(userId, channelId);
+    public List<UserId> getOnlineParticipantsUserIds(ChannelId channelId) {
+        return sessionService.getOnlineParticipantUserIds(channelId, getParticipantsUserIds(channelId));
     }
 
     @Transactional

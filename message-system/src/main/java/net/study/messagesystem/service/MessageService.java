@@ -30,10 +30,9 @@ public class MessageService {
             return;
         }
 
-        List<UserId> participantsUserIds = channelService.getParticipantsUserIds(channelId);
+        List<UserId> participantsUserIds = channelService.getOnlineParticipantsUserIds(channelId);
         participantsUserIds.stream()
                         .filter(not(userId -> userId.equals(senderUserId)))
-                        .filter(userId -> channelService.isOnline(channelId, userId))
                         .forEach(messageSender);
     }
 }

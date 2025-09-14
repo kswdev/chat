@@ -48,8 +48,6 @@ class MessageHandlerSpec extends Specification {
                 userService.getUserId("testUserA").get(),
                 userService.getUserId("testUserB").get())
 
-        channelService.isOnline(_ as ChannelId, _ as UserId) >> true
-
         def sessionIdA = login("testUserA", "testPassA")
         def sessionIdB = login("testUserB", "testPassB")
         def (clientA, clientB) = [createClient(sessionIdA), createClient(sessionIdB)]
