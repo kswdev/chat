@@ -19,11 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChannelService {
+
+    private static final int LIMIT_HEAD_COUNT = 10;
 
     private final SessionService sessionService;
     private final UserConnectionService userConnectionService;
@@ -46,28 +49,37 @@ public class ChannelService {
     }
 
     @Transactional
-    public Pair<Optional<Channel>, ResultType> create(UserId senderUserId, UserId participantId, String title) {
+    public Pair<Optional<Channel>, ResultType> create(UserId senderUserId, List<UserId> participantUserIds, String title) {
         if (title != null && title.isEmpty()) {
             log.warn("Invalid args: title is empty");
             return Pair.of(Optional.empty(), ResultType.INVALID_ARGS);
         }
 
-        if(userConnectionService.getConnectionStatus(senderUserId, participantId) != UserConnectionStatus.ACCEPTED) {
-            log.warn("user connection status not accepted. participantId: {}", participantId);
+        int headCount = participantUserIds.size() + 1;
+        if (headCount > LIMIT_HEAD_COUNT) {
+            log.warn("Over limit of channel. participantIds count={}, title={}", participantUserIds.size(), title);
+            return Pair.of(Optional.empty(), ResultType.OVER_LIMIT);
+        }
+
+        if(userConnectionService.countConnectionStatus(senderUserId, participantUserIds, UserConnectionStatus.ACCEPTED) != participantUserIds.size()) {
+            log.warn("user connection status not accepted. participantId: {}", participantUserIds);
             return Pair.of(Optional.empty(), ResultType.NOT_ALLOWED);
         }
 
         try {
-            final int HEAD_COUNT = 2;
-
-            ChannelEntity channelEntity = channelRepository.save(new ChannelEntity(title, HEAD_COUNT));
+            ChannelEntity channelEntity = channelRepository.save(new ChannelEntity(title, headCount));
             Long channelId = channelEntity.getChannelId();
-            List<UserChannelEntity> userChannelList = List.of(new UserChannelEntity(senderUserId.id(), channelId, 0L),
-                                                              new UserChannelEntity(participantId.id(), channelId, 0L));
 
-            userChannelRepository.saveAll(userChannelList);
+            UserChannelEntity userChannel = new UserChannelEntity(senderUserId.id(), channelId, 0L);
 
-            Channel channel = new Channel(new ChannelId(channelId), title, HEAD_COUNT);
+            List<UserChannelEntity> channelList = participantUserIds.stream()
+                    .map(userId -> new UserChannelEntity(userId.id(), channelId, 0L))
+                    .collect(Collectors.toList());
+            channelList.add(userChannel);
+
+            userChannelRepository.saveAll(channelList);
+
+            Channel channel = new Channel(new ChannelId(channelId), title, headCount);
             return Pair.of(Optional.of(channel), ResultType.SUCCESS);
         } catch (Exception e) {
             log.error("Failed to create channel. cause: {}", e.getMessage());
