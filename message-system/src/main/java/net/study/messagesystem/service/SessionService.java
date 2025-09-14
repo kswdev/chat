@@ -13,6 +13,9 @@ import org.springframework.session.SessionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -39,6 +42,28 @@ public class SessionService {
             log.error("Redis set key failed. key: {}, channelId: {}", channelIdKey, channelId);
             return false;
         }
+    }
+
+    public List<UserId> getOnlineParticipantUserIds(ChannelId channelId, List<UserId> userIds) {
+        List<String> channelIdKeys = userIds.stream().map(this::buildChannelIdKey).toList();
+
+        try {
+            List<String> channelIds = stringRedisTemplate.opsForValue().multiGet(channelIdKeys);
+            assert channelIds != null;
+            if (!channelIds.isEmpty()) {
+                List<UserId> onlineParticipantUserIds = new ArrayList<>(channelIds.size());
+                for (int i = 0; i < channelIds.size(); i++) {
+                    String value = channelIds.get(i);
+                    if (value != null && value.equals(channelId.toString())) {
+                        onlineParticipantUserIds.add(userIds.get(i));
+                    }
+                }
+                return onlineParticipantUserIds;
+            }
+        } catch (Exception e) {
+            log.error("Redis get failed. channelId: {}, cause: {}", channelId, e.getMessage());
+        }
+        return Collections.emptyList();
     }
 
     public boolean isOnline(UserId userId, ChannelId channelId) {
