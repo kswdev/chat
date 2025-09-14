@@ -6,19 +6,21 @@ import lombok.Getter;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.dto.domain.user.InviteCode;
 
+import java.util.List;
+
 @Getter
 public class CreateRequest extends BaseRequest {
 
     private final String title;
-    private final String participantUsername;
+    private final List<String> participantUsernames;
 
     @JsonCreator
     public CreateRequest(
             @JsonProperty("title") String title,
-            @JsonProperty("participantUsername") String participantUsername
+            @JsonProperty("participantUsernames") List<String> participantUsernames
     ) {
         super(MessageType.CREATE_REQUEST);
         this.title = title;
-        this.participantUsername = participantUsername;
+        this.participantUsernames = participantUsernames;
     }
 }
