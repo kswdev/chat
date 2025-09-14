@@ -75,6 +75,17 @@ public class UserConnectionService {
                     .toList();
     }
 
+    public long countConnectionStatus(UserId userId, List<UserId> partnerUserIds, UserConnectionStatus status) {
+        List<Long> ids = partnerUserIds.stream()
+                .map(UserId::id)
+                .toList();
+
+        long countA = userConnectionRepository.countByPartnerAUser_UserIdAndPartnerBUser_userIdInAndStatus(userId.id(), ids, status);
+        long countB = userConnectionRepository.countByPartnerBUser_userIdAndPartnerAUser_UserIdInAndStatus(userId.id(), ids, status);
+
+        return countA + countB;
+    }
+
     private boolean isNotSameUser(UserId userId1, UserId userId2) {
         if (userId1.equals(userId2)) {
             log.warn("User tried to perform action on themselves: {}", userId1);

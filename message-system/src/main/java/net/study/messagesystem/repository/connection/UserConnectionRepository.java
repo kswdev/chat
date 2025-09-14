@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,9 @@ public interface UserConnectionRepository
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph("UserConnectionEntity.withAll")
     Optional<UserConnectionEntity> findByPartnerAUser_userIdAndPartnerBUser_userIdAndStatus(Long userIdA, Long userIdB, UserConnectionStatus status);
+
+    long countByPartnerAUser_UserIdAndPartnerBUser_userIdInAndStatus(Long userIdA, Collection<Long> userIdBs, UserConnectionStatus status);
+    long countByPartnerBUser_userIdAndPartnerAUser_UserIdInAndStatus(Long userIdB, Collection<Long> userIdAs, UserConnectionStatus status);
 
     @Query("""
                 SELECT uc.partnerAUser.userId AS userId,
