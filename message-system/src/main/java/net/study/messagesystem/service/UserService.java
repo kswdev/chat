@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.dto.projection.ConnectionCountProjection;
 import net.study.messagesystem.dto.projection.InviteCodeProjection;
+import net.study.messagesystem.dto.projection.UserIdProjection;
 import net.study.messagesystem.dto.projection.UsernameProjection;
 import net.study.messagesystem.dto.domain.user.InviteCode;
 import net.study.messagesystem.dto.domain.user.User;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -49,6 +51,13 @@ public class UserService {
     public Optional<UserId> getUserId(String username) {
         return userRepository.findByUsername(username)
                 .map(user -> new UserId(user.getUserId()));
+    }
+
+    public List<UserId> getUserIds(List<String> usernames) {
+        return userRepository.findUserIdByUsernameIn(usernames).stream()
+                .map(UserIdProjection::getUserId)
+                .map(UserId::new)
+                .toList();
     }
 
     public UserEntity getUserReference(UserId userId) {
