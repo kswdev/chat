@@ -7,8 +7,10 @@ import net.study.messagesystem.constant.ResultType;
 import net.study.messagesystem.constant.UserConnectionStatus;
 import net.study.messagesystem.dto.domain.channel.Channel;
 import net.study.messagesystem.dto.domain.channel.ChannelId;
+import net.study.messagesystem.dto.domain.user.InviteCode;
 import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.projection.ChannelTitleProjection;
+import net.study.messagesystem.dto.projection.InviteCodeProjection;
 import net.study.messagesystem.dto.projection.UserIdProjection;
 import net.study.messagesystem.entity.channel.ChannelEntity;
 import net.study.messagesystem.entity.channel.UserChannelEntity;
@@ -32,6 +34,16 @@ public class ChannelService {
     private final UserConnectionService userConnectionService;
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
+
+    public Optional<InviteCode> getInviteCode(ChannelId channelId) {
+        return channelRepository.findInviteCodeByChannelId(channelId.id())
+                .map(InviteCodeProjection::getInviteCode)
+                .map(InviteCode::new)
+                .or(() -> {
+                    log.warn("InviteCode does not exists. channelId: {}", channelId);
+                    return Optional.empty();
+                });
+    }
 
     public boolean isJoined(UserId userId, ChannelId channelId) {
         return userChannelRepository.existsByUserIdAndChannelId(userId.id(), channelId.id());
