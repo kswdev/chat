@@ -11,13 +11,13 @@ CREATE TABLE IF NOT EXISTS user (
     user_id BIGINT AUTO_INCREMENT,
     user_name VARCHAR(20) NOT NULL,
     password VARCHAR(100) NOT NULL,
-    connection_invite_code VARCHAR(32) NOT NULL,
+    invite_code VARCHAR(32) NOT NULL,
     connection_count INT NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     PRIMARY KEY (user_id),
     UNIQUE KEY unique_user_name  (user_name),
-    UNIQUE KEY unique_connection_invite_code  (connection_invite_code)
+    UNIQUE KEY unique_invite_code  (invite_code)
 );
 
 CREATE TABLE IF NOT EXISTS user_connection (
@@ -36,12 +36,12 @@ CREATE TABLE IF NOT EXISTS user_connection (
 CREATE TABLE IF NOT EXISTS channel (
     channel_id BIGINT AUTO_INCREMENT,
     title VARCHAR(30) NOT NULL,
-    channel_invite_code VARCHAR(32) NOT NULL,
+    invite_code VARCHAR(32) NOT NULL,
     head_count INT NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     PRIMARY KEY (channel_id),
-    UNIQUE KEY unique_channel_invite_code  (channel_invite_code)
+    UNIQUE KEY unique_invite_code  (invite_code)
 );
 
 CREATE TABLE IF NOT EXISTS user_channel (

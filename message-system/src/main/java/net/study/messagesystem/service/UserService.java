@@ -39,7 +39,7 @@ public class UserService {
 
     public Optional<InviteCode> getInviteCode(UserId userId) {
         return userRepository.findInviteCodeByUserId(userId.id())
-                .map(InviteCodeProjection::getConnectionInviteCode)
+                .map(InviteCodeProjection::getInviteCode)
                 .map(InviteCode::new);
     }
 

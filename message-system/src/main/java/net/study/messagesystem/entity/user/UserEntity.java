@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import net.study.messagesystem.entity.BaseEntity;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -26,8 +25,8 @@ public class UserEntity extends BaseEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "connection_invite_code", nullable = false)
-    private String connectionInviteCode;
+    @Column(name = "invite_code", nullable = false)
+    private String inviteCode;
 
     @Setter
     @Column(name = "connection_count", nullable = false)
@@ -36,7 +35,7 @@ public class UserEntity extends BaseEntity {
     public UserEntity(String username, String password) {
         this.username = username;
         this.password = password;
-        this.connectionInviteCode = UUID.randomUUID().toString().replace("-", "");
+        this.inviteCode = UUID.randomUUID().toString().replace("-", "");
     }
 
     public static UserEntity testUser(Long userId) {

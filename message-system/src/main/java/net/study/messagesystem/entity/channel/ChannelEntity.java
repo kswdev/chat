@@ -22,8 +22,8 @@ public class ChannelEntity extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "channel_invite_code", nullable = false)
-    private String channelInviteCode;
+    @Column(name = "invite_code", nullable = false)
+    private String inviteCode;
 
     @Setter
     @Column(name = "head_count", nullable = false)
@@ -32,6 +32,6 @@ public class ChannelEntity extends BaseEntity {
     public ChannelEntity(String title, int headCount) {
         this.title = title;
         this.headCount = headCount;
-        this.channelInviteCode = UUID.randomUUID().toString().replace("-", "");
+        this.inviteCode = UUID.randomUUID().toString().replace("-", "");
     }
 }
