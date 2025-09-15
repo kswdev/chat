@@ -44,7 +44,7 @@ public class UserService {
     }
 
     public Optional<User> getUserIdName(InviteCode inviteCode) {
-        return userRepository.findByConnectionInviteCode(inviteCode.code())
+        return userRepository.findByInviteCode(inviteCode.code())
                 .map(user -> new User(new UserId(user.getUserId()), user.getUsername()));
     }
 

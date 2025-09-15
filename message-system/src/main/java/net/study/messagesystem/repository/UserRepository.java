@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsername(String username);
 
-    Optional<UserEntity> findByConnectionInviteCode(String connectionInviteCode);
+    Optional<UserEntity> findByInviteCode(String inviteCode);
 
     List<UserIdProjection> findUserIdByUsernameIn(Collection<String> usernames);
 
