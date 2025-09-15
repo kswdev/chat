@@ -60,6 +60,7 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(false, "Disconnect failed"));
     }
 
+    @Transactional(readOnly = true)
     public List<User> getUsersByStatus(UserId userId, UserConnectionStatus status) {
         List<UserIdUsernameInviterUserIdProjection> userA = userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), status);
         List<UserIdUsernameInviterUserIdProjection> userB = userConnectionRepository.findByPartnerBUser_userIdAndStatus(userId.id(), status);
