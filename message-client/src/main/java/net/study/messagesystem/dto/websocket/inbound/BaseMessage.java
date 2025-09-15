@@ -15,8 +15,9 @@ import net.study.messagesystem.dto.websocket.outbound.InviteRequest;
         @JsonSubTypes.Type(value = AcceptResponse.class, name = MessageType.ACCEPT_RESPONSE),
         @JsonSubTypes.Type(value = RejectResponse.class, name = MessageType.REJECT_RESPONSE),
         @JsonSubTypes.Type(value = DisconnectResponse.class, name = MessageType.DISCONNECT_RESPONSE),
-        @JsonSubTypes.Type(value = FetchUserConnectionsResponse.class, name = MessageType.FETCH_USER_CONNECTIONS_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserInviteCodeResponse.class, name = MessageType.FETCH_USER_INVITE_CODE_RESPONSE),
+        @JsonSubTypes.Type(value = FetchUserConnectionsResponse.class, name = MessageType.FETCH_USER_CONNECTIONS_RESPONSE),
+        @JsonSubTypes.Type(value = FetchChannelInviteCodeResponse.class, name = MessageType.FETCH_CHANNEL_INVITE_CODE_RESPONSE),
 
         @JsonSubTypes.Type(value = JoinNotification.class, name = MessageType.NOTIFY_JOIN),
         @JsonSubTypes.Type(value = InviteNotification.class, name = MessageType.ASK_INVITE),
