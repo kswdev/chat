@@ -76,6 +76,7 @@ public class UserConnectionService {
                     .toList();
     }
 
+    @Transactional(readOnly = true)
     public long countConnectionStatus(UserId userId, List<UserId> partnerUserIds, UserConnectionStatus status) {
         List<Long> ids = partnerUserIds.stream()
                 .map(UserId::id)
