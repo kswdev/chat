@@ -35,6 +35,12 @@ public class ChannelService {
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
 
+    public List<Channel> getChannels(UserId userId) {
+        return userChannelRepository.findChannelsByUserId(userId.id()).stream()
+                .map(channelEntity -> new Channel(new ChannelId(channelEntity.getChannelId()), channelEntity.getTitle(), channelEntity.getHeadCount()))
+                .toList();
+    }
+
     public Optional<InviteCode> getInviteCode(ChannelId channelId) {
         return channelRepository.findInviteCodeByChannelId(channelId.id())
                 .map(InviteCodeProjection::getInviteCode)
