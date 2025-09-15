@@ -1,6 +1,9 @@
 package net.study.messagesystem.constant;
 
 public class MessageType {
+
+    public static final String FETCH_CHANNELS_REQUEST = "FETCH_CHANNELS_REQUEST";
+    public static final String FETCH_CHANNELS_RESPONSE = "FETCH_CHANNELS_RESPONSE";
     public static final String FETCH_USER_INVITE_CODE_REQUEST = "FETCH_USER_INVITE_CODE_REQUEST";
     public static final String FETCH_USER_INVITE_CODE_RESPONSE = "FETCH_USER_INVITE_CODE_RESPONSE";
     public static final String FETCH_USER_CONNECTIONS_REQUEST = "FETCH_USER_CONNECTIONS_REQUEST";
