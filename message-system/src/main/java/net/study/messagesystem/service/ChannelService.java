@@ -70,6 +70,10 @@ public class ChannelService {
         return sessionService.getOnlineParticipantUserIds(channelId, getParticipantsUserIds(channelId));
     }
 
+    public boolean leave(UserId userId) {
+        return sessionService.deActiveChannel(userId);
+    }
+
     @Transactional
     public Pair<Optional<Channel>, ResultType> join(InviteCode inviteCode, UserId userId) {
         Optional<Channel> ch = getChannel(inviteCode);

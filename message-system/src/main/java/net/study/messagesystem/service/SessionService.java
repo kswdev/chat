@@ -32,6 +32,18 @@ public class SessionService {
         return authentication.getName();
     }
 
+    public boolean deActiveChannel(UserId userId) {
+        String channelIdKey = buildChannelIdKey(userId);
+
+        try {
+            stringRedisTemplate.delete(channelIdKey);
+            return true;
+        } catch (Exception e) {
+            log.error("Redis delete key failed. key: {}", channelIdKey);
+            return false;
+        }
+    }
+
     public boolean setActiveChannel(UserId userId, ChannelId channelId) {
         String channelIdKey = buildChannelIdKey(userId);
 
@@ -64,20 +76,6 @@ public class SessionService {
             log.error("Redis get failed. channelId: {}, cause: {}", channelId, e.getMessage());
         }
         return Collections.emptyList();
-    }
-
-    public boolean isOnline(UserId userId, ChannelId channelId) {
-        String channelIdKey = buildChannelIdKey(userId);
-        try {
-            String chId = stringRedisTemplate.opsForValue().get(channelIdKey);
-            if (chId != null && chId.equals(channelId.id().toString())) {
-                return true;
-            }
-        } catch (Exception e) {
-            log.error("Redis get failed. key: {}, cause: {}", channelIdKey, e.getMessage());
-        }
-
-        return false;
     }
 
     public void refreshTTL(UserId userId, String httpSessionId) {
