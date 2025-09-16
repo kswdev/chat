@@ -1,12 +1,16 @@
 package net.study.messagesystem.constant;
 
 public class MessageType {
+
+    public static final String FETCH_CHANNELS_REQUEST = "FETCH_CHANNELS_REQUEST";
+    public static final String FETCH_CHANNELS_RESPONSE = "FETCH_CHANNELS_RESPONSE";
     public static final String FETCH_USER_INVITE_CODE_REQUEST = "FETCH_USER_INVITE_CODE_REQUEST";
     public static final String FETCH_USER_INVITE_CODE_RESPONSE = "FETCH_USER_INVITE_CODE_RESPONSE";
     public static final String FETCH_USER_CONNECTIONS_REQUEST = "FETCH_USER_CONNECTIONS_REQUEST";
     public static final String FETCH_USER_CONNECTIONS_RESPONSE = "FETCH_USER_CONNECTIONS_RESPONSE";
     public static final String FETCH_CHANNEL_INVITE_CODE_REQUEST = "FETCH_CHANNEL_INVITE_CODE_REQUEST";
     public static final String FETCH_CHANNEL_INVITE_CODE_RESPONSE = "FETCH_CHANNEL_INVITE_CODE_RESPONSE";
+    public static final String WRITE_MESSAGE = "WRITE_MESSAGE";
     public static final String INVITE_REQUEST = "INVITE_REQUEST";
     public static final String INVITE_RESPONSE = "INVITE_RESPONSE";
     public static final String ACCEPT_REQUEST = "ACCEPT_REQUEST";
@@ -19,7 +23,12 @@ public class MessageType {
     public static final String CREATE_RESPONSE = "CREATE_RESPONSE";
     public static final String ENTER_REQUEST = "ENTER_REQUEST";
     public static final String ENTER_RESPONSE = "ENTER_RESPONSE";
-    public static final String WRITE_MESSAGE = "WRITE_MESSAGE";
+    public static final String JOIN_REQUEST = "JOIN_REQUEST";
+    public static final String JOIN_RESPONSE = "JOIN_RESPONSE";
+    public static final String LEAVE_REQUEST = "LEAVE_REQUEST";
+    public static final String LEAVE_RESPONSE = "LEAVE_RESPONSE";
+    public static final String QUIT_REQUEST = "QUIT_REQUEST";
+    public static final String QUIT_RESPONSE = "QUIT_RESPONSE";
 
     // Notification
     public static final String NOTIFY_MESSAGE = "NOTIFY_MESSAGE";
