@@ -1,6 +1,7 @@
 package net.study.messagesystem.service;
 
 import com.mysema.commons.lang.Pair;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.ResultType;
@@ -28,16 +29,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChannelService {
 
-    private static final int LIMIT_HEAD_COUNT = 10;
-
     private final SessionService sessionService;
     private final UserConnectionService userConnectionService;
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
 
+    public Optional<Channel> getChannel(InviteCode inviteCode) {
+        return channelRepository.findChannelByInviteCode(inviteCode.code())
+                .map(channel -> new Channel(new ChannelId(channel.getChannelId()), channel.getTitle(), channel.getHeadCount()));
+    }
+
     public List<Channel> getChannels(UserId userId) {
         return userChannelRepository.findChannelsByUserId(userId.id()).stream()
-                .map(channelEntity -> new Channel(new ChannelId(channelEntity.getChannelId()), channelEntity.getTitle(), channelEntity.getHeadCount()))
+                .map(channel -> new Channel(new ChannelId(channel.getChannelId()), channel.getTitle(), channel.getHeadCount()))
                 .toList();
     }
 
@@ -67,6 +71,34 @@ public class ChannelService {
     }
 
     @Transactional
+    public Pair<Optional<Channel>, ResultType> join(InviteCode inviteCode, UserId userId) {
+        Optional<Channel> ch = getChannel(inviteCode);
+
+        if (ch.isEmpty())
+            return Pair.of(Optional.empty(), ResultType.NOT_FOUND);
+
+        Channel channel = ch.get();
+
+        if (isJoined(userId, channel.channelId()))
+            return Pair.of(Optional.of(channel), ResultType.ALREADY_JOINED);
+
+        try {
+            channelRepository
+                    .findForUpdateByChannelId(channel.channelId().id())
+                    .ifPresentOrElse(entity -> {
+                        entity.increaseHeadCount();
+                        userChannelRepository.save(new UserChannelEntity(userId.id(), entity.getChannelId(), 0L));
+                    }, () -> {
+                        throw new EntityNotFoundException("Channel does not exists. channelId: " + channel.channelId());
+                    });
+
+            return Pair.of(Optional.of(channel), ResultType.SUCCESS);
+        } catch (IllegalArgumentException e) {
+            return Pair.of(Optional.empty(), ResultType.OVER_LIMIT);
+        }
+    }
+
+    @Transactional
     public Pair<Optional<Channel>, ResultType> create(UserId senderUserId, List<UserId> participantUserIds, String title) {
         if (title != null && title.isEmpty()) {
             log.warn("Invalid args: title is empty");
@@ -74,10 +106,6 @@ public class ChannelService {
         }
 
         int headCount = participantUserIds.size() + 1;
-        if (headCount > LIMIT_HEAD_COUNT) {
-            log.warn("Over limit of channel. participantIds count={}, title={}", participantUserIds.size(), title);
-            return Pair.of(Optional.empty(), ResultType.OVER_LIMIT);
-        }
 
         if(userConnectionService.countConnectionStatus(senderUserId, participantUserIds, UserConnectionStatus.ACCEPTED) != participantUserIds.size()) {
             log.warn("user connection status not accepted. participantId: {}", participantUserIds);
@@ -85,7 +113,8 @@ public class ChannelService {
         }
 
         try {
-            ChannelEntity channelEntity = channelRepository.save(new ChannelEntity(title, headCount));
+            ChannelEntity newChannelEntity = ChannelEntity.create(title, headCount);
+            ChannelEntity channelEntity = channelRepository.save(newChannelEntity);
             Long channelId = channelEntity.getChannelId();
 
             UserChannelEntity userChannel = new UserChannelEntity(senderUserId.id(), channelId, 0L);
@@ -99,6 +128,10 @@ public class ChannelService {
 
             Channel channel = new Channel(new ChannelId(channelId), title, headCount);
             return Pair.of(Optional.of(channel), ResultType.SUCCESS);
+
+        } catch (IllegalArgumentException iae) {
+            log.warn("Over limit of channel. participantIds count={}, title={}", participantUserIds.size(), title);
+            return Pair.of(Optional.empty(), ResultType.OVER_LIMIT);
         } catch (Exception e) {
             log.error("Failed to create channel. cause: {}", e.getMessage());
             throw e;

@@ -29,9 +29,27 @@ public class ChannelEntity extends BaseEntity {
     @Column(name = "head_count", nullable = false)
     private int headCount;
 
-    public ChannelEntity(String title, int headCount) {
+    @Transient
+    public static final int LIMIT_HEAD_COUNT = 10;
+
+    public static ChannelEntity create(String title, int headCount) {
+        checkHeadCount(headCount);
+        return new ChannelEntity(title, headCount);
+    }
+
+    public void increaseHeadCount() {
+        checkHeadCount(this.headCount + 1);
+        this.headCount++;
+    }
+
+    private ChannelEntity(String title, int headCount) {
         this.title = title;
         this.headCount = headCount;
         this.inviteCode = UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private static void checkHeadCount(int headCount) {
+        if (headCount > LIMIT_HEAD_COUNT)
+            throw new IllegalStateException("headCount limit reached already");
     }
 }
