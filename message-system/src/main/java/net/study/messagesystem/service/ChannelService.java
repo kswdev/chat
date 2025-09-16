@@ -75,6 +75,30 @@ public class ChannelService {
     }
 
     @Transactional
+    public ResultType quit(ChannelId channelId, UserId userId) {
+
+        if (!isJoined(userId, channelId))
+            return ResultType.NOT_JOINED;
+
+        try {
+            channelRepository
+                    .findForUpdateByChannelId(channelId.id())
+                    .ifPresentOrElse(entity -> {
+                        entity.decreaseHeadCount();
+                        userChannelRepository.deleteByUserIdAndChannelId(userId.id(), channelId.id());
+                    }, () -> {
+                        throw new EntityNotFoundException("Channel does not exists. channelId: " + channelId);
+                    });
+
+            return ResultType.SUCCESS;
+        } catch (IllegalArgumentException e) {
+            log.error("Quit channel on error. channelId: {}, cause: {}", channelId.id(), e.getMessage());
+            userChannelRepository.deleteByUserIdAndChannelId(userId.id(), channelId.id());
+            return ResultType.SUCCESS;
+        }
+    }
+
+    @Transactional
     public Pair<Optional<Channel>, ResultType> join(InviteCode inviteCode, UserId userId) {
         Optional<Channel> ch = getChannel(inviteCode);
 

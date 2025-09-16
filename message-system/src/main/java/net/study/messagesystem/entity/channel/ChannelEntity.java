@@ -42,6 +42,11 @@ public class ChannelEntity extends BaseEntity {
         this.headCount++;
     }
 
+    public void decreaseHeadCount() {
+        checkHeadCount(this.headCount - 1);
+        this.headCount--;
+    }
+
     private ChannelEntity(String title, int headCount) {
         this.title = title;
         this.headCount = headCount;
@@ -51,5 +56,7 @@ public class ChannelEntity extends BaseEntity {
     private static void checkHeadCount(int headCount) {
         if (headCount > LIMIT_HEAD_COUNT)
             throw new IllegalStateException("headCount limit reached already");
+        else if (headCount < 0)
+            throw new IllegalStateException("headCount already zero");
     }
 }
