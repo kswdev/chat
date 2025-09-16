@@ -9,12 +9,16 @@ import net.study.messagesystem.dto.websocket.outbound.InviteRequest;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
+        @JsonSubTypes.Type(value = JoinResponse.class, name = MessageType.JOIN_RESPONSE),
+        @JsonSubTypes.Type(value = QuitResponse.class, name = MessageType.QUIT_RESPONSE),
         @JsonSubTypes.Type(value = EnterResponse.class, name = MessageType.ENTER_RESPONSE),
+        @JsonSubTypes.Type(value = LeaveResponse.class, name = MessageType.LEAVE_RESPONSE),
         @JsonSubTypes.Type(value = CreateResponse.class, name = MessageType.CREATE_RESPONSE),
         @JsonSubTypes.Type(value = InviteResponse.class, name = MessageType.INVITE_RESPONSE),
         @JsonSubTypes.Type(value = AcceptResponse.class, name = MessageType.ACCEPT_RESPONSE),
         @JsonSubTypes.Type(value = RejectResponse.class, name = MessageType.REJECT_RESPONSE),
         @JsonSubTypes.Type(value = DisconnectResponse.class, name = MessageType.DISCONNECT_RESPONSE),
+        @JsonSubTypes.Type(value = FetchChannelsResponse.class, name = MessageType.FETCH_CHANNELS_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserInviteCodeResponse.class, name = MessageType.FETCH_USER_INVITE_CODE_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserConnectionsResponse.class, name = MessageType.FETCH_USER_CONNECTIONS_RESPONSE),
         @JsonSubTypes.Type(value = FetchChannelInviteCodeResponse.class, name = MessageType.FETCH_CHANNEL_INVITE_CODE_RESPONSE),
