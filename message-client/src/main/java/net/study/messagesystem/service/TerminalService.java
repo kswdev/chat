@@ -40,7 +40,7 @@ public class TerminalService {
         String input = lineReader.readLine(prompt);
         terminal.puts(InfoCmp.Capability.cursor_up);
         terminal.puts(InfoCmp.Capability.delete_line);
-        terminal.flush();
+        flush();
         return input;
     }
 
@@ -52,9 +52,13 @@ public class TerminalService {
         lineReader.printAbove(String.format("[System]: %s", content));
     }
 
-    public boolean clearTerminal() {
+    public void clearTerminal() {
         terminal.puts(InfoCmp.Capability.clear_screen);
-        terminal.flush();
-        return true;
+        flush();
+    }
+
+    public void flush() {
+        if (terminal != null)
+            terminal.flush();
     }
 }
