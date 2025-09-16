@@ -20,6 +20,7 @@ import net.study.messagesystem.constant.MessageType;
         @JsonSubTypes.Type(value = CreateRequest.class, name = MessageType.CREATE_REQUEST),
         @JsonSubTypes.Type(value = EnterRequest.class, name = MessageType.ENTER_REQUEST),
         @JsonSubTypes.Type(value = LeaveRequest.class, name = MessageType.LEAVE_REQUEST),
+        @JsonSubTypes.Type(value = QuitRequest.class, name = MessageType.QUIT_REQUEST),
         @JsonSubTypes.Type(value = JoinRequest.class, name = MessageType.JOIN_REQUEST),
 })
 public abstract class BaseRequest {
