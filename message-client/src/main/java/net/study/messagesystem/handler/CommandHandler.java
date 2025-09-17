@@ -44,6 +44,7 @@ public class CommandHandler {
         commands.put("join", this::join);
         commands.put("enter", this::enter);
         commands.put("leave", this::leave);
+        commands.put("quit", this::quit);
         commands.put("reject", this::reject);
         commands.put("disconnect", this::disconnect);
         commands.put("connections", this::connections);
@@ -186,6 +187,14 @@ public class CommandHandler {
         return true;
     }
 
+    private Boolean quit(String[] params) {
+        if (userService.isInLobby() && params.length > 0) {
+            webSocketService.sendMessage(new QuitRequest(new ChannelId(Long.valueOf(params[0]))));
+            terminalService.printSystemMessage("Request quit the channel.");
+        }
+        return true;
+    }
+
     private Boolean channels(String[] parmas) {
         if (userService.isInLobby()) {
             webSocketService.sendMessage(new FetchChannelsRequest());
@@ -238,8 +247,8 @@ public class CommandHandler {
             '/create' Create a channel. (Up to 99 users) Usage: '/create <Title> <Username> ...'
             '/join'  Join the channel. Usage: '/join <InviteCode>'
             '/enter' Enter the channel. Usage: '/enter <ChannelId>'
-            '/leave' Leave the channel. Usage: '/leave
-            '/quit'  Quit the channel. Usage: '/quit
+            '/leave' Leave the channel. Usage: '/leave'
+            '/quit'  Quit the channel. Usage: '/quit <ChannelId>'
             '/channels' Get joined channels list. Usage: '/channels'
 
             Commands For Channel
