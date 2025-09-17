@@ -66,7 +66,7 @@ public class SessionService {
                 List<UserId> onlineParticipantUserIds = new ArrayList<>(channelIds.size());
                 for (int i = 0; i < channelIds.size(); i++) {
                     String value = channelIds.get(i);
-                    if (value != null && value.equals(channelId.toString())) {
+                    if (value != null && value.equals(channelId.id().toString())) {
                         onlineParticipantUserIds.add(userIds.get(i));
                     }
                 }
