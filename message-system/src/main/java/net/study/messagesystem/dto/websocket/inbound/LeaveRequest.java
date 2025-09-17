@@ -9,6 +9,6 @@ public class LeaveRequest extends BaseRequest {
 
     @JsonCreator
     public LeaveRequest() {
-        super(MessageType.JOIN_REQUEST);
+        super(MessageType.LEAVE_REQUEST);
     }
 }

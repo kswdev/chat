@@ -7,6 +7,6 @@ import net.study.messagesystem.constant.MessageType;
 public class LeaveRequest extends BaseRequest {
 
     public LeaveRequest() {
-        super(MessageType.JOIN_REQUEST);
+        super(MessageType.LEAVE_REQUEST);
     }
 }
