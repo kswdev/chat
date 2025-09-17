@@ -247,7 +247,6 @@ public class CommandHandler {
             '/create' Create a channel. (Up to 99 users) Usage: '/create <Title> <Username> ...'
             '/join'  Join the channel. Usage: '/join <InviteCode>'
             '/enter' Enter the channel. Usage: '/enter <ChannelId>'
-            '/leave' Leave the channel. Usage: '/leave'
             '/quit'  Quit the channel. Usage: '/quit <ChannelId>'
             '/channels' Get joined channels list. Usage: '/channels'
 
@@ -255,6 +254,7 @@ public class CommandHandler {
 
             Commands For Lobby/Channel
             '/logout' Logout a user. Usage: '/logout'
+            '/leave' Leave the channel. Usage: '/leave'
             '/clear' Clear terminal. Usage: '/clear'
             '/exit' Exit the client. Usage: '/exit'
         """);
