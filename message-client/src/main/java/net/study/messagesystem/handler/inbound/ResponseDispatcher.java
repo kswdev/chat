@@ -28,13 +28,19 @@ public class ResponseDispatcher {
         handlers.put(MessageType.ASK_INVITE, (msg) -> askInvite((InviteNotification) msg));
         handlers.put(MessageType.ENTER_RESPONSE, (msg) -> enter((EnterResponse) msg));
         handlers.put(MessageType.CREATE_RESPONSE, (msg) -> create((CreateResponse) msg));
+        handlers.put(MessageType.JOIN_RESPONSE, (msg) -> join((JoinResponse) msg));
         handlers.put(MessageType.INVITE_RESPONSE, (msg) -> invite((InviteResponse) msg));
         handlers.put(MessageType.ACCEPT_RESPONSE, (msg) -> accept((AcceptResponse) msg));
         handlers.put(MessageType.REJECT_RESPONSE, (msg) -> reject((RejectResponse) msg));
         handlers.put(MessageType.DISCONNECT_RESPONSE, (msg) -> disconnect((DisconnectResponse) msg));
+        handlers.put(MessageType.QUIT_RESPONSE, (msg) -> quit((QuitResponse) msg));
+        handlers.put(MessageType.LEAVE_RESPONSE, (msg) -> leave((LeaveResponse) msg));
         handlers.put(MessageType.NOTIFY_ACCEPT, (msg) -> acceptNotification((AcceptNotification) msg));
         handlers.put(MessageType.NOTIFY_JOIN, (msg) -> joinChannelNotification((JoinNotification) msg));
         handlers.put(MessageType.NOTIFY_MESSAGE, (msg) -> message((MessageNotification) msg));
+
+        handlers.put(MessageType.FETCH_CHANNELS_RESPONSE, (msg) -> fetchChannels((FetchChannelsResponse) msg));
+        handlers.put(MessageType.FETCH_CHANNEL_INVITE_CODE_RESPONSE, (msg) -> fetchChannelInviteCode((FetchChannelInviteCodeResponse) msg));
         handlers.put(MessageType.FETCH_USER_CONNECTIONS_RESPONSE, (msg) -> connections((FetchUserConnectionsResponse) msg));
         handlers.put(MessageType.FETCH_USER_INVITE_CODE_RESPONSE, (msg) -> fetchUserInviteCode((FetchUserInviteCodeResponse) msg));
 
@@ -59,6 +65,10 @@ public class ResponseDispatcher {
         terminalService.printSystemMessage("Create Channel %s: %s".formatted(createResponse.getChannelId().id(), createResponse.getTitle()));
     }
 
+    private void join(JoinResponse joinResponse) {
+        terminalService.printSystemMessage("Joined channel. title: %s, channelId: %s".formatted(joinResponse.getTitle(), joinResponse.getChannelId().id()));
+    }
+
     private void invite(InviteResponse inviteResponse) {
         terminalService.printSystemMessage("Invite: %s, result: %s".formatted(inviteResponse.getInviteCode().code(), inviteResponse.getStatus()));
     }
@@ -73,6 +83,31 @@ public class ResponseDispatcher {
 
     private void disconnect(DisconnectResponse disconnectResponse) {
         terminalService.printSystemMessage("Disconnect: %s, result: %s".formatted(disconnectResponse.getUsername(), disconnectResponse.getStatus()));
+    }
+
+    private void quit(QuitResponse quitResponse) {
+        terminalService.printSystemMessage("Quit channel. %s".formatted(quitResponse.getChannelId().id()));
+    }
+
+    private void leave(LeaveResponse leaveResponse) {
+        terminalService.printSystemMessage("Leave channel. %s".formatted(userService.getChannelId()));
+        userService.moveToLobby();
+    }
+
+    private void fetchConnections(FetchUserConnectionsResponse connectionsResponse) {
+        connectionsResponse
+                .getConnections()
+                .forEach(connection -> terminalService.printSystemMessage(" %s - %s".formatted(connection.username(), connection.status())));
+    }
+
+    private void fetchChannels(FetchChannelsResponse channelsResponse) {
+        channelsResponse
+                .getChannels()
+                .forEach(channel -> terminalService.printSystemMessage(" %s : %s (%d)".formatted(channel.channelId().id(), channel.title(), channel.headCount())));
+    }
+
+    private void fetchChannelInviteCode(FetchChannelInviteCodeResponse inviteCodeResponse) {
+        terminalService.printSystemMessage("Channel invite code: %s".formatted(inviteCodeResponse.getInviteCode().code()));
     }
 
     private void acceptNotification(AcceptNotification acceptNotification) {
