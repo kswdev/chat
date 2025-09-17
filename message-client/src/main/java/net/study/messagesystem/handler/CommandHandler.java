@@ -9,7 +9,9 @@ import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.service.UserService;
 import net.study.messagesystem.service.WebSocketService;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -43,6 +45,7 @@ public class CommandHandler {
         commands.put("reject", this::reject);
         commands.put("disconnect", this::disconnect);
         commands.put("connections", this::connections);
+        commands.put("channels", this::channels);
         commands.put("pending", this::pending);
         commands.put("exit", this::exit);
         commands.put("help", this::help);
@@ -104,9 +107,14 @@ public class CommandHandler {
     }
 
     private Boolean inviteCode(String[] params) {
-        if (userService.isInLobby()) {
-            webSocketService.sendMessage(new FetchUserInviteCodeRequest());
-            terminalService.printSystemMessage("Get invite code.");
+        if (userService.isInLobby() && params.length > 0) {
+            if ("user".equals(params[0])) {
+                webSocketService.sendMessage(new FetchUserInviteCodeRequest());
+                terminalService.printSystemMessage("Get invite code.");
+            } else if ("channel".equals(params[0])) {
+                webSocketService.sendMessage(new FetchChannelInviteCodeRequest(new ChannelId(Long.valueOf(params[1]))));
+                terminalService.printSystemMessage("Get invite code of channel.");
+            }
         }
         return true;
     }
@@ -144,8 +152,8 @@ public class CommandHandler {
     }
 
     private Boolean create(String[] params) {
-        if (userService.isInLobby() && params.length > 1) {
-            webSocketService.sendMessage(new CreateRequest(params[0], params[1]));
+        if (userService.isInLobby() && 1 < params.length && params.length < 100) {
+            webSocketService.sendMessage(new CreateRequest(params[0], List.of(Arrays.copyOfRange(params, 1, params.length))));
             terminalService.printSystemMessage("Request create a direct channel.");
         }
         return true;
@@ -156,6 +164,14 @@ public class CommandHandler {
             ChannelId channelId = new ChannelId(Long.valueOf(params[0]));
             webSocketService.sendMessage(new EnterRequest(channelId));
             terminalService.printSystemMessage("Request enter the channel success.");
+        }
+        return true;
+    }
+
+    private Boolean channels(String[] parmas) {
+        if (userService.isInLobby()) {
+            webSocketService.sendMessage(new FetchChannelsRequest());
+            terminalService.printSystemMessage("Request channels list");
         }
         return true;
     }
@@ -194,15 +210,16 @@ public class CommandHandler {
             '/register' Register a new user. Usage: '/register <Username> <Password>'
             '/unregister' Unregister a user. Usage: '/unregister'
             '/login' Login a user. Usage: '/login <Username> <Password>'
-            '/inviteCode' Get inviteCode. Usage: '/inviteCode'
+            '/inviteCode' Get inviteCode of yours or joined channel. Usage: '/inviteCode user or /inviteCode channel <ChannelId>'
             '/invite' Invite a user. Usage: '/invite <InviteCode>'
             '/accept' Accept invite from a user. Usage: '/accept <Username>'
-            '/create' Create a direct channel. Usage: '/create <Title> <Username>'
-            '/enter' Enter the channel. Usage: '/enter <ChannelId>'
+            '/pending' Get pending list. Usage: '/pending'
             '/reject' Reject invite from a user. Usage: '/reject <Username>'
             '/disconnect' Disconnect from a user. Usage: '/disconnect <Username>'
             '/connections' Get connections list. Usage: '/connections'
-            '/pending' Get pending list. Usage: '/pending'
+            '/create' Create a channel. (Up to 99 users) Usage: '/create <Title> <Username> ...'
+            '/enter' Enter the channel. Usage: '/enter <ChannelId>'
+            '/channels' Get joined channels list. Usage: '/channels'
 
             Commands For Channel
 
