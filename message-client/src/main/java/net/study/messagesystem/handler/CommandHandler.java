@@ -41,7 +41,9 @@ public class CommandHandler {
         commands.put("inviteCode", this::inviteCode);
         commands.put("accept", this::accept);
         commands.put("create", this::create);
+        commands.put("join", this::join);
         commands.put("enter", this::enter);
+        commands.put("leave", this::leave);
         commands.put("reject", this::reject);
         commands.put("disconnect", this::disconnect);
         commands.put("connections", this::connections);
@@ -159,11 +161,27 @@ public class CommandHandler {
         return true;
     }
 
+    private Boolean join(String[] params) {
+        if (userService.isInLobby() && params.length > 0) {
+            webSocketService.sendMessage(new JoinRequest(new InviteCode(params[0])));
+            terminalService.printSystemMessage("Request join a channel.");
+        }
+        return true;
+    }
+
     private Boolean enter(String[] params) {
         if (userService.isInLobby() && params.length > 0) {
             ChannelId channelId = new ChannelId(Long.valueOf(params[0]));
             webSocketService.sendMessage(new EnterRequest(channelId));
-            terminalService.printSystemMessage("Request enter the channel success.");
+            terminalService.printSystemMessage("Request enter the channel.");
+        }
+        return true;
+    }
+
+    private Boolean leave(String[] params) {
+        if (userService.isInChannel()) {
+            webSocketService.sendMessage(new LeaveRequest());
+            terminalService.printSystemMessage("Request leave the channel.");
         }
         return true;
     }
@@ -218,7 +236,10 @@ public class CommandHandler {
             '/disconnect' Disconnect from a user. Usage: '/disconnect <Username>'
             '/connections' Get connections list. Usage: '/connections'
             '/create' Create a channel. (Up to 99 users) Usage: '/create <Title> <Username> ...'
+            '/join'  Join the channel. Usage: '/join <InviteCode>'
             '/enter' Enter the channel. Usage: '/enter <ChannelId>'
+            '/leave' Leave the channel. Usage: '/leave
+            '/quit'  Quit the channel. Usage: '/quit
             '/channels' Get joined channels list. Usage: '/channels'
 
             Commands For Channel
