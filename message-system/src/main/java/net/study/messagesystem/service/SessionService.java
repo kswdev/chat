@@ -63,12 +63,10 @@ public class SessionService {
             List<String> channelIds = stringRedisTemplate.opsForValue().multiGet(channelIdKeys);
             assert channelIds != null;
             if (!channelIds.isEmpty()) {
-                List<UserId> onlineParticipantUserIds = new ArrayList<>(channelIds.size());
-                for (int i = 0; i < channelIds.size(); i++) {
+                List<UserId> onlineParticipantUserIds = new ArrayList<>(userIds.size());
+                for (int i = 0; i < userIds.size(); i++) {
                     String value = channelIds.get(i);
-                    if (value != null && value.equals(channelId.id().toString())) {
-                        onlineParticipantUserIds.add(userIds.get(i));
-                    }
+                    onlineParticipantUserIds.add(value != null && value.equals(channelId.id().toString()) ? userIds.get(i) : null);
                 }
                 return onlineParticipantUserIds;
             }
