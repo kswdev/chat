@@ -35,10 +35,6 @@ public class WebSocketSessionManager {
         });
     }
 
-    public List<WebSocketSession> getSessions() {
-        return sessions.values().stream().toList();
-    }
-
     public WebSocketSession getSession(UserId userId) {
         return sessions.get(userId);
     }
