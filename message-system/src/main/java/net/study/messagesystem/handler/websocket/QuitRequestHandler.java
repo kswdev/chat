@@ -10,7 +10,7 @@ import net.study.messagesystem.dto.websocket.inbound.QuitRequest;
 import net.study.messagesystem.dto.websocket.outbound.ErrorResponse;
 import net.study.messagesystem.dto.websocket.outbound.QuitResponse;
 import net.study.messagesystem.service.ChannelService;
-import net.study.messagesystem.session.WebSocketSessionManager;
+import net.study.messagesystem.service.ClientNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -20,7 +20,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class QuitRequestHandler implements BaseRequestHandler<QuitRequest> {
 
     private final ChannelService channelService;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, QuitRequest request) {
@@ -30,14 +30,14 @@ public class QuitRequestHandler implements BaseRequestHandler<QuitRequest> {
         try {
             result = channelService.quit(request.getChannelId(), userId);
         } catch (Exception e) {
-            webSocketSessionManager.sendMessage(senderSession, new ErrorResponse(ResultType.FAILED.getMessage(), MessageType.QUIT_REQUEST));
+            clientNotificationService.sendMessage(senderSession, userId, new ErrorResponse(ResultType.FAILED.getMessage(), MessageType.QUIT_REQUEST));
             return;
         }
 
         if (result.equals(ResultType.SUCCESS))
-            webSocketSessionManager.sendMessage(senderSession, new QuitResponse(request.getChannelId()));
+            clientNotificationService.sendMessage(senderSession, userId, new QuitResponse(request.getChannelId()));
         else
-            webSocketSessionManager.sendMessage(senderSession, new ErrorResponse(result.getMessage(), MessageType.QUIT_REQUEST));
+            clientNotificationService.sendMessage(senderSession, userId, new ErrorResponse(result.getMessage(), MessageType.QUIT_REQUEST));
     }
 
     @Override

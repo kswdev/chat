@@ -3,14 +3,12 @@ package net.study.messagesystem.session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.dto.domain.user.UserId;
-import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
-import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingConsumer;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,17 +20,15 @@ import java.util.function.Consumer;
 public class WebSocketSessionManager {
 
     private final Map<UserId, WebSocketSession> sessions = new ConcurrentHashMap<>();
-    private final JsonUtil jsonUtil;
 
-    public void sendMessage(WebSocketSession session, BaseMessage message) {
-        jsonUtil.toJson(message).ifPresent(msg -> {
-            try {
-                session.sendMessage(new TextMessage(msg));
-                log.info("Send message: [{}] to {}", msg, session.getId());
-            } catch (Exception e) {
-                log.error("메세지 전송 실패. cause: {}", e.getMessage());
-            }
-        });
+    public void sendMessage(WebSocketSession session, String message) throws IOException {
+        try {
+            session.sendMessage(new TextMessage(message));
+            log.info("Send message: [{}] to {}", message, session.getId());
+        } catch (IOException e) {
+            log.error("Send Message failed. cause: {}", e.getMessage());
+            throw e;
+        }
     }
 
     public WebSocketSession getSession(UserId userId) {

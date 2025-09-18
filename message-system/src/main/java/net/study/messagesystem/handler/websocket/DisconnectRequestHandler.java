@@ -9,8 +9,8 @@ import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.DisconnectRequest;
 import net.study.messagesystem.dto.websocket.outbound.DisconnectResponse;
 import net.study.messagesystem.dto.websocket.outbound.ErrorResponse;
+import net.study.messagesystem.service.ClientNotificationService;
 import net.study.messagesystem.service.UserConnectionService;
-import net.study.messagesystem.session.WebSocketSessionManager;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -21,7 +21,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class DisconnectRequestHandler implements BaseRequestHandler<DisconnectRequest> {
 
     private final UserConnectionService userConnectionService;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, DisconnectRequest request) {
@@ -30,10 +30,10 @@ public class DisconnectRequestHandler implements BaseRequestHandler<DisconnectRe
 
         if (result.getFirst()) {
             String partnerUsername = result.getSecond();
-            webSocketSessionManager.sendMessage(senderSession, new DisconnectResponse(partnerUsername, UserConnectionStatus.DISCONNECTED));
+            clientNotificationService.sendMessage(senderSession, senderUserId, new DisconnectResponse(partnerUsername, UserConnectionStatus.DISCONNECTED));
         } else {
             String errorMessage = result.getSecond();
-            webSocketSessionManager.sendMessage(senderSession, new ErrorResponse(errorMessage, MessageType.DISCONNECT_REQUEST));
+            clientNotificationService.sendMessage(senderSession, senderUserId, new ErrorResponse(errorMessage, MessageType.DISCONNECT_REQUEST));
         }
     }
 

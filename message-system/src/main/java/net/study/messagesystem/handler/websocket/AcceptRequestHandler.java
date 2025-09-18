@@ -9,8 +9,8 @@ import net.study.messagesystem.dto.websocket.inbound.AcceptRequest;
 import net.study.messagesystem.dto.websocket.outbound.AcceptNotification;
 import net.study.messagesystem.dto.websocket.outbound.AcceptResponse;
 import net.study.messagesystem.dto.websocket.outbound.ErrorResponse;
+import net.study.messagesystem.service.ClientNotificationService;
 import net.study.messagesystem.service.UserConnectionService;
-import net.study.messagesystem.session.WebSocketSessionManager;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -23,7 +23,7 @@ import java.util.Optional;
 public class AcceptRequestHandler implements BaseRequestHandler<AcceptRequest> {
 
     private final UserConnectionService userConnectionService;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, AcceptRequest request) {
@@ -33,13 +33,11 @@ public class AcceptRequestHandler implements BaseRequestHandler<AcceptRequest> {
         result.getFirst()
                 .ifPresentOrElse(inviterUserId -> {
                     String accepterUsername = result.getSecond();
-                    webSocketSessionManager.sendMessage(senderSession, new AcceptResponse(request.getUsername()));
-                    webSocketSessionManager.sendMessage(
-                            webSocketSessionManager.getSession(inviterUserId), new AcceptNotification(accepterUsername)
-                    );
+                    clientNotificationService.sendMessage(senderSession, accepterUserId, new AcceptResponse(request.getUsername()));
+                    clientNotificationService.sendMessage(inviterUserId, new AcceptNotification(accepterUsername));
                 }, () -> {
                     String errorMessage = result.getSecond();
-                    webSocketSessionManager.sendMessage(senderSession, new ErrorResponse(errorMessage, MessageType.ACCEPT_REQUEST));
+                    clientNotificationService.sendMessage(senderSession, accepterUserId, new ErrorResponse(errorMessage, MessageType.ACCEPT_REQUEST));
                 });
     }
 

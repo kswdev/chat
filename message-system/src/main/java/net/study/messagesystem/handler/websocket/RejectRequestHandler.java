@@ -10,7 +10,7 @@ import net.study.messagesystem.dto.websocket.inbound.RejectRequest;
 import net.study.messagesystem.dto.websocket.outbound.ErrorResponse;
 import net.study.messagesystem.dto.websocket.outbound.RejectResponse;
 import net.study.messagesystem.service.UserConnectionService;
-import net.study.messagesystem.session.WebSocketSessionManager;
+import net.study.messagesystem.service.ClientNotificationService;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -21,7 +21,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class RejectRequestHandler implements BaseRequestHandler<RejectRequest> {
 
     private final UserConnectionService userConnectionService;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, RejectRequest request) {
@@ -30,10 +30,10 @@ public class RejectRequestHandler implements BaseRequestHandler<RejectRequest> {
 
         if (result.getFirst()) {
             String inviterUsername = result.getSecond();
-            webSocketSessionManager.sendMessage(senderSession, new RejectResponse(inviterUsername, UserConnectionStatus.REJECTED));
+            clientNotificationService.sendMessage(senderSession, rejecterUserId, new RejectResponse(inviterUsername, UserConnectionStatus.REJECTED));
         } else {
             String errorMessage = result.getSecond();
-            webSocketSessionManager.sendMessage(senderSession, new ErrorResponse(errorMessage, MessageType.REJECT_REQUEST));
+            clientNotificationService.sendMessage(senderSession, rejecterUserId, new ErrorResponse(errorMessage, MessageType.REJECT_REQUEST));
         }
     }
 

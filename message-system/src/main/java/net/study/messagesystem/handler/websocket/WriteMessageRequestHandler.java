@@ -9,7 +9,7 @@ import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest;
 import net.study.messagesystem.dto.websocket.outbound.MessageNotification;
 import net.study.messagesystem.service.MessageService;
 import net.study.messagesystem.service.UserService;
-import net.study.messagesystem.session.WebSocketSessionManager;
+import net.study.messagesystem.service.ClientNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -20,7 +20,7 @@ public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessa
 
     private final UserService userService;
     private final MessageService messageService;
-    private final WebSocketSessionManager sessionManager;
+    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, WriteMessageRequest request) {
@@ -33,14 +33,7 @@ public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessa
                 senderUserId,
                 content,
                 channelId,
-                (participantId) -> {
-                    WebSocketSession participantSession = sessionManager.getSession(participantId);
-                    MessageNotification messageNotification = new MessageNotification(channelId, senderUsername, content);
-
-                    if (participantSession != null) {
-                        sessionManager.sendMessage(participantSession, messageNotification);
-                    }
-                }
+                participantId -> clientNotificationService.sendMessage(participantId, new MessageNotification(channelId, senderUsername, content))
         );
     }
 

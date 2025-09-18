@@ -8,8 +8,8 @@ import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.FetchUserInviteCodeRequest;
 import net.study.messagesystem.dto.websocket.outbound.ErrorResponse;
 import net.study.messagesystem.dto.websocket.outbound.FetchUserInviteCodeResponse;
+import net.study.messagesystem.service.ClientNotificationService;
 import net.study.messagesystem.service.UserService;
-import net.study.messagesystem.session.WebSocketSessionManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -19,7 +19,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class FetchUserInviteCodeRequestHandler implements BaseRequestHandler<FetchUserInviteCodeRequest> {
 
     private final UserService userService;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, FetchUserInviteCodeRequest request) {
@@ -28,9 +28,9 @@ public class FetchUserInviteCodeRequestHandler implements BaseRequestHandler<Fet
         userService.getInviteCode(requestUserId)
                    .ifPresentOrElse(
                            inviteCode ->
-                               webSocketSessionManager.sendMessage(senderSession, new FetchUserInviteCodeResponse(inviteCode))
+                                   clientNotificationService.sendMessage(senderSession, requestUserId, new FetchUserInviteCodeResponse(inviteCode))
                            ,() ->
-                               webSocketSessionManager.sendMessage(senderSession, new ErrorResponse(MessageType.FETCH_USER_INVITE_CODE_REQUEST, "fetch user invite code failed.")));
+                                   clientNotificationService.sendMessage(senderSession, requestUserId, new ErrorResponse(MessageType.FETCH_USER_INVITE_CODE_REQUEST, "fetch user invite code failed.")));
     }
     @Override
     public Class<FetchUserInviteCodeRequest> getRequestType() {

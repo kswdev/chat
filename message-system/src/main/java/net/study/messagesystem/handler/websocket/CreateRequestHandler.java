@@ -13,8 +13,8 @@ import net.study.messagesystem.dto.websocket.outbound.CreateResponse;
 import net.study.messagesystem.dto.websocket.outbound.ErrorResponse;
 import net.study.messagesystem.dto.websocket.outbound.JoinNotification;
 import net.study.messagesystem.service.ChannelService;
+import net.study.messagesystem.service.ClientNotificationService;
 import net.study.messagesystem.service.UserService;
-import net.study.messagesystem.session.WebSocketSessionManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -27,9 +27,9 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class CreateRequestHandler implements BaseRequestHandler<CreateRequest> {
 
-    private final ChannelService channelService;
     private final UserService userService;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final ChannelService channelService;
+    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, CreateRequest request) {
@@ -37,10 +37,10 @@ public class CreateRequestHandler implements BaseRequestHandler<CreateRequest> {
         List<UserId> participantIds = userService.getUserIds(request.getParticipantUsernames());
 
         if (participantIds.isEmpty()) {
-            webSocketSessionManager.sendMessage(
+            clientNotificationService.sendMessage(
                     senderSession,
-                    new ErrorResponse(ResultType.NOT_FOUND.getMessage(), MessageType.CREATE_REQUEST)
-            );
+                    senderUserId,
+                    new ErrorResponse(ResultType.NOT_FOUND.getMessage(), MessageType.CREATE_REQUEST));
 
             return;
         }
@@ -50,23 +50,23 @@ public class CreateRequestHandler implements BaseRequestHandler<CreateRequest> {
         try {
             result = channelService.create(senderUserId, participantIds, request.getTitle());
         } catch (Exception e) {
-            webSocketSessionManager.sendMessage(senderSession, new ErrorResponse(e.getMessage(), MessageType.CREATE_REQUEST));
+            clientNotificationService.sendMessage(senderSession, senderUserId, new ErrorResponse(e.getMessage(), MessageType.CREATE_REQUEST));
             return;
         }
 
         result.getFirst()
               .ifPresentOrElse(channel -> {
-                  webSocketSessionManager.sendMessage(senderSession, new CreateResponse(channel.channelId(), channel.title()));
+                  clientNotificationService.sendMessage(senderSession, senderUserId, new CreateResponse(channel.channelId(), channel.title()));
 
-                  participantIds.forEach((participantId) -> CompletableFuture.runAsync(() -> {
-                      WebSocketSession participantSession = webSocketSessionManager.getSession(participantId);
+                  participantIds.forEach((participantId) ->
+                          CompletableFuture.runAsync(() ->
+                                  clientNotificationService.sendMessage(participantId, new JoinNotification(channel.channelId(), channel.title()))
+                          )
+                  );
 
-                      if (participantSession != null)
-                          webSocketSessionManager.sendMessage(participantSession, new JoinNotification(channel.channelId(), channel.title()));
-                  }));
               }, () -> {
                   String errorMessage = result.getSecond().getMessage();
-                  webSocketSessionManager.sendMessage(senderSession, new ErrorResponse(errorMessage, MessageType.CREATE_REQUEST));
+                  clientNotificationService.sendMessage(senderSession, senderUserId, new ErrorResponse(errorMessage, MessageType.CREATE_REQUEST));
               });
 
     }

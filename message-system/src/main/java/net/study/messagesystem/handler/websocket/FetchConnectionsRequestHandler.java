@@ -9,7 +9,7 @@ import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.FetchUserConnectionsRequest;
 import net.study.messagesystem.dto.websocket.outbound.FetchUserConnectionsResponse;
 import net.study.messagesystem.service.UserConnectionService;
-import net.study.messagesystem.session.WebSocketSessionManager;
+import net.study.messagesystem.service.ClientNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -21,7 +21,7 @@ import java.util.List;
 public class FetchConnectionsRequestHandler implements BaseRequestHandler<FetchUserConnectionsRequest> {
 
     private final UserConnectionService userConnectionService;
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, FetchUserConnectionsRequest request) {
@@ -32,7 +32,7 @@ public class FetchConnectionsRequestHandler implements BaseRequestHandler<FetchU
                         .map(user -> new Connection(user.username(), status))
                         .toList();
 
-        webSocketSessionManager.sendMessage(senderSession, new FetchUserConnectionsResponse(connections));
+        clientNotificationService.sendMessage(senderSession, requestUserId, new FetchUserConnectionsResponse(connections));
     }
     @Override
     public Class<FetchUserConnectionsRequest> getRequestType() {
