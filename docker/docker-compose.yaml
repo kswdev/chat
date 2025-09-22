@@ -21,6 +21,9 @@ services:
     command: >
       --server-id=1
       --log_bin=/var/lib/mysql/mysql-bin.log
+      --binlog-format=ROW
+      --enforce-gtid-consistency=ON
+      --gtid-mode=ON
 
   mysql-replica:
     image: mysql:latest
@@ -41,9 +44,9 @@ services:
     command: >
       --server-id=2
       --relay_log=/var/lib/mysql/mysql-relay-bin.log
+      --read-only=1
       --enforce-gtid-consistency=ON
       --gtid-mode=ON
-      --read-only=1
 
   redis:
     image: redis:7.4.1

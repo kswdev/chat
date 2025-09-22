@@ -4,9 +4,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.IdKey;
+import net.study.messagesystem.dto.domain.message.Message;
 import net.study.messagesystem.dto.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
 import net.study.messagesystem.handler.websocket.RequestDispatcher;
+import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.session.WebSocketSessionManager;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,8 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.io.IOException;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final JsonUtil jsonUtil;
     private final WebSocketSessionManager sessionManager;
     private final RequestDispatcher requestDispatcher;
+    private final MessageRepository messageRepository;
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -50,6 +55,17 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.info("Received message: [{}] from {}", message.getPayload(), senderSession.getId());
 
         String payload = message.getPayload();
+
+        if (payload.equals("/last")) {
+            messageRepository.findTopByOrderByMessageSequenceDesc().ifPresent((messageEntity -> {
+                try {
+                    sessionManager.sendMessage(senderSession, messageEntity.getContent());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+        }
+
         jsonUtil.fromJson(payload, BaseRequest.class)
                 .ifPresent(meg -> requestDispatcher.dispatch(senderSession, meg));
     }
