@@ -3,6 +3,7 @@ package net.study.messagesystem.integration
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.MessageSystemApplication
 import net.study.messagesystem.dto.domain.channel.ChannelId
+import net.study.messagesystem.dto.domain.user.UserId
 import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest
 import net.study.messagesystem.service.ChannelService
 import net.study.messagesystem.service.UserService
@@ -44,7 +45,13 @@ class MessageHandlerSpec extends Specification {
         register("testUserB", "testPassB")
         register("testUserC", "testPassC")
 
-        channelService.getOnlineParticipantsUserIds(_ as ChannelId) >> List.of(
+        channelService.getParticipantsUserIds(_ as ChannelId) >> List.of(
+                userService.getUserId("testUserA").get(),
+                userService.getUserId("testUserB").get(),
+                userService.getUserId("testUserC").get()
+        )
+
+        channelService.getOnlineParticipantsUserIds(_ as ChannelId, _ as List<UserId>) >> List.of(
                 userService.getUserId("testUserA").get(),
                 userService.getUserId("testUserB").get(),
                 userService.getUserId("testUserC").get()

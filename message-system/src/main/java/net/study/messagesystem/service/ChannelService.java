@@ -66,8 +66,8 @@ public class ChannelService {
                 .toList();
     }
 
-    public List<UserId> getOnlineParticipantsUserIds(ChannelId channelId) {
-        return sessionService.getOnlineParticipantUserIds(channelId, getParticipantsUserIds(channelId));
+    public List<UserId> getOnlineParticipantsUserIds(ChannelId channelId, List<UserId> userIds) {
+        return sessionService.getOnlineParticipantUserIds(channelId, userIds);
     }
 
     public boolean leave(UserId userId) {

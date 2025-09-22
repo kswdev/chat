@@ -28,6 +28,7 @@ public class ClientNotificationService {
         pushService.registerPushMessageType(MessageType.NOTIFY_ACCEPT);
         pushService.registerPushMessageType(MessageType.JOIN_RESPONSE);
         pushService.registerPushMessageType(MessageType.NOTIFY_JOIN);
+        pushService.registerPushMessageType(MessageType.NOTIFY_MESSAGE);
         pushService.registerPushMessageType(MessageType.DISCONNECT_RESPONSE);
         pushService.registerPushMessageType(MessageType.REJECT_RESPONSE);
         pushService.registerPushMessageType(MessageType.CREATE_RESPONSE);

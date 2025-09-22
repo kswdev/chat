@@ -33,8 +33,7 @@ public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessa
                 senderUserId,
                 content,
                 channelId,
-                participantId -> clientNotificationService.sendMessage(participantId, new MessageNotification(channelId, senderUsername, content))
-        );
+                new MessageNotification(channelId, senderUsername, content));
     }
 
     @Override
