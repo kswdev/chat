@@ -9,6 +9,7 @@ import net.study.messagesystem.entity.user.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,6 +27,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UsernameProjection> findByUserId(Long userId);
 
+    @Transactional(readOnly = true)
     Optional<InviteCodeProjection> findInviteCodeByUserId(Long userId);
 
     Optional<ConnectionCountProjection> findCountByUserId(Long userId);
