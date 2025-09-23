@@ -1,6 +1,7 @@
 package net.study.messagesystem.config;
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.database.RoutingDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -11,8 +12,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 
+@Slf4j
 @Configuration
 public class DataSourceConfig {
 
@@ -32,7 +36,7 @@ public class DataSourceConfig {
     public DataSource routingDataSource(
             @Qualifier("sourceDataSource") DataSource sourceDataSource,
             @Qualifier("replicaDataSource") DataSource replicaDataSource
-    ) {
+    ) throws SQLException {
         RoutingDataSource routingDataSource = new RoutingDataSource();
         Map<Object, Object> targetDataSource = Map.of(
                 "source", sourceDataSource,
@@ -40,6 +44,11 @@ public class DataSourceConfig {
 
         routingDataSource.setTargetDataSources(targetDataSource);
         routingDataSource.setDefaultTargetDataSource(sourceDataSource);
+
+        try (Connection connection = replicaDataSource.getConnection()) {
+            log.info("init ReplicaConnectionPool.");
+        }
+
         return routingDataSource;
     }
 

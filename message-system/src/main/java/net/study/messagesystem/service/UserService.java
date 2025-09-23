@@ -27,32 +27,38 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public Optional<String> getUsername(UserId userId) {
         return userRepository.findByUserId(userId.id())
                 .map(UsernameProjection::getUsername);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Long> getConnectionCount(UserId userId) {
         return userRepository.findCountByUserId(userId.id())
                 .map(ConnectionCountProjection::getConnectionCount);
     }
 
+    @Transactional(readOnly = true)
     public Optional<InviteCode> getInviteCode(UserId userId) {
         return userRepository.findInviteCodeByUserId(userId.id())
                 .map(InviteCodeProjection::getInviteCode)
                 .map(InviteCode::new);
     }
 
+    @Transactional(readOnly = true)
     public Optional<User> getUserIdName(InviteCode inviteCode) {
         return userRepository.findByInviteCode(inviteCode.code())
                 .map(user -> new User(new UserId(user.getUserId()), user.getUsername()));
     }
 
+    @Transactional(readOnly = true)
     public Optional<UserId> getUserId(String username) {
         return userRepository.findByUsername(username)
                 .map(user -> new UserId(user.getUserId()));
     }
 
+    @Transactional(readOnly = true)
     public List<UserId> getUserIds(List<String> usernames) {
         return userRepository.findUserIdByUsernameIn(usernames).stream()
                 .map(UserIdProjection::getUserId)

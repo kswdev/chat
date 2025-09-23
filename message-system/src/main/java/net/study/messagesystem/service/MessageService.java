@@ -11,6 +11,7 @@ import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.session.WebSocketSessionManager;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ public class MessageService {
     private final WebSocketSessionManager sessionManager;
     private final MessageRepository messageRepository;
 
+    @Transactional
     public void sendMessage(UserId senderUserId, String content, ChannelId channelId, BaseMessage message) {
 
         Optional<String> json = jsonUtil.toJson(message);

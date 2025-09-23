@@ -37,6 +37,7 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(Optional.empty(), "Invite failed."));
     }
 
+    @Transactional
     public Pair<Optional<UserId>, String> accept(UserId accepterUserId, String inviterUsername) {
         return userService.getUserId(inviterUsername).or(Optional::empty)
                 .filter(inviterUserId -> isNotSameUser(accepterUserId, inviterUserId))
@@ -45,6 +46,7 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(Optional.empty(), "accept failed."));
     }
 
+    @Transactional
     public Pair<Boolean, String> reject(UserId rejecterUserId, String inviterUsername) {
         return userService.getUserId(inviterUsername)
                 .filter(inviterUserId -> isNotSameUser(rejecterUserId, inviterUserId))
@@ -53,6 +55,7 @@ public class UserConnectionService {
                 .orElseGet(() -> Pair.of(false, "Reject failed"));
     }
 
+    @Transactional
     public Pair<Boolean, String> disconnect(UserId senderUserId, String partnerUsername) {
         return userService.getUserId(partnerUsername).or(Optional::empty)
                 .filter(partnerUserId -> isNotSameUser(senderUserId, partnerUserId))
@@ -121,7 +124,7 @@ public class UserConnectionService {
                 .map(inviterUserId -> new UserId(inviterUserId.getInviterUserId()));
     }
 
-    public UserConnectionStatus getConnectionStatus(UserId inviterUserId, UserId partnerUserId) {
+    private UserConnectionStatus getConnectionStatus(UserId inviterUserId, UserId partnerUserId) {
         Pair<Long, Long> userIdAscending = getUserIdAscending(inviterUserId, partnerUserId);
         Long firstUserId = userIdAscending.getFirst();
         Long secondUserId = userIdAscending.getSecond();

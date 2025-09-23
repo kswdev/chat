@@ -34,17 +34,20 @@ public class ChannelService {
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
 
+    @Transactional(readOnly = true)
     public Optional<Channel> getChannel(InviteCode inviteCode) {
         return channelRepository.findChannelByInviteCode(inviteCode.code())
                 .map(channel -> new Channel(new ChannelId(channel.getChannelId()), channel.getTitle(), channel.getHeadCount()));
     }
 
+    @Transactional(readOnly = true)
     public List<Channel> getChannels(UserId userId) {
         return userChannelRepository.findChannelsByUserId(userId.id()).stream()
                 .map(channel -> new Channel(new ChannelId(channel.getChannelId()), channel.getTitle(), channel.getHeadCount()))
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public Optional<InviteCode> getInviteCode(ChannelId channelId) {
         return channelRepository.findInviteCodeByChannelId(channelId.id())
                 .map(InviteCodeProjection::getInviteCode)
@@ -55,10 +58,12 @@ public class ChannelService {
                 });
     }
 
+    @Transactional(readOnly = true)
     public boolean isJoined(UserId userId, ChannelId channelId) {
         return userChannelRepository.existsByUserIdAndChannelId(userId.id(), channelId.id());
     }
 
+    @Transactional(readOnly = true)
     public List<UserId> getParticipantsUserIds(ChannelId channelId) {
         return userChannelRepository.findUserIdsByChannelId(channelId.id()).stream()
                 .map(UserIdProjection::getUserId)
@@ -166,6 +171,7 @@ public class ChannelService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Pair<Optional<String>, ResultType> enter(ChannelId channelId, UserId userId) {
         if (!isJoined(userId, channelId)) {
             log.warn("Enter channel failed. User not joined channel. userId: {}, channelId: {}", userId, channelId);
