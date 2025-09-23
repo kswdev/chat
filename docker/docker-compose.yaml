@@ -1,6 +1,6 @@
 services:
   mysql-source:
-    image: mysql:latest
+    image: mysql:8.0.40
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -26,7 +26,7 @@ services:
       --gtid-mode=ON
 
   mysql-replica:
-    image: mysql:latest
+    image: mysql:8.0.40
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root_password
