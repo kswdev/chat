@@ -55,17 +55,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.info("Received message: [{}] from {}", message.getPayload(), senderSession.getId());
 
         String payload = message.getPayload();
-
-        if (payload.equals("/last")) {
-            messageRepository.findTopByOrderByMessageSequenceDesc().ifPresent((messageEntity -> {
-                try {
-                    sessionManager.sendMessage(senderSession, messageEntity.getContent());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }));
-        }
-
         jsonUtil.fromJson(payload, BaseRequest.class)
                 .ifPresent(meg -> requestDispatcher.dispatch(senderSession, meg));
     }
