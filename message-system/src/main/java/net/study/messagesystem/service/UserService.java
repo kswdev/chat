@@ -54,7 +54,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Optional<UserId> getUserId(String username) {
-        return userRepository.findByUsername(username)
+        return userRepository.findUserIdByUsername(username)
                 .map(user -> new UserId(user.getUserId()));
     }
 
