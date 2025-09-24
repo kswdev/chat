@@ -14,6 +14,8 @@ import net.study.messagesystem.repository.connection.UserConnectionRepository;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -167,8 +169,12 @@ public class UserConnectionService {
             userConnectionLimitService.connect(accepterUserId, inviterUserId);
             return Pair.of(Optional.of(inviterUserId), accepterUsername.get());
         } catch (IllegalStateException e) {
+            if (TransactionSynchronizationManager.isActualTransactionActive())
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return Pair.of(Optional.empty(), e.getMessage());
         } catch (Exception e) {
+            if (TransactionSynchronizationManager.isActualTransactionActive())
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             log.error("accept failed. cause: {}", e.getMessage());
             return Pair.of(Optional.empty(), "Invalid status or userId.");
         }
@@ -179,6 +185,7 @@ public class UserConnectionService {
             userConnectionLimitService.reject(rejecterUserId, inviterUserId);
             return Pair.of(true, inviterUsername);
         } catch (Exception ex) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             log.error("reject failed. cause: {}", ex.getMessage());
             return Pair.of(false, "Reject failed.");
         }
@@ -189,6 +196,8 @@ public class UserConnectionService {
             userConnectionLimitService.disconnect(senderUserId, partnerUserId);
             return Pair.of(true, partnerUsername);
         } catch (Exception ex) {
+            if (TransactionSynchronizationManager.isActualTransactionActive())
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             log.error("disconnect failed. cause: {}", ex.getMessage());
             return Pair.of(false, "Disconnect failed");
         }
