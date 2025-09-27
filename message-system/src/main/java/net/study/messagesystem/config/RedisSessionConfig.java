@@ -10,7 +10,7 @@ import org.springframework.session.FlushMode;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 @Configuration
-@EnableRedisHttpSession(redisNamespace = "message:user_session", maxInactiveIntervalInSeconds = 300, flushMode = FlushMode.IMMEDIATE)
+@EnableRedisHttpSession(redisNamespace = KeyPrefix.USER_SESSION, maxInactiveIntervalInSeconds = 300, flushMode = FlushMode.IMMEDIATE)
 public class RedisSessionConfig {
 
     @Bean
