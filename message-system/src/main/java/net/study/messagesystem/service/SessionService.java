@@ -2,6 +2,7 @@ package net.study.messagesystem.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.study.messagesystem.config.KeyPrefix;
 import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.dto.domain.channel.ChannelId;
 import net.study.messagesystem.dto.domain.user.UserId;
@@ -91,7 +92,7 @@ public class SessionService {
     }
 
     private String buildChannelIdKey(UserId userId) {
-        String NAMESPACE = "message:user-session";
+        String NAMESPACE = KeyPrefix.USER;
         return "%s:%d:%s".formatted(NAMESPACE, userId.id(), IdKey.CHANNEL_ID.getValue());
     }
 }
