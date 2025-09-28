@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class SessionService {
 
     private final SessionRepository<? extends Session> httpSessionRepository;
-    private final StringRedisTemplate stringRedisTemplate;
+    private final CacheService cacheService;
     private final long TTL = 300;
 
     public String getUsername() {
@@ -35,45 +35,29 @@ public class SessionService {
 
     public boolean deActiveChannel(UserId userId) {
         String channelIdKey = buildChannelIdKey(userId);
-
-        try {
-            stringRedisTemplate.delete(channelIdKey);
-            return true;
-        } catch (Exception e) {
-            log.error("Redis delete key failed. key: {}", channelIdKey);
-            return false;
-        }
+        return cacheService.delete(channelIdKey);
     }
 
     public boolean setActiveChannel(UserId userId, ChannelId channelId) {
         String channelIdKey = buildChannelIdKey(userId);
-
-        try {
-            stringRedisTemplate.opsForValue().set(channelIdKey, channelId.id().toString(), TTL, TimeUnit.SECONDS);
-            return true;
-        } catch (Exception e) {
-            log.error("Redis set key failed. key: {}, channelId: {}", channelIdKey, channelId);
-            return false;
-        }
+        return cacheService.set(channelIdKey, channelId.id().toString(), TTL);
     }
 
     public List<UserId> getOnlineParticipantUserIds(ChannelId channelId, List<UserId> userIds) {
         List<String> channelIdKeys = userIds.stream().map(this::buildChannelIdKey).toList();
+        List<String> channelIds = cacheService.get(channelIdKeys);
 
-        try {
-            List<String> channelIds = stringRedisTemplate.opsForValue().multiGet(channelIdKeys);
-            assert channelIds != null;
-            if (!channelIds.isEmpty()) {
-                List<UserId> onlineParticipantUserIds = new ArrayList<>(userIds.size());
-                for (int i = 0; i < userIds.size(); i++) {
-                    String value = channelIds.get(i);
-                    onlineParticipantUserIds.add(value != null && value.equals(channelId.id().toString()) ? userIds.get(i) : null);
-                }
-                return onlineParticipantUserIds;
+        assert channelIds != null;
+
+        if (!channelIds.isEmpty()) {
+            List<UserId> onlineParticipantUserIds = new ArrayList<>(userIds.size());
+            for (int i = 0; i < userIds.size(); i++) {
+                String value = channelIds.get(i);
+                onlineParticipantUserIds.add(value != null && value.equals(channelId.id().toString()) ? userIds.get(i) : null);
             }
-        } catch (Exception e) {
-            log.error("Redis get failed. channelId: {}, cause: {}", channelId, e.getMessage());
+            return onlineParticipantUserIds;
         }
+
         return Collections.emptyList();
     }
 
@@ -84,15 +68,14 @@ public class SessionService {
             Session httpSession = httpSessionRepository.findById(httpSessionId);
             if (httpSession != null) {
                 httpSession.setLastAccessedTime(Instant.now());
-                stringRedisTemplate.expire(channelIdKey, TTL, TimeUnit.SECONDS);
+                cacheService.expire(channelIdKey, TTL);
             }
         } catch (Exception e) {
-            log.error("Redis expire failed. key: {}", channelIdKey);
+            log.error("Redis find failed. id: {}, cause:{}", httpSessionId, e.getMessage());
         }
     }
 
     private String buildChannelIdKey(UserId userId) {
-        String NAMESPACE = KeyPrefix.USER;
-        return "%s:%d:%s".formatted(NAMESPACE, userId.id(), IdKey.CHANNEL_ID.getValue());
+        return cacheService.buildKey(KeyPrefix.USER, userId.id().toString(), IdKey.CHANNEL_ID.getValue());
     }
 }
