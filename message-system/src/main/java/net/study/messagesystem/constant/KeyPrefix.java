@@ -1,4 +1,4 @@
-package net.study.messagesystem.config;
+package net.study.messagesystem.constant;
 
 public class KeyPrefix {
     public static final String USER_SESSION = "message:user_session";
