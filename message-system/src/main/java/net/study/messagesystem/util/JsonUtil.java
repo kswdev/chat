@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -29,6 +31,15 @@ public class JsonUtil {
         } catch (Exception e) {
             printParseError(json);
             return Optional.empty();
+        }
+    }
+
+    public <T> List<T> fromJsonToList(String json, Class<T> clazz) {
+        try {
+            return objectMapper.readerForListOf(clazz).readValue(json);
+        } catch (Exception e) {
+            printParseError(json);
+            return Collections.emptyList();
         }
     }
 
