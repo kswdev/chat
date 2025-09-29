@@ -2,7 +2,7 @@ package net.study.messagesystem.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.config.KeyPrefix;
+import net.study.messagesystem.constant.KeyPrefix;
 import net.study.messagesystem.dto.projection.ConnectionCountProjection;
 import net.study.messagesystem.dto.projection.InviteCodeProjection;
 import net.study.messagesystem.dto.projection.UserIdProjection;
