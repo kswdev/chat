@@ -2,11 +2,10 @@ package net.study.messagesystem.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.config.KeyPrefix;
+import net.study.messagesystem.constant.KeyPrefix;
 import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.dto.domain.channel.ChannelId;
 import net.study.messagesystem.dto.domain.user.UserId;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.session.Session;
@@ -17,7 +16,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
