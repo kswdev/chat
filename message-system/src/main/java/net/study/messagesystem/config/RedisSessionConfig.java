@@ -1,6 +1,7 @@
 package net.study.messagesystem.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.study.messagesystem.constant.KeyPrefix;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
