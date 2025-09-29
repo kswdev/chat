@@ -2,15 +2,18 @@ package net.study.messagesystem.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.study.messagesystem.constant.KeyPrefix;
 import net.study.messagesystem.constant.UserConnectionStatus;
 import net.study.messagesystem.dto.domain.user.InviteCode;
 import net.study.messagesystem.dto.domain.user.User;
 import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.dto.projection.InviterUserIdProjection;
 import net.study.messagesystem.dto.projection.UserConnectionStatusProjection;
 import net.study.messagesystem.dto.projection.UserIdUsernameInviterUserIdProjection;
 import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity;
 import net.study.messagesystem.repository.connection.UserConnectionRepository;
+import net.study.messagesystem.util.JsonUtil;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +29,11 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class UserConnectionService {
 
+    private final Long TTL = 600L;
+
+    private final JsonUtil jsonUtil;
     private final UserService userService;
+    private final CacheService cacheService;
     private final UserConnectionLimitService userConnectionLimitService;
 
     private final UserConnectionRepository userConnectionRepository;
@@ -67,18 +74,34 @@ public class UserConnectionService {
 
     @Transactional(readOnly = true)
     public List<User> getUsersByStatus(UserId userId, UserConnectionStatus status) {
+        String key = cacheService.buildKey(KeyPrefix.CONNECTIONS_STATUS, userId.id().toString(), status.name());
+
+        Optional<String> cachedUser = cacheService.get(key);
+
+        if (cachedUser.isPresent()) {
+            return jsonUtil.fromJsonToList(cachedUser.get(), User.class);
+        }
+
         List<UserIdUsernameInviterUserIdProjection> userA = userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), status);
         List<UserIdUsernameInviterUserIdProjection> userB = userConnectionRepository.findByPartnerBUser_userIdAndStatus(userId.id(), status);
 
+        List<User> fromDb;
         if (status == UserConnectionStatus.ACCEPTED)
-            return Stream.concat(userA.stream(), userB.stream())
+            fromDb = Stream.concat(userA.stream(), userB.stream())
                     .map(item -> new User(new UserId(item.getUserId()), item.getUsername()))
                     .toList();
         else
-            return Stream.concat(userA.stream(), userB.stream())
+            fromDb = Stream.concat(userA.stream(), userB.stream())
                     .filter(item -> !item.getInviterUserId().equals(userId.id()))
                     .map(item -> new User(new UserId(item.getUserId()), item.getUsername()))
                     .toList();
+
+        if (!fromDb.isEmpty())
+            jsonUtil.toJson(fromDb)
+                    .ifPresent((json) -> cacheService.set(key, json, TTL));
+
+
+        return fromDb;
     }
 
     @Transactional(readOnly = true)
@@ -112,18 +135,28 @@ public class UserConnectionService {
     }
 
     private boolean isValidInvitation(UserId accepterUserId, UserId inviterUserId) {
-        return getTargetUser(accepterUserId, inviterUserId)
+        return getInviterUserId(accepterUserId, inviterUserId)
                 .filter(invitationSenderUserId -> invitationSenderUserId.equals(inviterUserId))
                 .isPresent();
     }
 
-    private Optional<UserId> getTargetUser(UserId partnerAUserId, UserId partnerBUserId) {
+    private Optional<UserId> getInviterUserId(UserId partnerAUserId, UserId partnerBUserId) {
         Pair<Long, Long> userIdAscending = getUserIdAscending(partnerAUserId, partnerBUserId);
         Long firstUserId = userIdAscending.getFirst();
         Long secondUserId = userIdAscending.getSecond();
 
-        return userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(firstUserId, secondUserId)
-                .map(inviterUserId -> new UserId(inviterUserId.getInviterUserId()));
+        String key = cacheService.buildKey(KeyPrefix.INVITER_USER_ID, firstUserId.toString(), secondUserId.toString());
+
+        return cacheService.get(key)
+                .map(Long::valueOf)
+                .map(UserId::new)
+                .or(() -> userConnectionRepository
+                        .findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(firstUserId, secondUserId)
+                        .map(InviterUserIdProjection::getInviterUserId)
+                        .map(userId -> {
+                            cacheService.set(key, userId.toString(), TTL);
+                            return new UserId(userId);
+                        }));
     }
 
     private UserConnectionStatus getConnectionStatus(UserId inviterUserId, UserId partnerUserId) {
@@ -131,10 +164,17 @@ public class UserConnectionService {
         Long firstUserId = userIdAscending.getFirst();
         Long secondUserId = userIdAscending.getSecond();
 
-        return userConnectionRepository
-                .findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(firstUserId, secondUserId)
-                .map(UserConnectionStatusProjection::getStatus)
+        String key = cacheService.buildKey(KeyPrefix.CONNECTION_STATUS, firstUserId.toString(), secondUserId.toString());
+
+        return cacheService.get(key)
                 .map(UserConnectionStatus::valueOf)
+                .or(() -> userConnectionRepository
+                        .findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(firstUserId, secondUserId)
+                        .map(UserConnectionStatusProjection::getStatus)
+                        .map(fromDb -> {
+                            cacheService.set(key, fromDb, TTL);
+                            return UserConnectionStatus.valueOf(fromDb);
+                        }))
                 .orElse(UserConnectionStatus.NONE);
     }
 
