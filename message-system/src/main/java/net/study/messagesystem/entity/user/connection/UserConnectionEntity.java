@@ -74,18 +74,26 @@ public class UserConnectionEntity extends BaseEntity {
         );
     }
 
-    public void connect() {
+    public UserConnectionStatus connect() {
         checkIfStatus(PENDING);
         checkIfConnectionReachedLimit();
         increaseConnectionCount();
         status = ACCEPTED;
+        return status;
     }
 
-    public void disconnect() {
+    public UserConnectionStatus disconnect() {
         checkIfConnectionReachedZero();
         checkIfStatus(ACCEPTED, REJECTED);
         decreaseConnectionCount();
         status = DISCONNECTED;
+        return status;
+    }
+
+    public UserConnectionStatus reject() {
+        checkIfStatus(PENDING);
+        status = REJECTED;
+        return status;
     }
 
     private static Pair<UserEntity, UserEntity> compareUsersById(UserEntity partnerAUser, UserEntity partnerBUser) {
@@ -131,10 +139,5 @@ public class UserConnectionEntity extends BaseEntity {
     private void decreaseConnectionCount() {
         partnerAUser.setConnectionCount(partnerAUser.getConnectionCount() - 1);
         partnerBUser.setConnectionCount(partnerBUser.getConnectionCount() - 1);
-    }
-
-    public void reject() {
-        checkIfStatus(PENDING);
-        status = REJECTED;
     }
 }
