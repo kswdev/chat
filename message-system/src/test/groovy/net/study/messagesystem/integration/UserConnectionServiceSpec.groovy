@@ -2,12 +2,14 @@ package net.study.messagesystem.integration
 
 import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.MessageSystemApplication
+import net.study.messagesystem.constant.KeyPrefix
 import net.study.messagesystem.constant.UserConnectionStatus
 import net.study.messagesystem.dto.domain.user.UserId
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.entity.user.connection.UserConnectionId
 import net.study.messagesystem.repository.connection.UserConnectionRepository
 import net.study.messagesystem.repository.UserRepository
+import net.study.messagesystem.service.CacheService
 import net.study.messagesystem.service.UserConnectionService
 import net.study.messagesystem.service.UserService
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import static java.util.Collections.*;
 class UserConnectionServiceSpec extends Specification {
 
     @Autowired private UserService userService
+    @Autowired private CacheService cacheService
     @Autowired private UserConnectionService userConnectionService
     @Autowired private UserRepository userRepository
     @Autowired private UserConnectionRepository userConnectionRepository
@@ -101,44 +104,45 @@ class UserConnectionServiceSpec extends Specification {
         (0..19).each {
             userService.getUserId("testUser${it}")
                        .ifPresent {userId ->
+
+                           def key = cacheService.buildKey(KeyPrefix.USER_INVITECODE, userId.id().toString())
+                           def userInviteCode = cacheService.get(key).orElse("")
+
+                           cacheService.delete(List.of(
+                                   cacheService.buildKey(KeyPrefix.USER_ID, "testUser${it}"),
+                                   cacheService.buildKey(KeyPrefix.USERNAME, userId.id().toString()),
+                                   cacheService.buildKey(KeyPrefix.USER, userId.id().toString()),
+                                   cacheService.buildKey(KeyPrefix.USER_INVITECODE, userInviteCode)))
+
                            userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), UserConnectionStatus.PENDING).each{
-                               userConnectionRepository.deleteById(new UserConnectionId(
-                                       Math.min(userId.id(), it.getUserId()),
-                                       Math.max(userId.id(), it.getUserId())
-                               ))
+                               clearConnection(userId.id(), it.getUserId())
                            }
                            userConnectionRepository.findByPartnerBUser_userIdAndStatus(userId.id(), UserConnectionStatus.PENDING).each{
-                               userConnectionRepository.deleteById(new UserConnectionId(
-                                       Math.min(userId.id(), it.getUserId()),
-                                       Math.max(userId.id(), it.getUserId())
-                               ))
+                               clearConnection(userId.id(), it.getUserId())
                            }
                            userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), UserConnectionStatus.ACCEPTED).each{
-                               userConnectionRepository.deleteById(new UserConnectionId(
-                                       Math.min(userId.id(), it.getUserId()),
-                                       Math.max(userId.id(), it.getUserId())
-                               ))
+                               clearConnection(userId.id(), it.getUserId())
                            }
                            userConnectionRepository.findByPartnerBUser_userIdAndStatus(userId.id(), UserConnectionStatus.ACCEPTED).each{
-                               userConnectionRepository.deleteById(new UserConnectionId(
-                                       Math.min(userId.id(), it.getUserId()),
-                                       Math.max(userId.id(), it.getUserId())
-                               ))
+                               clearConnection(userId.id(), it.getUserId())
                            }
                            userConnectionRepository.findByPartnerAUser_userIdAndStatus(userId.id(), UserConnectionStatus.DISCONNECTED).each{
-                               userConnectionRepository.deleteById(new UserConnectionId(
-                                       Math.min(userId.id(), it.getUserId()),
-                                       Math.max(userId.id(), it.getUserId())
-                               ))
+                               clearConnection(userId.id(), it.getUserId())
                            }
                            userConnectionRepository.findByPartnerBUser_userIdAndStatus(userId.id(), UserConnectionStatus.DISCONNECTED).each{
-                               userConnectionRepository.deleteById(new UserConnectionId(
-                                       Math.min(userId.id(), it.getUserId()),
-                                       Math.max(userId.id(), it.getUserId())
-                               ))
+                               clearConnection(userId.id(), it.getUserId())
                            }
                            userRepository.deleteById(userId.id())
                        }
         }
+    }
+
+    def clearConnection(Long partnerA, Long partnerB) {
+        def first = Math.min(partnerA, partnerB)
+        def second = Math.max(partnerA, partnerB)
+        userConnectionRepository.deleteById(new UserConnectionId(first, second))
+        cacheService.delete(List.of(
+                cacheService.buildKey(KeyPrefix.CONNECTION_STATUS, String.valueOf(first), String.valueOf(second)),
+                cacheService.buildKey(KeyPrefix.INVITER_USER_ID, String.valueOf(first), String.valueOf(second))))
     }
 }
