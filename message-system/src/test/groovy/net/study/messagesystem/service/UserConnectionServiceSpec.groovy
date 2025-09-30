@@ -1,5 +1,6 @@
 package net.study.messagesystem.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.constant.UserConnectionStatus
 import net.study.messagesystem.dto.projection.InviterUserIdProjection
 import net.study.messagesystem.dto.projection.UserConnectionStatusProjection
@@ -9,16 +10,18 @@ import net.study.messagesystem.dto.domain.user.UserId
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity
 import net.study.messagesystem.repository.connection.UserConnectionRepository
+import net.study.messagesystem.util.JsonUtil
 import org.springframework.data.util.Pair
 import spock.lang.Specification
 
 class UserConnectionServiceSpec extends Specification {
 
     private final UserService userService = Stub()
+    private final CacheService cacheService = Stub()
     private final UserConnectionRepository userConnectionRepository = Stub()
 
-    private final UserConnectionLimitService userConnectionLimitService = new UserConnectionLimitService(userConnectionRepository)
-    private final UserConnectionService userConnectionService = new UserConnectionService(userService, userConnectionLimitService, userConnectionRepository)
+    private final UserConnectionLimitService userConnectionLimitService = new UserConnectionLimitService(cacheService, userConnectionRepository)
+    private final UserConnectionService userConnectionService = new UserConnectionService(new JsonUtil(new ObjectMapper()), userService, cacheService, userConnectionLimitService, userConnectionRepository)
 
     def "사용자 연결 신청에 대한 테스트"() {
         given:
