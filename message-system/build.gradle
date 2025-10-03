@@ -11,6 +11,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.session:spring-session-data-redis'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    implementation 'org.springframework.kafka:spring-kafka'
 
 	compileOnly 'org.projectlombok:lombok'
 
@@ -21,6 +23,7 @@ dependencies {
 	testImplementation 'org.spockframework:spock-core:2.4-M5-groovy-4.0'
 	testImplementation 'org.spockframework:spock-spring:2.4-M5-groovy-4.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 
 	testCompileOnly 'org.projectlombok:lombok'
 
