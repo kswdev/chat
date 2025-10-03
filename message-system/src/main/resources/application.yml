@@ -1,6 +1,6 @@
 spring:
   application:
-    name: session-using-db-redis
+    name: message-system
   datasource:
     source:
       hikari:
@@ -42,6 +42,20 @@ spring:
       port: 16379
       repositories:
         enabled: false
+
+  kafka:
+    bootstrap-servers: localhost:19094, localhost:19095, localhost:19096
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        delivery.timeout.ms: 10000
+        request.timeout.ms: 3000
+        retry.backoff.ms: 100
+    consumer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 
 logging:
   level:
