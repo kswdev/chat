@@ -18,7 +18,7 @@ public class KafkaProducerService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final JsonUtil jsonUtil;
 
-    @Value("${message-system.listeners.kafka.push.topic}")
+    @Value("${message-system.kafka.listeners.push.topic}")
     private String pushTopic;
 
     public void sendMessage(String topic, String key, String message) {
