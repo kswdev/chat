@@ -1,6 +1,7 @@
 package net.study.messagesystem.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -40,6 +41,16 @@ public class JsonUtil {
         } catch (Exception e) {
             printParseError(json);
             return Collections.emptyList();
+        }
+    }
+
+    public Optional<String> addValue(String json, String key, String value) {
+        try {
+            ObjectNode node = (ObjectNode) objectMapper.readTree(json);
+            node.put(key, value);
+            return Optional.of(objectMapper.writeValueAsString(node));
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
 
