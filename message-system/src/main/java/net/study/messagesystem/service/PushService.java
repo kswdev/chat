@@ -24,13 +24,17 @@ public class PushService {
 
     public void pushMessage(UserId userId, String messageType, String message) {
         Class<? extends RecordInterface> recordInterface = pushMessageTypes.get(messageType);
-        if (recordInterface != null) {
-            jsonUtil.addValue(message, "userId", userId.toString())
-                    .flatMap(json -> jsonUtil.fromJson(json, recordInterface))
-                    .ifPresent(producerService::sendPushNotification);
-            log.info("Push message: {} to user: {}", message, userId);
-        } else {
-            log.error("Invalid push message type: {}", messageType);
+        try {
+            if (recordInterface != null) {
+                jsonUtil.addValue(message, "userId", userId.id().toString())
+                        .flatMap(json -> jsonUtil.fromJson(json, recordInterface))
+                        .ifPresent(producerService::sendPushNotification);
+                log.info("Push message: {} to user: {}", message, userId);
+            } else {
+                log.error("Invalid push message type: {}", messageType);
+            }
+        } catch (Exception e) {
+            log.error("cause: {}", e.getMessage());
         }
     }
 }
