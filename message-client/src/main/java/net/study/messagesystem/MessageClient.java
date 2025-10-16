@@ -17,7 +17,8 @@ import java.io.IOException;
 public class MessageClient {
 
     public static void main(String[] args) {
-        final String BASE_URL = "localhost:8080";
+        final String REST_BASE_URL = "localhost:8090";
+        final String WEBSOCKET_BASE_URL = "localhost:8080";
         final String WEBSOCKET_ENDPOINT = "/ws/v1/message";
 
         TerminalService terminalService;
@@ -31,8 +32,8 @@ public class MessageClient {
         }
 
         UserService userService = new UserService();
-        RestApiService restApiService = new RestApiService(terminalService, BASE_URL);
-        WebSocketService webSocketService = createWebSocketService(terminalService, userService, BASE_URL, WEBSOCKET_ENDPOINT);
+        RestApiService restApiService = new RestApiService(terminalService, REST_BASE_URL);
+        WebSocketService webSocketService = createWebSocketService(terminalService, userService, WEBSOCKET_BASE_URL, WEBSOCKET_ENDPOINT);
         CommandHandler commandHandler = new CommandHandler(userService, restApiService, webSocketService, terminalService);
 
         terminalService.printSystemMessage("'/help' Help for commands. ex) /help");
