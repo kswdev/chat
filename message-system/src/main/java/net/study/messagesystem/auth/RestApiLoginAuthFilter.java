@@ -31,7 +31,7 @@ public class RestApiLoginAuthFilter extends AbstractAuthenticationProcessingFilt
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException {
         if (!request.getContentType().startsWith(MediaType.APPLICATION_JSON_VALUE))
             throw new AuthenticationServiceException("지원되지 않는 타입 : " + request.getContentType());
 
@@ -41,7 +41,7 @@ public class RestApiLoginAuthFilter extends AbstractAuthenticationProcessingFilt
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         ((CustomUserDetails) authResult.getPrincipal()).erasePassword();
         securityContext.setAuthentication(authResult);
@@ -58,7 +58,7 @@ public class RestApiLoginAuthFilter extends AbstractAuthenticationProcessingFilt
     }
 
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.TEXT_PLAIN_VALUE);
         response.getWriter().write("인증 실패");
