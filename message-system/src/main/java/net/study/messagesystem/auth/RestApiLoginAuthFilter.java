@@ -2,7 +2,6 @@ package net.study.messagesystem.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.study.messagesystem.dto.rest.login.LoginRequest;
