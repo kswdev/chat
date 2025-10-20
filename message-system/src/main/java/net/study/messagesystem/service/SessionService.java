@@ -26,11 +26,6 @@ public class SessionService {
     private final CacheService cacheService;
     private final long TTL = 300;
 
-    public String getUsername() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getName();
-    }
-
     public boolean deActiveChannel(UserId userId) {
         String channelIdKey = buildChannelIdKey(userId);
         return cacheService.delete(channelIdKey);
