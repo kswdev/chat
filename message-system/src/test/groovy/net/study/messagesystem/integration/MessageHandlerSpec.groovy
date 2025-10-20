@@ -32,6 +32,8 @@ import java.util.concurrent.TimeUnit
 )
 class MessageHandlerSpec extends Specification {
 
+    private static final int REST_PORT = 8080;
+
     @LocalServerPort
     int port
 
@@ -92,7 +94,7 @@ class MessageHandlerSpec extends Specification {
     }
 
     def register(String username, String password) {
-        def url = "http://localhost:${port}/api/v1/auth/register"
+        def url = "http://localhost:${REST_PORT}/api/v1/auth/register"
         def headers = new HttpHeaders(["Content-type": "application/json"])
         def requestBody = [username: username, password: password]
         def jsonBody = objectMapper.writeValueAsString(requestBody)
@@ -103,7 +105,7 @@ class MessageHandlerSpec extends Specification {
     }
 
     def unRegister(String sessionId) {
-        def url = "http://localhost:${port}/api/v1/auth/unregister"
+        def url = "http://localhost:${REST_PORT}/api/v1/auth/unregister"
         def headers = new HttpHeaders()
         headers.add("Content-type", "application/json")
         headers.add("Cookie", "SESSION=${sessionId}")
@@ -113,7 +115,7 @@ class MessageHandlerSpec extends Specification {
     }
 
     def login(String username, String password) {
-        def url = "http://localhost:${port}/api/v1/auth/login"
+        def url = "http://localhost:${REST_PORT}/api/v1/auth/login"
         def headers = new HttpHeaders(["Content-type": "application/json"])
         def requestBody = [username: username, password: password]
         def jsonBody = objectMapper.writeValueAsString(requestBody)
