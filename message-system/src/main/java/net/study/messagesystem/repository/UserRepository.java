@@ -17,8 +17,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    Optional<UserEntity> findByUsername(String username);
-
     Optional<UserEntity> findByInviteCode(String inviteCode);
 
     List<UserIdProjection> findUserIdByUsernameIn(Collection<String> usernames);
@@ -31,7 +29,4 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<InviteCodeProjection> findInviteCodeByUserId(Long userId);
 
     Optional<ConnectionCountProjection> findCountByUserId(Long userId);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    UserEntity findForUpdateByUserId(Long userId);
 }
