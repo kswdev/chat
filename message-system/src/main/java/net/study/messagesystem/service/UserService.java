@@ -92,28 +92,4 @@ public class UserService {
     public UserEntity getUserReference(UserId userId) {
         return userRepository.getReferenceById(userId.id());
     }
-
-    @Transactional
-    public UserId addUser(String username, String password) {
-        UserEntity savedUser = userRepository.save(new UserEntity(username, passwordEncoder.encode(password)));
-        log.info("User registered. UserId: {}, Username: {}", savedUser.getUserId(), savedUser.getUsername());
-        return new UserId(savedUser.getUserId());
-    }
-
-    @Transactional
-    public void removeUser() {
-        String username = sessionService.getUsername();
-        UserEntity user = userRepository.findByUsername(username).orElseThrow();
-        String userId = user.getUserId().toString();
-
-        userRepository.deleteById(user.getUserId());
-        cacheService.delete(
-                List.of(
-                        cacheService.buildKey(KeyPrefix.USER_ID, username),
-                        cacheService.buildKey(KeyPrefix.USERNAME, userId),
-                        cacheService.buildKey(KeyPrefix.USER, userId),
-                        cacheService.buildKey(KeyPrefix.USER_INVITECODE, userId)));
-
-        log.info("User unRegistered. UserId: {}, Username: {}", user.getUserId(), user.getUsername());
-    }
 }
