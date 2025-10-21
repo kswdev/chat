@@ -3,17 +3,16 @@ package net.study.messagesystem.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.KeyPrefix;
+import net.study.messagesystem.domain.user.InviteCode;
+import net.study.messagesystem.domain.user.User;
+import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.projection.ConnectionCountProjection;
 import net.study.messagesystem.dto.projection.InviteCodeProjection;
 import net.study.messagesystem.dto.projection.UserIdProjection;
 import net.study.messagesystem.dto.projection.UsernameProjection;
-import net.study.messagesystem.domain.user.InviteCode;
-import net.study.messagesystem.domain.user.User;
-import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.repository.UserRepository;
 import net.study.messagesystem.util.JsonUtil;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +25,7 @@ import java.util.Optional;
 public class UserService {
 
     private final CacheService cacheService;
-    private final SessionService sessionService;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     private final JsonUtil jsonUtil;
     private final long TTL = 3600;
