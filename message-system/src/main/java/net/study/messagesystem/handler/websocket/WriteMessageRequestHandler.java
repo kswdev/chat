@@ -9,7 +9,6 @@ import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest;
 import net.study.messagesystem.dto.websocket.outbound.MessageNotification;
 import net.study.messagesystem.service.MessageService;
 import net.study.messagesystem.service.UserService;
-import net.study.messagesystem.service.ClientNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -20,7 +19,6 @@ public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessa
 
     private final UserService userService;
     private final MessageService messageService;
-    private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, WriteMessageRequest request) {
