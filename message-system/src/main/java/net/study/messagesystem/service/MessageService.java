@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.domain.channel.ChannelId;
+import net.study.messagesystem.domain.message.MessageSeqId;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
 import net.study.messagesystem.entity.messae.MessageEntity;
@@ -33,14 +34,20 @@ public class MessageService {
     private final MessageRepository messageRepository;
 
     @Transactional
-    public void sendMessage(UserId senderUserId, String content, ChannelId channelId, BaseMessage message) {
-
+    public void sendMessage(
+            UserId senderUserId,
+            String content,
+            ChannelId channelId,
+            MessageSeqId messageSeqId,
+            BaseMessage message
+    ) {
         Optional<String> json = jsonUtil.toJson(message);
 
         if (json.isEmpty())
             log.error("Failed to send message. messageType: {}", message.getType());
 
-        messageRepository.save(new MessageEntity(senderUserId.id(), content));
+        messageRepository.save(
+                new MessageEntity(channelId.id(), messageSeqId.id(), senderUserId.id(), content));
 
         String payload = json.get();
 

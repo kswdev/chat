@@ -1,20 +1,26 @@
 package net.study.messagesystem.entity.messae;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 import net.study.messagesystem.entity.BaseEntity;
 
 import java.util.Objects;
 
-@Getter
 @ToString
-@Entity
-@Table(name = "message")
+@Getter
+@IdClass(ChannelSequenceId.class)
+@AllArgsConstructor
+@Entity @Table(name = "message")
 public class MessageEntity extends BaseEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "message_sequence")
+    @Id
+    @Column(name = "channel_id", nullable = false)
+    private Long channelId;
+
+    @Id
+    @Column(name = "message_sequence", nullable = false)
     private Long messageSequence;
 
     @Column(name = "user_id", nullable = false)
@@ -24,11 +30,6 @@ public class MessageEntity extends BaseEntity {
     private String content;
 
     public MessageEntity() {}
-
-    public MessageEntity(Long userId, String content) {
-        this.userId = userId;
-        this.content = content;
-    }
 
     @Override
     public boolean equals(Object o) {

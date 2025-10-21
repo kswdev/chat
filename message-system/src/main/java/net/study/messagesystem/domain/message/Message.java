@@ -1,3 +1,9 @@
 package net.study.messagesystem.domain.message;
 
-public record Message(String username, String content) { }
+import net.study.messagesystem.domain.channel.ChannelId;
+
+public record Message(
+        ChannelId channelId,
+        MessageSeqId messageSeqId,
+        String username, String content
+) { }
