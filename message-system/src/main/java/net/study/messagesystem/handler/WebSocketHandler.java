@@ -7,7 +7,6 @@ import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
 import net.study.messagesystem.handler.websocket.RequestDispatcher;
-import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.session.WebSocketSessionManager;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Component;
@@ -25,7 +24,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final JsonUtil jsonUtil;
     private final WebSocketSessionManager sessionManager;
     private final RequestDispatcher requestDispatcher;
-    private final MessageRepository messageRepository;
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
