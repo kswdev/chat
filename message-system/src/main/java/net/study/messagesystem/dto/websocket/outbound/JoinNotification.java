@@ -2,7 +2,7 @@ package net.study.messagesystem.dto.websocket.outbound;
 
 import lombok.Getter;
 import net.study.messagesystem.constant.MessageType;
-import net.study.messagesystem.dto.domain.channel.ChannelId;
+import net.study.messagesystem.domain.channel.ChannelId;
 
 @Getter
 public class JoinNotification extends BaseMessage{

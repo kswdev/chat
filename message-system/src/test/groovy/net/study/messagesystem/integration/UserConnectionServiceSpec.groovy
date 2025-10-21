@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.MessageSystemApplication
 import net.study.messagesystem.constant.KeyPrefix
 import net.study.messagesystem.constant.UserConnectionStatus
-import net.study.messagesystem.dto.domain.user.UserId
+import net.study.messagesystem.domain.user.UserId
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.entity.user.connection.UserConnectionId
 import net.study.messagesystem.repository.connection.UserConnectionRepository

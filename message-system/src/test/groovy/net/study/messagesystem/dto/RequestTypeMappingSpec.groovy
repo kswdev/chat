@@ -2,7 +2,7 @@ package net.study.messagesystem.dto
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.constant.UserConnectionStatus
-import net.study.messagesystem.dto.domain.channel.ChannelId
+import net.study.messagesystem.domain.channel.ChannelId
 import net.study.messagesystem.dto.websocket.inbound.AcceptRequest
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest
 import net.study.messagesystem.dto.websocket.inbound.CreateRequest

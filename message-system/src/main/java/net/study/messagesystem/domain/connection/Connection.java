@@ -1,4 +1,4 @@
-package net.study.messagesystem.dto.domain.connection;
+package net.study.messagesystem.domain.connection;
 
 import net.study.messagesystem.constant.UserConnectionStatus;
 

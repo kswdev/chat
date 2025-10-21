@@ -2,7 +2,7 @@ package net.study.messagesystem.session;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.domain.user.UserId;
 import org.springframework.stereotype.Component;
 import org.springframework.util.function.ThrowingConsumer;
 import org.springframework.web.socket.TextMessage;

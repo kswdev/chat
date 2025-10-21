@@ -2,8 +2,8 @@ package net.study.messagesystem.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.MessageSystemApplication
-import net.study.messagesystem.dto.domain.channel.ChannelId
-import net.study.messagesystem.dto.domain.user.UserId
+import net.study.messagesystem.domain.channel.ChannelId
+import net.study.messagesystem.domain.user.UserId
 import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest
 import net.study.messagesystem.service.ChannelService
 import net.study.messagesystem.service.UserService

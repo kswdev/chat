@@ -3,7 +3,7 @@ package net.study.messagesystem.handler.websocket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.IdKey;
-import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.FetchChannelsRequest;
 import net.study.messagesystem.dto.websocket.outbound.FetchChannelsResponse;
 import net.study.messagesystem.service.ChannelService;

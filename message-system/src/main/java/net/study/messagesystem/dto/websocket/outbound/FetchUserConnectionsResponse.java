@@ -2,7 +2,7 @@ package net.study.messagesystem.dto.websocket.outbound;
 
 import lombok.Getter;
 import net.study.messagesystem.constant.MessageType;
-import net.study.messagesystem.dto.domain.connection.Connection;
+import net.study.messagesystem.domain.connection.Connection;
 
 import java.util.List;
 

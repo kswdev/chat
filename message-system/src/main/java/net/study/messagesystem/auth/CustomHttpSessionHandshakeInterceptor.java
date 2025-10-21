@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messageauth.auth.CustomUserDetails;
 import net.study.messagesystem.constant.IdKey;
-import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.domain.user.UserId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;

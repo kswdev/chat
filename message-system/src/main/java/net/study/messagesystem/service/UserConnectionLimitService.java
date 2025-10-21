@@ -4,7 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.constant.KeyPrefix;
 import net.study.messagesystem.constant.UserConnectionStatus;
-import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity;
 import net.study.messagesystem.repository.connection.UserConnectionRepository;
 import org.springframework.data.util.Pair;

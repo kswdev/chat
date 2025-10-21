@@ -4,8 +4,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.IdKey;
-import net.study.messagesystem.dto.domain.message.Message;
-import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.BaseRequest;
 import net.study.messagesystem.handler.websocket.RequestDispatcher;
 import net.study.messagesystem.repository.MessageRepository;
@@ -17,8 +16,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-
-import java.io.IOException;
 
 @Slf4j
 @Component

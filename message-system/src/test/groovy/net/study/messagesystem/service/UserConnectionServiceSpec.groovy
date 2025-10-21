@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.constant.UserConnectionStatus
 import net.study.messagesystem.dto.projection.InviterUserIdProjection
 import net.study.messagesystem.dto.projection.UserConnectionStatusProjection
-import net.study.messagesystem.dto.domain.user.InviteCode
-import net.study.messagesystem.dto.domain.user.User
-import net.study.messagesystem.dto.domain.user.UserId
+import net.study.messagesystem.domain.user.InviteCode
+import net.study.messagesystem.domain.user.User
+import net.study.messagesystem.domain.user.UserId
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity
 import net.study.messagesystem.repository.connection.UserConnectionRepository

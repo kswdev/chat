@@ -1,4 +1,4 @@
-package net.study.messagesystem.dto.domain.channel;
+package net.study.messagesystem.domain.channel;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

@@ -3,8 +3,8 @@ package net.study.messagesystem.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.MessageType;
-import net.study.messagesystem.dto.domain.channel.ChannelId;
-import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.domain.channel.ChannelId;
+import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
 import net.study.messagesystem.entity.messae.MessageEntity;
 import net.study.messagesystem.repository.MessageRepository;
@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Slf4j
 @Service

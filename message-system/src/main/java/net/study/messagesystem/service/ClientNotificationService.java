@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.MessageType;
-import net.study.messagesystem.dto.domain.user.UserId;
+import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.kafka.outbound.*;
 import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
 import net.study.messagesystem.session.WebSocketSessionManager;
