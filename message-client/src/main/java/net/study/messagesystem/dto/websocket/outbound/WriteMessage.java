@@ -8,13 +8,11 @@ import net.study.messagesystem.dto.channel.ChannelId;
 public class WriteMessage extends BaseRequest {
 
     private final ChannelId channelId;
-    private final String username;
     private final String content;
 
-    public WriteMessage(ChannelId channelId, String username, String content) {
+    public WriteMessage(ChannelId channelId, String content) {
         super(MessageType.WRITE_MESSAGE);
         this.channelId = channelId;
-        this.username = username;
         this.content = content;
     }
 }

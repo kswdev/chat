@@ -49,7 +49,7 @@ public class MessageClient {
 
                 } else if (!input.isEmpty() && userService.isInChannel()) {
                     terminalService.printMessage("<me>", input);
-                    webSocketService.sendMessage(new WriteMessage(userService.getChannelId(), userService.getUsername(), input));
+                    webSocketService.sendMessage(new WriteMessage(userService.getChannelId(), input));
                 }
             } catch (UserInterruptException e) {
                 terminalService.flush();

@@ -10,18 +10,15 @@ import net.study.messagesystem.domain.channel.ChannelId;
 public class WriteMessage extends BaseRequest {
 
     private final ChannelId channelId;
-    private final String username;
     private final String content;
 
     @JsonCreator
     public WriteMessage(
             @JsonProperty("channelId") ChannelId channelId,
-            @JsonProperty("username") String username,
             @JsonProperty("content") String content
     ) {
         super(MessageType.WRITE_MESSAGE);
         this.channelId = channelId;
-        this.username = username;
         this.content = content;
     }
 }
