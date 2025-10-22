@@ -9,6 +9,7 @@ import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
 import net.study.messagesystem.entity.messae.MessageEntity;
 import net.study.messagesystem.repository.MessageRepository;
+import net.study.messagesystem.repository.channel.UserChannelRepository;
 import net.study.messagesystem.session.WebSocketSessionManager;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Service;
@@ -25,13 +26,12 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class MessageService {
 
-    private static final int THREAD_POOL_SIZE = 10;
-
     private final JsonUtil jsonUtil;
     private final PushService pushService;
     private final ChannelService channelService;
     private final WebSocketSessionManager sessionManager;
     private final MessageRepository messageRepository;
+    private final UserChannelRepository userChannelRepository;
 
     @Transactional
     public void sendMessage(
@@ -41,41 +41,67 @@ public class MessageService {
             MessageSeqId messageSeqId,
             BaseMessage message
     ) {
+        String payload = convertToJson(message);
+
+        saveMessage(channelId, messageSeqId, senderUserId, content);
+        sendMessageToParticipants(senderUserId, channelId, payload);
+    }
+
+    @Transactional
+    public void updateLastReadMsgSeq(UserId userId, ChannelId channelId, MessageSeqId messageSeqId) {
+        if (userChannelRepository.updateLastReadMsgSeqByUserIdAndChannelId(userId.id(), channelId.id(), messageSeqId.id()) == 0) {
+            log.error("Failed to updateLastReadMsgSeq. userId: {}, channelId: {}", userId, channelId);
+        }
+    }
+
+    private String convertToJson(BaseMessage message) {
         Optional<String> json = jsonUtil.toJson(message);
-
-        if (json.isEmpty())
+        if (json.isEmpty()) {
             log.error("Failed to send message. messageType: {}", message.getType());
+            return null;
+        }
+        return json.get();
+    }
 
+    private void saveMessage(ChannelId channelId, MessageSeqId messageSeqId, UserId senderUserId, String content) {
         messageRepository.save(
                 new MessageEntity(channelId.id(), messageSeqId.id(), senderUserId.id(), content));
+    }
 
-        String payload = json.get();
+    private void sendMessageToParticipants(UserId senderUserId, ChannelId channelId, String payload) {
+        List<UserId> allParticipantsUserIds = channelService.getParticipantsUserIds(channelId);
+        List<UserId> onlineParticipantsUserIds = channelService.getOnlineParticipantsUserIds(channelId, allParticipantsUserIds);
 
-        List<UserId> allParticipantsIds = channelService.getParticipantsUserIds(channelId);
-        List<UserId> onlineParticipantsUserIds = channelService.getOnlineParticipantsUserIds(channelId, allParticipantsIds);
-        log.info("Participants: {}", onlineParticipantsUserIds);
+        allParticipantsUserIds.stream()
+                .filter(participantId -> !senderUserId.equals(participantId))
+                .forEach(participantId -> {
+                    boolean isOnline = onlineParticipantsUserIds.contains(participantId);
 
-        for (int idx = 0; idx < onlineParticipantsUserIds.size(); idx++) {
-            UserId participantsUserId = allParticipantsIds.get(idx);
-            if (senderUserId.equals(participantsUserId)) {
-                continue;
-            }
-
-            if (onlineParticipantsUserIds.get(idx) != null) {
-                CompletableFuture.runAsync(() -> {
-                    try {
-                        WebSocketSession session = sessionManager.getSession(participantsUserId);
-                        if (session != null)
-                            sessionManager.sendMessage(session, payload);
-                        else
-                            pushService.pushMessage(participantsUserId, MessageType.NOTIFY_MESSAGE, payload);
-                    } catch (IOException e) {
-                        pushService.pushMessage(participantsUserId, MessageType.NOTIFY_MESSAGE, payload);
+                    if (isOnline) {
+                        sendWebSocketMessage(participantId, payload);
+                    } else {
+                        sendPushMessage(participantId, payload);
                     }
                 });
-            } else {
-                pushService.pushMessage(participantsUserId, MessageType.NOTIFY_MESSAGE, payload);
+    }
+
+    private void sendWebSocketMessage(UserId participantId, String payload) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                WebSocketSession session = sessionManager.getSession(participantId);
+                if (session != null) {
+                    sessionManager.sendMessage(session, payload);
+                } else {
+                    sendPushMessage(participantId, payload);
+                }
+            } catch (IOException e) {
+                log.warn("WebSocket message failed for user {}, falling back to push notification", participantId, e);
+                sendPushMessage(participantId, payload);
             }
-        }
+        });
+    }
+
+    private void sendPushMessage(UserId participantId, String payload) {
+        pushService.pushMessage(participantId, MessageType.NOTIFY_MESSAGE, payload);
     }
 }
