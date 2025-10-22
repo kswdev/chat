@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.domain.channel.ChannelId;
 import net.study.messagesystem.domain.user.UserId;
-import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest;
+import net.study.messagesystem.dto.websocket.inbound.WriteMessage;
 import net.study.messagesystem.dto.websocket.outbound.MessageNotification;
 import net.study.messagesystem.service.MessageSeqIdGenerator;
 import net.study.messagesystem.service.MessageService;
@@ -16,14 +16,14 @@ import org.springframework.web.socket.WebSocketSession;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessageRequest> {
+public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessage> {
 
     private final UserService userService;
     private final MessageService messageService;
     private final MessageSeqIdGenerator sequenceGenerator;
 
     @Override
-    public void handleRequest(WebSocketSession senderSession, WriteMessageRequest request) {
+    public void handleRequest(WebSocketSession senderSession, WriteMessage request) {
         UserId senderUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
         ChannelId channelId = request.getChannelId();
         String content = request.getContent();
@@ -41,7 +41,7 @@ public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessa
     }
 
     @Override
-    public Class<WriteMessageRequest> getRequestType() {
-        return WriteMessageRequest.class;
+    public Class<WriteMessage> getRequestType() {
+        return WriteMessage.class;
     }
 }

@@ -14,7 +14,7 @@ import net.study.messagesystem.dto.websocket.inbound.FetchUserInviteCodeRequest
 import net.study.messagesystem.dto.websocket.inbound.InviteRequest
 import net.study.messagesystem.dto.websocket.inbound.KeepAliveRequest
 import net.study.messagesystem.dto.websocket.inbound.RejectRequest
-import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest
+import net.study.messagesystem.dto.websocket.inbound.WriteMessage
 import net.study.messagesystem.util.JsonUtil
 import spock.lang.Specification
 
@@ -41,7 +41,7 @@ class RequestTypeMappingSpec extends Specification {
         '{"type" : "ACCEPT_REQUEST", "username": "inviterUsername"}'                               | AcceptRequest                 | {req -> (req as AcceptRequest).getUsername() == 'inviterUsername'}
         '{"type" : "REJECT_REQUEST", "username": "inviterUsername"}'                               | RejectRequest                 | {req -> (req as RejectRequest).getUsername() == 'inviterUsername'}
         '{"type" : "INVITE_REQUEST", "userInviteCode" : "testInviteCode123"}'                      | InviteRequest                 | {req -> (req as InviteRequest).userInviteCode.code() == 'testInviteCode123'}
-        '{"type" : "WRITE_MESSAGE", "username" : "sender", "content" : "테스트 내용"}'                | WriteMessageRequest           | {req -> (req as WriteMessageRequest).getUsername() == 'sender' && (req as WriteMessageRequest).getContent() == '테스트 내용'}
+        '{"type" : "WRITE_MESSAGE", "username" : "sender", "content" : "테스트 내용"}'                | WriteMessage | { req -> (req as WriteMessage).getUsername() == 'sender' && (req as WriteMessage).getContent() == '테스트 내용'}
         '{"type" : "CREATE_REQUEST", "title": "채널 생성", "participantUsernames": ["kim", "hong"]}' | CreateRequest                 | {req -> (req as CreateRequest).getTitle() == "채널 생성" && (req as CreateRequest).getParticipantUsernames().size() == 2}
         '{"type" : "FETCH_USER_INVITE_CODE_REQUEST"}'                                              | FetchUserInviteCodeRequest    | {req -> (req as FetchUserInviteCodeRequest).getType() == 'FETCH_USER_INVITE_CODE_REQUEST'}
         '{"type" : "FETCH_USER_CONNECTIONS_REQUEST", "status": "PENDING"}'                         | FetchUserConnectionsRequest   | {req -> (req as FetchUserConnectionsRequest).getStatus() == UserConnectionStatus.PENDING}

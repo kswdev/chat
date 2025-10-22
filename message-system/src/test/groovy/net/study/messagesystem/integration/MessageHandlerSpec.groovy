@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.MessageSystemApplication
 import net.study.messagesystem.domain.channel.ChannelId
 import net.study.messagesystem.domain.user.UserId
-import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest
+import net.study.messagesystem.dto.websocket.inbound.WriteMessage
 import net.study.messagesystem.service.ChannelService
 import net.study.messagesystem.service.UserService
 import org.spockframework.spring.SpringBean
@@ -65,9 +65,9 @@ class MessageHandlerSpec extends Specification {
         def (clientA, clientB, clientC) = [createClient(sessionIdA), createClient(sessionIdB), createClient(sessionIdC)]
 
         when:
-        clientA.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessageRequest(new ChannelId(1L), "testUserA", "안녕하세요 testUserA 입니다."))))
-        clientB.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessageRequest(new ChannelId(1L), "testUserB", "안녕하세요 testUserB 입니다."))))
-        clientC.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessageRequest(new ChannelId(1L), "testUserC", "안녕하세요 testUserC 입니다."))))
+        clientA.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "testUserA", "안녕하세요 testUserA 입니다."))))
+        clientB.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "testUserB", "안녕하세요 testUserB 입니다."))))
+        clientC.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "testUserC", "안녕하세요 testUserC 입니다."))))
 
         then:
         def resultA = clientA.queue.poll(1, TimeUnit.SECONDS) + clientA.queue.poll(1, TimeUnit.SECONDS)

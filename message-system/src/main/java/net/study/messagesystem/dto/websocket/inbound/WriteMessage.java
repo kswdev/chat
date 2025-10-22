@@ -7,14 +7,14 @@ import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.domain.channel.ChannelId;
 
 @Getter
-public class WriteMessageRequest extends BaseRequest {
+public class WriteMessage extends BaseRequest {
 
     private final ChannelId channelId;
     private final String username;
     private final String content;
 
     @JsonCreator
-    public WriteMessageRequest(
+    public WriteMessage(
             @JsonProperty("channelId") ChannelId channelId,
             @JsonProperty("username") String username,
             @JsonProperty("content") String content
