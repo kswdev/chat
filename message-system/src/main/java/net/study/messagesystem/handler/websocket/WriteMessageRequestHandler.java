@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.domain.channel.ChannelId;
-import net.study.messagesystem.domain.message.MessageSeqId;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.WriteMessageRequest;
 import net.study.messagesystem.dto.websocket.outbound.MessageNotification;
