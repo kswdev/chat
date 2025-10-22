@@ -16,7 +16,7 @@ import org.springframework.web.socket.WebSocketSession;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WriteMessageRequestHandler implements BaseRequestHandler<WriteMessage> {
+public class WriteMessageHandler implements BaseRequestHandler<WriteMessage> {
 
     private final UserService userService;
     private final MessageService messageService;
