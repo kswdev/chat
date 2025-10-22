@@ -20,6 +20,6 @@ public class UserChannelEntity extends BaseEntity {
     @Column(name = "channel_id", nullable = false)
     private Long channelId;
 
-    @Column(name = "inviter_user_id", nullable = false)
-    private Long last_read_msg_seq;
+    @Column(name = "last_read_msg_seq", nullable = false)
+    private Long lastReadMsgSeq;
 }
