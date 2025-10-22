@@ -1,6 +1,6 @@
 package net.study.messagesystem;
 
-import net.study.messagesystem.dto.websocket.outbound.WriteMessageRequest;
+import net.study.messagesystem.dto.websocket.outbound.WriteMessage;
 import net.study.messagesystem.handler.CommandHandler;
 import net.study.messagesystem.handler.inbound.ResponseDispatcher;
 import net.study.messagesystem.handler.inbound.WebSocketMessageHandler;
@@ -49,7 +49,7 @@ public class MessageClient {
 
                 } else if (!input.isEmpty() && userService.isInChannel()) {
                     terminalService.printMessage("<me>", input);
-                    webSocketService.sendMessage(new WriteMessageRequest(userService.getChannelId(), userService.getUsername(), input));
+                    webSocketService.sendMessage(new WriteMessage(userService.getChannelId(), userService.getUsername(), input));
                 }
             } catch (UserInterruptException e) {
                 terminalService.flush();
