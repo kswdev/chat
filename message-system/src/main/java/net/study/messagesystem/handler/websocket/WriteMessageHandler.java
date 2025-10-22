@@ -37,6 +37,7 @@ public class WriteMessageHandler implements BaseRequestHandler<WriteMessage> {
                                 content,
                                 channelId,
                                 messageSeqId,
+                                request.getSerial(),
                                 new MessageNotification(channelId, messageSeqId, senderUsername, content)));
     }
 

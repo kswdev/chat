@@ -11,14 +11,17 @@ public class WriteMessage extends BaseRequest {
 
     private final ChannelId channelId;
     private final String content;
+    private final Long serial;
 
     @JsonCreator
     public WriteMessage(
             @JsonProperty("channelId") ChannelId channelId,
-            @JsonProperty("content") String content
+            @JsonProperty("content") String content,
+            @JsonProperty("serial") Long serial
     ) {
         super(MessageType.WRITE_MESSAGE);
         this.channelId = channelId;
         this.content = content;
+        this.serial = serial;
     }
 }

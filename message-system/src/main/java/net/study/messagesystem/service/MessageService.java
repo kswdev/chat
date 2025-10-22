@@ -7,6 +7,7 @@ import net.study.messagesystem.domain.channel.ChannelId;
 import net.study.messagesystem.domain.message.MessageSeqId;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
+import net.study.messagesystem.dto.websocket.outbound.WriteMessageAck;
 import net.study.messagesystem.entity.messae.MessageEntity;
 import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.repository.channel.UserChannelRepository;
@@ -39,12 +40,13 @@ public class MessageService {
             String content,
             ChannelId channelId,
             MessageSeqId messageSeqId,
+            Long serial,
             BaseMessage message
     ) {
         String payload = convertToJson(message);
 
-        saveMessage(channelId, messageSeqId, senderUserId, content);
-        sendMessageToParticipants(senderUserId, channelId, payload);
+        saveMessage(channelId, senderUserId, messageSeqId, content);
+        sendMessageToParticipants(channelId, senderUserId, messageSeqId, serial, payload);
     }
 
     @Transactional
@@ -63,26 +65,35 @@ public class MessageService {
         return json.get();
     }
 
-    private void saveMessage(ChannelId channelId, MessageSeqId messageSeqId, UserId senderUserId, String content) {
+    private void saveMessage(ChannelId channelId, UserId senderUserId, MessageSeqId messageSeqId, String content) {
         messageRepository.save(
                 new MessageEntity(channelId.id(), messageSeqId.id(), senderUserId.id(), content));
     }
 
-    private void sendMessageToParticipants(UserId senderUserId, ChannelId channelId, String payload) {
+    private void sendMessageToParticipants(ChannelId channelId, UserId senderUserId, MessageSeqId messageSeqId, Long serial, String payload) {
         List<UserId> allParticipantsUserIds = channelService.getParticipantsUserIds(channelId);
         List<UserId> onlineParticipantsUserIds = channelService.getOnlineParticipantsUserIds(channelId, allParticipantsUserIds);
 
-        allParticipantsUserIds.stream()
-                .filter(participantId -> !senderUserId.equals(participantId))
-                .forEach(participantId -> {
-                    boolean isOnline = onlineParticipantsUserIds.contains(participantId);
+        allParticipantsUserIds.forEach(participantId -> {
+            if (senderUserId.equals(participantId)) {
+                handleSenderMessage(senderUserId, channelId, messageSeqId, serial);
+            } else {
+                handleRecipientMessage(participantId, onlineParticipantsUserIds, payload);
+            }
+        });
+    }
 
-                    if (isOnline) {
-                        sendWebSocketMessage(participantId, payload);
-                    } else {
-                        sendPushMessage(participantId, payload);
-                    }
-                });
+    private void handleSenderMessage(UserId senderUserId, ChannelId channelId, MessageSeqId messageSeqId, Long serial) {
+        updateLastReadMsgSeq(senderUserId, channelId, messageSeqId);
+        sendWriteAckMessage(senderUserId, new WriteMessageAck(messageSeqId, serial));
+    }
+
+    private void handleRecipientMessage(UserId participantId, List<UserId> onlineParticipantsUserIds, String payload) {
+        if (onlineParticipantsUserIds.contains(participantId)) {
+            sendWebSocketMessage(participantId, payload);
+        } else {
+            sendPushMessage(participantId, payload);
+        }
     }
 
     private void sendWebSocketMessage(UserId participantId, String payload) {
@@ -103,5 +114,10 @@ public class MessageService {
 
     private void sendPushMessage(UserId participantId, String payload) {
         pushService.pushMessage(participantId, MessageType.NOTIFY_MESSAGE, payload);
+    }
+
+    private void sendWriteAckMessage(UserId userId, WriteMessageAck message) {
+        jsonUtil.toJson(message)
+                .ifPresent(writeMsgAck -> sendWebSocketMessage(userId, writeMsgAck));
     }
 }
