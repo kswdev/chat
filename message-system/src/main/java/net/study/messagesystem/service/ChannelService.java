@@ -8,14 +8,18 @@ import net.study.messagesystem.constant.KeyPrefix;
 import net.study.messagesystem.constant.ResultType;
 import net.study.messagesystem.constant.UserConnectionStatus;
 import net.study.messagesystem.domain.channel.Channel;
+import net.study.messagesystem.domain.channel.ChannelEntry;
 import net.study.messagesystem.domain.channel.ChannelId;
+import net.study.messagesystem.domain.message.MessageSeqId;
 import net.study.messagesystem.domain.user.InviteCode;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.projection.ChannelTitleProjection;
 import net.study.messagesystem.dto.projection.InviteCodeProjection;
+import net.study.messagesystem.dto.projection.LastReadMsgSeqProjection;
 import net.study.messagesystem.dto.projection.UserIdProjection;
 import net.study.messagesystem.entity.channel.ChannelEntity;
 import net.study.messagesystem.entity.channel.UserChannelEntity;
+import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.repository.channel.ChannelRepository;
 import net.study.messagesystem.repository.channel.UserChannelRepository;
 import net.study.messagesystem.util.JsonUtil;
@@ -37,6 +41,7 @@ public class ChannelService {
     private final UserConnectionService userConnectionService;
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
+    private final MessageRepository messageRepository;
 
     @Transactional(readOnly = true)
     public Optional<Channel> getChannel(InviteCode inviteCode) {
@@ -188,33 +193,55 @@ public class ChannelService {
 
     @Transactional
     public Pair<Optional<Channel>, ResultType> create(UserId senderUserId, List<UserId> participantUserIds, String title) {
-        if (title != null && title.isEmpty()) {
-            log.warn("Invalid args: title is empty");
-            return Pair.of(Optional.empty(), ResultType.INVALID_ARGS);
+        return validateCreateRequest(title)
+                .map(validationResult -> validateUserConnections(senderUserId, participantUserIds))
+                .orElse(Pair.of(Optional.empty(), ResultType.INVALID_ARGS))
+                .getFirst()
+                .map(unused -> executeChannelCreation(senderUserId, participantUserIds, title))
+                .orElse(Pair.of(Optional.empty(), ResultType.NOT_ALLOWED));
+    }
+
+    @Transactional(readOnly = true)
+    public Pair<Optional<ChannelEntry>, ResultType> enter(ChannelId channelId, UserId userId) {
+        if (!isJoined(userId, channelId)) {
+            log.warn("Enter channel failed. User not joined channel. userId: {}, channelId: {}", userId, channelId);
+            return Pair.of(Optional.empty(), ResultType.NOT_JOINED);
         }
 
-        int headCount = participantUserIds.size() + 1;
+        return channelRepository.findChannelTitleByChannelId(channelId.id())
+                .map(ChannelTitleProjection::getTitle)
+                .map(title -> buildChannelEntry(channelId, userId, title))
+                .orElse(Pair.of(Optional.empty(), ResultType.NOT_FOUND));
+    }
 
-        if(userConnectionService.countConnectionStatus(senderUserId, participantUserIds, UserConnectionStatus.ACCEPTED) != participantUserIds.size()) {
+    private Optional<ResultType> validateCreateRequest(String title) {
+        if (title != null && title.isEmpty()) {
+            log.warn("Invalid args: title is empty");
+            return Optional.empty();
+        }
+        return Optional.of(ResultType.SUCCESS);
+    }
+
+    private Pair<Optional<ResultType>, ResultType> validateUserConnections(UserId senderUserId, List<UserId> participantUserIds) {
+        boolean allAccepted = userConnectionService.countConnectionStatus(senderUserId, participantUserIds, UserConnectionStatus.ACCEPTED)
+                == participantUserIds.size();
+
+        if (!allAccepted) {
             log.warn("user connection status not accepted. participantId: {}", participantUserIds);
             return Pair.of(Optional.empty(), ResultType.NOT_ALLOWED);
         }
 
+        return Pair.of(Optional.of(ResultType.SUCCESS), ResultType.SUCCESS);
+    }
+
+    private Pair<Optional<Channel>, ResultType> executeChannelCreation(UserId senderUserId, List<UserId> participantUserIds, String title) {
         try {
-            ChannelEntity newChannelEntity = ChannelEntity.create(title, headCount);
-            ChannelEntity channelEntity = channelRepository.save(newChannelEntity);
-            Long channelId = channelEntity.getChannelId();
+            int headCount = participantUserIds.size() + 1;
+            ChannelEntity channelEntity = channelRepository.save(ChannelEntity.create(title, headCount));
 
-            UserChannelEntity userChannel = new UserChannelEntity(senderUserId.id(), channelId, 0L);
+            createUserChannelEntries(senderUserId, participantUserIds, channelEntity.getChannelId());
 
-            List<UserChannelEntity> channelList = participantUserIds.stream()
-                    .map(userId -> new UserChannelEntity(userId.id(), channelId, 0L))
-                    .collect(Collectors.toList());
-            channelList.add(userChannel);
-
-            userChannelRepository.saveAll(channelList);
-
-            Channel channel = new Channel(new ChannelId(channelId), title, headCount);
+            Channel channel = new Channel(new ChannelId(channelEntity.getChannelId()), title, headCount);
             return Pair.of(Optional.of(channel), ResultType.SUCCESS);
 
         } catch (IllegalArgumentException iae) {
@@ -226,25 +253,37 @@ public class ChannelService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Pair<Optional<String>, ResultType> enter(ChannelId channelId, UserId userId) {
-        if (!isJoined(userId, channelId)) {
-            log.warn("Enter channel failed. User not joined channel. userId: {}, channelId: {}", userId, channelId);
-            return Pair.of(Optional.empty(), ResultType.NOT_JOINED);
-        }
+    private void createUserChannelEntries(UserId senderUserId, List<UserId> participantUserIds, Long channelId) {
+        List<UserChannelEntity> channelEntries = participantUserIds.stream()
+                .map(userId -> new UserChannelEntity(userId.id(), channelId, 0L))
+                .collect(Collectors.toList());
 
-        Optional<String> title = channelRepository.findChannelTitleByChannelId(channelId.id())
-                .map(ChannelTitleProjection::getTitle);
+        channelEntries.add(new UserChannelEntity(senderUserId.id(), channelId, 0L));
+        userChannelRepository.saveAll(channelEntries);
+    }
 
-        if (title.isEmpty()) {
-            log.warn("Enter channel failed. channel does not exists channelId: {}, userId: {}", channelId, userId);
-            return Pair.of(Optional.empty(), ResultType.NOT_FOUND);
-        }
+    private Pair<Optional<ChannelEntry>, ResultType> buildChannelEntry(ChannelId channelId, UserId userId, String title) {
+        return userChannelRepository.findLastReadMsgSeqByUserIdAndChannelId(userId.id(), channelId.id())
+                .map(LastReadMsgSeqProjection::getLastReadMsgSeq)
+                .map(MessageSeqId::new)
+                .map(lastReadMsgSeq -> createChannelEntry(channelId, userId, title, lastReadMsgSeq))
+                .orElseGet(() -> {
+                    log.error("Enter channel failed. no record is found. userId: {}, channelId: {}", userId, channelId);
+                    return Pair.of(Optional.empty(), ResultType.NOT_FOUND);
+                });
+    }
 
-        if (sessionService.setActiveChannel(userId, channelId)) {
-            return Pair.of(title, ResultType.SUCCESS);
-        }
+    private Pair<Optional<ChannelEntry>, ResultType> createChannelEntry(ChannelId channelId, UserId userId, String title, MessageSeqId lastReadMsgSeq) {
+        MessageSeqId lastChannelMessageSeqId = messageRepository.findLastMessageSequenceByChannelId(channelId.id())
+                .map(MessageSeqId::new)
+                .orElseGet(() -> new MessageSeqId(0L));
 
+        return sessionService.setActiveChannel(userId, channelId)
+                ? Pair.of(Optional.of(new ChannelEntry(title, lastReadMsgSeq, lastChannelMessageSeqId)), ResultType.SUCCESS)
+                : logErrorAndReturnFailure(channelId, userId);
+    }
+
+    private Pair<Optional<ChannelEntry>, ResultType> logErrorAndReturnFailure(ChannelId channelId, UserId userId) {
         log.error("Enter channel failed. channelId: {}, userId: {}", channelId, userId);
         return Pair.of(Optional.empty(), ResultType.FAILED);
     }

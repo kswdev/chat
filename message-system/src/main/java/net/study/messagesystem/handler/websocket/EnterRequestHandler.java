@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.constant.ResultType;
+import net.study.messagesystem.domain.channel.ChannelEntry;
+import net.study.messagesystem.domain.message.MessageSeqId;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.websocket.inbound.EnterRequest;
 import net.study.messagesystem.dto.websocket.outbound.EnterResponse;
@@ -29,11 +31,11 @@ public class EnterRequestHandler implements BaseRequestHandler<EnterRequest> {
     public void handleRequest(WebSocketSession senderSession, EnterRequest request) {
         UserId senderUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
 
-        Pair<Optional<String>, ResultType> result = channelService.enter(request.getChannelId(), senderUserId);
+        Pair<Optional<ChannelEntry>, ResultType> result = channelService.enter(request.getChannelId(), senderUserId);
 
         result.getFirst()
-              .ifPresentOrElse(title ->
-                    clientNotificationService.sendMessage(senderSession, senderUserId, new EnterResponse(request.getChannelId(), title))
+              .ifPresentOrElse(entry ->
+                    clientNotificationService.sendMessage(senderSession, senderUserId, new EnterResponse(request.getChannelId(), entry.title(), entry.lastChannelMessageSeqId(), entry.lastReadMessageSeqId()))
                     ,() -> clientNotificationService.sendMessage(senderSession, senderUserId, new ErrorResponse(result.getSecond().getMessage(), MessageType.ENTER_REQUEST))
               );
     }
