@@ -1,10 +1,7 @@
 package net.study.messagesystem.repository;
 
 import jakarta.persistence.LockModeType;
-import net.study.messagesystem.dto.projection.ConnectionCountProjection;
-import net.study.messagesystem.dto.projection.InviteCodeProjection;
-import net.study.messagesystem.dto.projection.UserIdProjection;
-import net.study.messagesystem.dto.projection.UsernameProjection;
+import net.study.messagesystem.dto.projection.*;
 import net.study.messagesystem.entity.user.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -20,6 +17,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByInviteCode(String inviteCode);
 
     List<UserIdProjection> findUserIdByUsernameIn(Collection<String> usernames);
+
+    List<UserIdUsernameProjection> findUserIdAndUsernameByUserIdIn(Collection<Long> userIds);
 
     Optional<UserIdProjection> findUserIdByUsername(String username);
 
