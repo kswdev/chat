@@ -1,23 +1,24 @@
 package net.study.messagesystem.service;
 
+import com.mysema.commons.lang.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.KeyPrefix;
+import net.study.messagesystem.constant.ResultType;
 import net.study.messagesystem.domain.user.InviteCode;
 import net.study.messagesystem.domain.user.User;
 import net.study.messagesystem.domain.user.UserId;
-import net.study.messagesystem.dto.projection.ConnectionCountProjection;
-import net.study.messagesystem.dto.projection.InviteCodeProjection;
-import net.study.messagesystem.dto.projection.UserIdProjection;
-import net.study.messagesystem.dto.projection.UsernameProjection;
+import net.study.messagesystem.dto.projection.*;
 import net.study.messagesystem.entity.user.UserEntity;
 import net.study.messagesystem.repository.UserRepository;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -29,6 +30,7 @@ public class UserService {
 
     private final JsonUtil jsonUtil;
     private final long TTL = 3600;
+    private final long LIMIT_FIND_COUNT = 100;
 
     @Transactional(readOnly = true)
     public Optional<String> getUsername(UserId userId) {
@@ -37,10 +39,23 @@ public class UserService {
                 .or(() -> userRepository.findByUserId(userId.id())
                         .map(UsernameProjection::getUsername)
                         .map(username -> {
-                            cacheService.set(key, username, TTL);
-                            return username;
-                        }
-        ));
+                                    cacheService.set(key, username, TTL);
+                                    return username;
+                                }
+                        ));
+    }
+
+    @Transactional(readOnly = true)
+    public Pair<Map<UserId, String>, ResultType> getUsernames(Set<UserId> userIds) {
+        if (userIds.size() > LIMIT_FIND_COUNT) {
+            return Pair.of(Collections.emptyMap(), ResultType.OVER_LIMIT);
+        }
+
+        Map<UserId, String> cachedUsernames = getCachedUsernames(userIds);
+        Map<UserId, String> allUsernames = fetchMissingUsernames(userIds, cachedUsernames);
+
+        ResultType resultType = allUsernames.isEmpty() ? ResultType.NOT_FOUND : ResultType.SUCCESS;
+        return Pair.of(allUsernames, resultType);
     }
 
     @Transactional(readOnly = true)
@@ -88,5 +103,55 @@ public class UserService {
 
     public UserEntity getUserReference(UserId userId) {
         return userRepository.getReferenceById(userId.id());
+    }
+
+    private Map<UserId, String> getCachedUsernames(Set<UserId> userIds) {
+        List<UserId> userIdList = new ArrayList<>(userIds);
+        List<String> cacheKeys = userIdList.stream()
+                .map(userId -> cacheService.buildKey(KeyPrefix.USERNAME, userId.id().toString()))
+                .toList();
+
+        List<String> cachedValues = cacheService.get(cacheKeys);
+
+        return IntStream.range(0, userIdList.size())
+                .filter(i -> cachedValues.get(i) != null)
+                .boxed()
+                .collect(Collectors.toMap(
+                        userIdList::get,
+                        cachedValues::get
+                ));
+    }
+
+    private Map<UserId, String> fetchMissingUsernames(Set<UserId> allUserIds, Map<UserId, String> cachedUsernames) {
+        Set<UserId> missingUserIds = allUserIds.stream()
+                .filter(userId -> !cachedUsernames.containsKey(userId))
+                .collect(Collectors.toSet());
+
+        if (missingUserIds.isEmpty()) {
+            return cachedUsernames;
+        }
+
+        Map<UserId, String> dbUsernames = userRepository
+                .findUserIdAndUsernameByUserIdIn(missingUserIds.stream().map(UserId::id).toList())
+                .stream()
+                .collect(Collectors.toMap(
+                        proj -> new UserId(proj.getUserId()),
+                        UserIdUsernameProjection::getUsername
+                ));
+
+        // 캐시 저장
+        cacheService.set(
+                dbUsernames.entrySet().stream()
+                        .collect(Collectors.toMap(
+                                entry -> cacheService.buildKey(KeyPrefix.USERNAME, entry.getKey().id().toString()),
+                                Map.Entry::getValue
+                        )),
+                TTL
+        );
+
+        // 모든 결과 병합
+        return Stream.of(cachedUsernames, dbUsernames)
+                .flatMap(map -> map.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
