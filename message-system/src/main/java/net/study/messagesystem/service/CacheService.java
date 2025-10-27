@@ -1,14 +1,15 @@
 package net.study.messagesystem.service;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -43,6 +44,23 @@ public class CacheService {
             return true;
         } catch (Exception e) {
             log.error("Redis set failed. key: {}", key);
+        }
+        return false;
+    }
+
+    public boolean set(Map<String, String> map, long ttl) {
+        try {
+            stringRedisTemplate.executePipelined(new SessionCallback<>() {
+                @Override
+                @SuppressWarnings("unchecked")
+                public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+                    map.forEach((key, value) -> operations.opsForValue().set((K) key, (V) value, ttl));
+                    return null;
+                }
+            });
+            return true;
+        } catch (Exception e) {
+            log.error("Redis multi set failed. keys: {}, cause: {}", map.keySet(), e.getMessage());
         }
         return false;
     }
