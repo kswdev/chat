@@ -1,11 +1,15 @@
 package net.study.messagesystem.service;
 
+import com.mysema.commons.lang.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.MessageType;
+import net.study.messagesystem.constant.ResultType;
 import net.study.messagesystem.domain.channel.ChannelId;
+import net.study.messagesystem.domain.message.Message;
 import net.study.messagesystem.domain.message.MessageSeqId;
 import net.study.messagesystem.domain.user.UserId;
+import net.study.messagesystem.dto.projection.MessageInfoProjection;
 import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
 import net.study.messagesystem.dto.websocket.outbound.WriteMessageAck;
 import net.study.messagesystem.entity.messae.MessageEntity;
@@ -19,8 +23,11 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,6 +36,7 @@ public class MessageService {
 
     private final JsonUtil jsonUtil;
     private final PushService pushService;
+    private final UserService userService;
     private final ChannelService channelService;
     private final WebSocketSessionManager sessionManager;
     private final MessageRepository messageRepository;
@@ -47,6 +55,41 @@ public class MessageService {
 
         saveMessage(channelId, senderUserId, messageSeqId, content);
         sendMessageToParticipants(channelId, senderUserId, messageSeqId, serial, payload);
+    }
+
+    @Transactional(readOnly = true)
+    public Pair<List<Message>, ResultType> getMessages(
+            ChannelId channelId,
+            MessageSeqId startMessageSeqId,
+            MessageSeqId endMessageSeqId
+    ) {
+        List<MessageInfoProjection> messageInfos = messageRepository
+                .findByChannelIdAndMessageSequenceBetween(channelId.id(), startMessageSeqId.id(), endMessageSeqId.id());
+
+        if (messageInfos.isEmpty()) {
+            return Pair.of(List.of(), ResultType.SUCCESS);
+        }
+
+        Set<UserId> userIds = messageInfos.stream()
+                .map(proj -> new UserId(proj.getUserId()))
+                .collect(Collectors.toSet());
+
+        Pair<Map<UserId, String>, ResultType> usernameResult = userService.getUsernames(userIds);
+
+        return usernameResult.getSecond() == ResultType.SUCCESS
+                ? Pair.of(buildMessages(messageInfos, channelId, usernameResult.getFirst()), ResultType.SUCCESS)
+                : Pair.of(List.of(), usernameResult.getSecond());
+    }
+
+    private List<Message> buildMessages(List<MessageInfoProjection> messageInfos, ChannelId channelId, Map<UserId, String> usernameMap) {
+        return messageInfos.stream()
+                .map(proj -> new Message(
+                        channelId,
+                        new MessageSeqId(proj.getMessageSequence()),
+                        usernameMap.getOrDefault(new UserId(proj.getUserId()), "unknown"),
+                        proj.getContent()
+                ))
+                .toList();
     }
 
     @Transactional
