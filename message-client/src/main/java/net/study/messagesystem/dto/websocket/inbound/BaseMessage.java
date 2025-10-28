@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.constant.MessageType;
-import net.study.messagesystem.dto.websocket.outbound.InviteRequest;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
@@ -19,9 +18,12 @@ import net.study.messagesystem.dto.websocket.outbound.InviteRequest;
         @JsonSubTypes.Type(value = RejectResponse.class, name = MessageType.REJECT_RESPONSE),
         @JsonSubTypes.Type(value = DisconnectResponse.class, name = MessageType.DISCONNECT_RESPONSE),
         @JsonSubTypes.Type(value = FetchChannelsResponse.class, name = MessageType.FETCH_CHANNELS_RESPONSE),
+        @JsonSubTypes.Type(value = FetchMessagesResponse.class, name = MessageType.FETCH_MESSAGES_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserInviteCodeResponse.class, name = MessageType.FETCH_USER_INVITE_CODE_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserConnectionsResponse.class, name = MessageType.FETCH_USER_CONNECTIONS_RESPONSE),
         @JsonSubTypes.Type(value = FetchChannelInviteCodeResponse.class, name = MessageType.FETCH_CHANNEL_INVITE_CODE_RESPONSE),
+
+        @JsonSubTypes.Type(value = WriteMessageAck.class, name = MessageType.WRITE_MESSAGE_ACK),
 
         @JsonSubTypes.Type(value = JoinNotification.class, name = MessageType.NOTIFY_JOIN),
         @JsonSubTypes.Type(value = InviteNotification.class, name = MessageType.ASK_INVITE),
