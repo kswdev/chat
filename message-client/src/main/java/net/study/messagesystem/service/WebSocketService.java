@@ -2,12 +2,14 @@ package net.study.messagesystem.service;
 
 import jakarta.websocket.ClientEndpointConfig;
 import jakarta.websocket.CloseReason;
+import jakarta.websocket.SendHandler;
 import jakarta.websocket.Session;
 import net.study.messagesystem.dto.websocket.outbound.BaseRequest;
 import net.study.messagesystem.dto.websocket.outbound.KeepAliveRequest;
+import net.study.messagesystem.dto.websocket.outbound.WriteMessage;
 import net.study.messagesystem.handler.inbound.WebSocketMessageHandler;
-import net.study.messagesystem.handler.outbound.WebSocketSender;
 import net.study.messagesystem.handler.session.WebSocketSessionHandler;
+import net.study.messagesystem.util.JsonUtil;
 import org.glassfish.tyrus.client.ClientManager;
 
 import java.io.IOException;
@@ -24,7 +26,7 @@ public class WebSocketService {
     private final String websocketUrl;
     private final UserService userService;
     private final TerminalService terminalService;
-    private final WebSocketSender webSocketSender;
+    private final MessageService messageService;
     private final WebSocketMessageHandler webSocketMessageHandler;
 
 
@@ -35,14 +37,14 @@ public class WebSocketService {
             String websocketUrl, String endpoint,
             UserService userService,
             TerminalService terminalService,
-            WebSocketSender webSocketSender,
+            MessageService messageService,
             WebSocketMessageHandler webSocketMessageHandler
 
     ) {
         this.websocketUrl = "ws://" + websocketUrl + endpoint;
         this.userService = userService;
         this.terminalService = terminalService;
-        this.webSocketSender = webSocketSender;
+        this.messageService = messageService;
         this.webSocketMessageHandler = webSocketMessageHandler;
     }
 
@@ -93,7 +95,13 @@ public class WebSocketService {
 
     public void sendMessage(BaseRequest baseRequest) {
         if (isSessionOpen()) {
-            webSocketSender.sendMessage(session, baseRequest);
+            if (baseRequest instanceof WriteMessage messageRequest) {
+                messageService.sendMessage(session, messageRequest);
+                return;
+            }
+
+            JsonUtil.toJson(baseRequest)
+                    .ifPresent(payload -> session.getAsyncRemote().sendText(payload, failureLoggingHandler(payload)));
         } else {
             terminalService.printSystemMessage("WebSocket is not connected.");
         }
@@ -115,5 +123,13 @@ public class WebSocketService {
 
     private boolean isSessionOpen() {
         return session != null && session.isOpen();
+    }
+
+    private SendHandler failureLoggingHandler(String payload) {
+        return result -> {
+            if (!result.isOK()) {
+                terminalService.printSystemMessage("%s Failed to send message. error: %s ".formatted(payload, result.getException()));
+            }
+        };
     }
 }
