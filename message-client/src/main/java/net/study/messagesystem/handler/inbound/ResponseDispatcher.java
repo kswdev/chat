@@ -2,6 +2,7 @@ package net.study.messagesystem.handler.inbound;
 
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.dto.websocket.inbound.*;
+import net.study.messagesystem.service.MessageService;
 import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.service.UserService;
 
@@ -13,14 +14,17 @@ public class ResponseDispatcher {
 
     private final UserService userService;
     private final TerminalService terminalService;
+    private final MessageService messageService;
     private final Map<String, Consumer<BaseMessage>> handlers = new HashMap<>();
 
     public ResponseDispatcher(
             UserService userService,
-            TerminalService terminalService
+            TerminalService terminalService,
+            MessageService messageService
     ) {
         this.userService = userService;
         this.terminalService = terminalService;
+        this.messageService = messageService;
         preparedHandlers();
     }
 
@@ -43,6 +47,8 @@ public class ResponseDispatcher {
         handlers.put(MessageType.FETCH_CHANNEL_INVITE_CODE_RESPONSE, (msg) -> fetchChannelInviteCode((FetchChannelInviteCodeResponse) msg));
         handlers.put(MessageType.FETCH_USER_CONNECTIONS_RESPONSE, (msg) -> connections((FetchUserConnectionsResponse) msg));
         handlers.put(MessageType.FETCH_USER_INVITE_CODE_RESPONSE, (msg) -> fetchUserInviteCode((FetchUserInviteCodeResponse) msg));
+
+        handlers.put(MessageType.WRITE_MESSAGE_ACK, (msg) -> messageService.receiveMessage((WriteMessageAck) msg));
 
         handlers.put(MessageType.ERROR, (msg) -> error((ErrorResponse) msg));
     }
