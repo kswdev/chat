@@ -4,11 +4,7 @@ import net.study.messagesystem.dto.websocket.outbound.WriteMessage;
 import net.study.messagesystem.handler.CommandHandler;
 import net.study.messagesystem.handler.inbound.ResponseDispatcher;
 import net.study.messagesystem.handler.inbound.WebSocketMessageHandler;
-import net.study.messagesystem.handler.outbound.WebSocketSender;
-import net.study.messagesystem.service.RestApiService;
-import net.study.messagesystem.service.TerminalService;
-import net.study.messagesystem.service.UserService;
-import net.study.messagesystem.service.WebSocketService;
+import net.study.messagesystem.service.*;
 import net.study.messagesystem.util.JsonUtil;
 import org.jline.reader.UserInterruptException;
 
@@ -48,8 +44,7 @@ public class MessageClient {
                     if (!commandHandler.process(command, argument)) break;
 
                 } else if (!input.isEmpty() && userService.isInChannel()) {
-                    terminalService.printMessage("<me>", input);
-                    webSocketService.sendMessage(new WriteMessage(userService.getChannelId(), input));
+                    webSocketService.sendMessage(new WriteMessage(userService.getChannelId(), input, System.currentTimeMillis()));
                 }
             } catch (UserInterruptException e) {
                 terminalService.flush();
@@ -62,15 +57,15 @@ public class MessageClient {
     }
 
     private static WebSocketService createWebSocketService(TerminalService terminalService, UserService userService, String BASE_URL, String WEBSOCKET_ENDPOINT) {
-        WebSocketSender webSocketSender = new WebSocketSender(terminalService);
-        ResponseDispatcher responseDispatcher = new ResponseDispatcher(userService, terminalService);
+        MessageService messageService = new MessageService(userService, terminalService);
+        ResponseDispatcher responseDispatcher = new ResponseDispatcher(userService, terminalService, messageService);
         WebSocketMessageHandler webSocketMessageHandler = new WebSocketMessageHandler(responseDispatcher);
 
         return new WebSocketService(
                 BASE_URL, WEBSOCKET_ENDPOINT,
                 userService,
                 terminalService,
-                webSocketSender,
+                messageService,
                 webSocketMessageHandler);
     }
 }
