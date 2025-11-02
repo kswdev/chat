@@ -61,11 +61,14 @@ public class MessageClient {
         ResponseDispatcher responseDispatcher = new ResponseDispatcher(userService, terminalService, messageService);
         WebSocketMessageHandler webSocketMessageHandler = new WebSocketMessageHandler(responseDispatcher);
 
-        return new WebSocketService(
+        WebSocketService webSocketService = new WebSocketService(
                 BASE_URL, WEBSOCKET_ENDPOINT,
                 userService,
                 terminalService,
                 messageService,
                 webSocketMessageHandler);
+
+        messageService.setWebSocketService(webSocketService);
+        return webSocketService;
     }
 }
