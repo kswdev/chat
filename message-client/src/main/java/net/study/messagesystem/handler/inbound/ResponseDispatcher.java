@@ -1,7 +1,9 @@
 package net.study.messagesystem.handler.inbound;
 
 import net.study.messagesystem.constant.MessageType;
+import net.study.messagesystem.dto.message.MessageSeqId;
 import net.study.messagesystem.dto.websocket.inbound.*;
+import net.study.messagesystem.dto.websocket.outbound.FetchMessagesRequest;
 import net.study.messagesystem.service.MessageService;
 import net.study.messagesystem.service.TerminalService;
 import net.study.messagesystem.service.UserService;
@@ -11,6 +13,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class ResponseDispatcher {
+
+    private static final Long LIMIT_MESSAGE_COUNT = 10L;
 
     private final UserService userService;
     private final TerminalService terminalService;
@@ -41,11 +45,12 @@ public class ResponseDispatcher {
         handlers.put(MessageType.LEAVE_RESPONSE, (msg) -> leave((LeaveResponse) msg));
         handlers.put(MessageType.NOTIFY_ACCEPT, (msg) -> acceptNotification((AcceptNotification) msg));
         handlers.put(MessageType.NOTIFY_JOIN, (msg) -> joinChannelNotification((JoinNotification) msg));
-        handlers.put(MessageType.NOTIFY_MESSAGE, (msg) -> message((MessageNotification) msg));
+        handlers.put(MessageType.NOTIFY_MESSAGE, (msg) -> messageService.receiveMessage((MessageNotification) msg));
 
         handlers.put(MessageType.FETCH_CHANNELS_RESPONSE, (msg) -> fetchChannels((FetchChannelsResponse) msg));
+        handlers.put(MessageType.FETCH_MESSAGES_RESPONSE, (msg) -> messageService.receiveMessage((FetchMessagesResponse) msg));
         handlers.put(MessageType.FETCH_CHANNEL_INVITE_CODE_RESPONSE, (msg) -> fetchChannelInviteCode((FetchChannelInviteCodeResponse) msg));
-        handlers.put(MessageType.FETCH_USER_CONNECTIONS_RESPONSE, (msg) -> connections((FetchUserConnectionsResponse) msg));
+        handlers.put(MessageType.FETCH_USER_CONNECTIONS_RESPONSE, (msg) -> fetchConnections((FetchUserConnectionsResponse) msg));
         handlers.put(MessageType.FETCH_USER_INVITE_CODE_RESPONSE, (msg) -> fetchUserInviteCode((FetchUserInviteCodeResponse) msg));
 
         handlers.put(MessageType.WRITE_MESSAGE_ACK, (msg) -> messageService.receiveMessage((WriteMessageAck) msg));
@@ -64,6 +69,14 @@ public class ResponseDispatcher {
 
     private void enter(EnterResponse enterResponse) {
         userService.moveToChannel(enterResponse.getChannelId());
+        if (!enterResponse.getLastReadMessageSeqId().equals(enterResponse.getLastChannelMessageSeqId())) {
+            MessageSeqId startMessageSeqId = new MessageSeqId(Math.max(
+                    enterResponse.getLastChannelMessageSeqId().id() - LIMIT_MESSAGE_COUNT,
+                    enterResponse.getLastReadMessageSeqId().id()));
+
+            messageService.sendMessage(new FetchMessagesRequest(enterResponse.getChannelId(), startMessageSeqId, enterResponse.getLastChannelMessageSeqId()));
+        }
+
         terminalService.printSystemMessage("Enter Channel %s: %s".formatted(enterResponse.getChannelId().id(), enterResponse.getTitle()));
     }
 
@@ -124,18 +137,8 @@ public class ResponseDispatcher {
         terminalService.printSystemMessage("Join channel. title: %s, channelId: %s".formatted(joinNotification.getTitle(), joinNotification.getChannelId().id()));
     }
 
-    private void message(MessageNotification messageNotification) {
-        terminalService.printMessage(messageNotification.getUsername(), messageNotification.getContent());
-    }
-
     private void fetchUserInviteCode(FetchUserInviteCodeResponse inviteCodeResponse) {
         terminalService.printSystemMessage("My invite code: %s".formatted(inviteCodeResponse.getInviteCode().code()));
-    }
-
-    private void connections(FetchUserConnectionsResponse connectionsResponse) {
-        connectionsResponse
-                .getConnections()
-                .forEach(connection -> terminalService.printSystemMessage(" %s - %s".formatted(connection.username(), connection.status())));
     }
 
     private void error(ErrorResponse errorResponse) {
