@@ -116,7 +116,7 @@ public class MessageService {
     }
 
     private void processMessageBuffer() {
-        while (userService.isBufferEmpty()) {
+        while (!userService.isBufferEmpty()) {
             MessageSeqId peekedMessageSeqId = userService.peekMessage().messageSeqId();
             MessageSeqId lastReadMessageSeqId = userService.getLastReadMessageSeqId();
 
