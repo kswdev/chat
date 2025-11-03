@@ -129,8 +129,8 @@ public class UserConnectionService {
 
         return switch (connectionStatus) {
             case NONE, DISCONNECTED -> processInvite(inviterUserId, partner.userId());
-            case PENDING, REJECTED  -> Pair.of(Optional.of(partner.userId()), "Already Invited to " + partner.username());
-            case ACCEPTED           -> Pair.of(Optional.of(partner.userId()), "Already connected with " + partner.username());
+            case PENDING, REJECTED  -> Pair.of(Optional.empty(), "Already Invited to " + partner.username());
+            case ACCEPTED           -> Pair.of(Optional.empty(), "Already connected with " + partner.username());
         };
     }
 
