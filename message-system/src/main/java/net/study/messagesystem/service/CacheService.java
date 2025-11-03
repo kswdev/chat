@@ -50,14 +50,7 @@ public class CacheService {
 
     public boolean set(Map<String, String> map, long ttl) {
         try {
-            stringRedisTemplate.executePipelined(new SessionCallback<>() {
-                @Override
-                @SuppressWarnings("unchecked")
-                public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
-                    map.forEach((key, value) -> operations.opsForValue().set((K) key, (V) value, ttl));
-                    return null;
-                }
-            });
+            map.forEach((key, value) -> set(key, value, ttl));
             return true;
         } catch (Exception e) {
             log.error("Redis multi set failed. keys: {}, cause: {}", map.keySet(), e.getMessage());
