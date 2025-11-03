@@ -72,7 +72,7 @@ public class ResponseDispatcher {
         if (!enterResponse.getLastReadMessageSeqId().equals(enterResponse.getLastChannelMessageSeqId())) {
             MessageSeqId startMessageSeqId = new MessageSeqId(Math.max(
                     enterResponse.getLastChannelMessageSeqId().id() - LIMIT_MESSAGE_COUNT,
-                    enterResponse.getLastReadMessageSeqId().id()));
+                    enterResponse.getLastReadMessageSeqId().id() + 1));
 
             messageService.sendMessage(new FetchMessagesRequest(enterResponse.getChannelId(), startMessageSeqId, enterResponse.getLastChannelMessageSeqId()));
         }
