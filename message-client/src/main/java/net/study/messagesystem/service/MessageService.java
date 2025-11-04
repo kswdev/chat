@@ -122,6 +122,7 @@ public class MessageService {
 
             if (isInitOrNextMessage(lastReadMessageSeqId, peekedMessageSeqId)) {
                 Message message = userService.popMessage();
+                userService.setLastReadMessageSeqId(message.messageSeqId());
                 terminalService.printMessage(message.username(), message.content());
             } else if (isAlreadyReadMessage(lastReadMessageSeqId, peekedMessageSeqId)) {
                 userService.popMessage();
