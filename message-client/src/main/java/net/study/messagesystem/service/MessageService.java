@@ -9,6 +9,7 @@ import net.study.messagesystem.dto.websocket.inbound.FetchMessagesResponse;
 import net.study.messagesystem.dto.websocket.inbound.MessageNotification;
 import net.study.messagesystem.dto.websocket.inbound.WriteMessageAck;
 import net.study.messagesystem.dto.websocket.outbound.FetchMessagesRequest;
+import net.study.messagesystem.dto.websocket.outbound.ReadMessageAck;
 import net.study.messagesystem.dto.websocket.outbound.WriteMessage;
 import net.study.messagesystem.util.JsonUtil;
 
@@ -109,7 +110,9 @@ public class MessageService {
                     messageNotification.getContent()));
 
             // 새로 메세지 범위 정하여 다시 예약
-            reserveFetchMessagesRequest(lastReadMessageSeqId, receivedMessageSeqId);
+            reserveFetchMessagesRequest(
+                    new MessageSeqId(lastReadMessageSeqId.id()+1),
+                    new MessageSeqId(receivedMessageSeqId.id()-1));
         } else if (isAlreadyReadMessage(lastReadMessageSeqId, receivedMessageSeqId)) {
             terminalService.printSystemMessage("Ignore duplicate message id: " + messageNotification.getMessageSeqId());
         }
@@ -123,6 +126,7 @@ public class MessageService {
             if (isInitOrNextMessage(lastReadMessageSeqId, peekedMessageSeqId)) {
                 Message message = userService.popMessage();
                 userService.setLastReadMessageSeqId(message.messageSeqId());
+                webSocketService.sendMessage(new ReadMessageAck(userService.getChannelId(), message.messageSeqId()));
                 terminalService.printMessage(message.username(), message.content());
             } else if (isAlreadyReadMessage(lastReadMessageSeqId, peekedMessageSeqId)) {
                 userService.popMessage();
@@ -132,8 +136,8 @@ public class MessageService {
         }
     }
 
-    private void reserveFetchMessagesRequest(MessageSeqId lastReadSeqId, MessageSeqId receiveSeqId) {
-        MessageSeqIdRange messageSeqIdRange = new MessageSeqIdRange(new MessageSeqId(lastReadSeqId.id()), new MessageSeqId(receiveSeqId.id()-1));
+    private void reserveFetchMessagesRequest(MessageSeqId start, MessageSeqId end) {
+        MessageSeqIdRange messageSeqIdRange = new MessageSeqIdRange(new MessageSeqId(start.id()), new MessageSeqId(end.id()));
         ScheduledFuture<?> scheduledFuture = scheduler.schedule(() -> {
             webSocketService.sendMessage(new FetchMessagesRequest(userService.getChannelId(), messageSeqIdRange.startSeqId(), messageSeqIdRange.endSeqId()));
             scheduledFetchMessagesRequests.remove(messageSeqIdRange);
