@@ -1,7 +1,10 @@
 package net.study.messagesystem
 
 import net.study.messagesystem.dto.channel.ChannelId
+import net.study.messagesystem.dto.message.Message
 import net.study.messagesystem.dto.message.MessageSeqId
+import net.study.messagesystem.dto.user.User
+import net.study.messagesystem.dto.user.UserId
 import net.study.messagesystem.dto.websocket.inbound.MessageNotification
 import net.study.messagesystem.dto.websocket.outbound.FetchMessagesRequest
 import net.study.messagesystem.dto.websocket.outbound.ReadMessageAck
@@ -105,7 +108,30 @@ class ProcessMessageNotificationSpec extends Specification {
         messageService.receiveMessage(new MessageNotification(channelId, newMessageSeqId, "bob", "hello"))
 
         then:
+        0 * webSocketService.sendMessage(_)
         0 * terminalService.printMessage(_, _)
         1 * terminalService.printSystemMessage("Ignore duplicate message id: " + newMessageSeqId);
+    }
+
+    def "버퍼에 저장된 메세지가 있으면 처리한다."() {
+        given:
+        def channelId = new ChannelId(5)
+        def user = new User(new UserId(5), "Bob")
+        def lastReadMessageSeqId = new MessageSeqId(8)
+
+        userService.moveToChannel(channelId)
+        userService.setLastReadMessageSeqId(lastReadMessageSeqId)
+        userService.addMessage(new Message(channelId, new MessageSeqId(11), user.username(), "11 hi"))
+        userService.addMessage(new Message(channelId, new MessageSeqId(10), user.username(), "10 hello"))
+        userService.addMessage(new Message(channelId, new MessageSeqId(13), user.username(), "13 good"))
+
+        when:
+        messageService.receiveMessage(new MessageNotification(channelId, new MessageSeqId(9), "bob", "9 hello"))
+
+        then:
+        1 * terminalService.printMessage(_, "9 hello")
+        1 * terminalService.printMessage(_, "10 hello")
+        1 * terminalService.printMessage(_, "11 hi")
+        0 * terminalService.printMessage(_, "13 good")
     }
 }
