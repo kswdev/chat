@@ -80,11 +80,6 @@ public class MessageService {
                     scheduledFetchMessagesRequests.remove(idRange);
 
                     // 범위 재조정: 범위가 단일 메시지가 아니면, 다시 예약 (받은 메시지를 제외한 나머지 범위)
-                    // 받은 메시지(7) 이전 범위: [5, 6]
-                    if (receivedMessageSeqId.id() > idRange.startSeqId.id()) {
-                        reserveFetchMessagesRequest(idRange.startSeqId, new MessageSeqId(receivedMessageSeqId.id() - 1));
-                    }
-
                     // 받은 메시지(7) 이후 범위: [8, 10]
                     if (receivedMessageSeqId.id() < idRange.endSeqId.id()) {
                         reserveFetchMessagesRequest(new MessageSeqId(receivedMessageSeqId.id() + 1), idRange.endSeqId);
