@@ -65,18 +65,18 @@ class MessageHandlerSpec extends Specification {
         def (clientA, clientB, clientC) = [createClient(sessionIdA), createClient(sessionIdB), createClient(sessionIdC)]
 
         when:
-        clientA.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "testUserA", "안녕하세요 testUserA 입니다."))))
-        clientB.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "testUserB", "안녕하세요 testUserB 입니다."))))
-        clientC.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "testUserC", "안녕하세요 testUserC 입니다."))))
+        clientA.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "안녕하세요 testUserA 입니다.", System.currentTimeMillis()))))
+        clientB.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "안녕하세요 testUserB 입니다.", System.currentTimeMillis()))))
+        clientC.session.sendMessage(new TextMessage(objectMapper.writeValueAsString(new WriteMessage(new ChannelId(1L), "안녕하세요 testUserC 입니다.", System.currentTimeMillis()))))
 
         then:
-        def resultA = clientA.queue.poll(1, TimeUnit.SECONDS) + clientA.queue.poll(1, TimeUnit.SECONDS)
-        def resultB = clientB.queue.poll(1, TimeUnit.SECONDS) + clientB.queue.poll(1, TimeUnit.SECONDS)
-        def resultC = clientC.queue.poll(1, TimeUnit.SECONDS) + clientC.queue.poll(1, TimeUnit.SECONDS)
+        def resultA = clientA.queue.poll(1, TimeUnit.SECONDS) + clientA.queue.poll(1, TimeUnit.SECONDS) + clientA.queue.poll(1, TimeUnit.SECONDS)
+        def resultB = clientB.queue.poll(1, TimeUnit.SECONDS) + clientB.queue.poll(1, TimeUnit.SECONDS) + clientB.queue.poll(1, TimeUnit.SECONDS)
+        def resultC = clientC.queue.poll(1, TimeUnit.SECONDS) + clientC.queue.poll(1, TimeUnit.SECONDS) + clientC.queue.poll(1, TimeUnit.SECONDS)
 
-        resultA.contains("testUserB") && resultA.contains("testUserC")
-        resultB.contains("testUserA") && resultB.contains("testUserC")
-        resultC.contains("testUserA") && resultC.contains("testUserB")
+        resultA.contains("testUserB") && resultA.contains("testUserC") && resultA.contains("WRITE_MESSAGE_ACK")
+        resultB.contains("testUserA") && resultB.contains("testUserC") && resultB.contains("WRITE_MESSAGE_ACK")
+        resultC.contains("testUserA") && resultC.contains("testUserB") && resultC.contains("WRITE_MESSAGE_ACK")
 
         and:
         clientA.queue.isEmpty()
