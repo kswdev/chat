@@ -54,8 +54,7 @@ public class UserService {
         Map<UserId, String> cachedUsernames = getCachedUsernames(userIds);
         Map<UserId, String> allUsernames = fetchMissingUsernames(userIds, cachedUsernames);
 
-        ResultType resultType = allUsernames.isEmpty() ? ResultType.NOT_FOUND : ResultType.SUCCESS;
-        return Pair.of(allUsernames, resultType);
+        return Pair.of(allUsernames, ResultType.SUCCESS);
     }
 
     @Transactional(readOnly = true)
