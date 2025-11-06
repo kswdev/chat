@@ -5,7 +5,7 @@ import lombok.*;
 import java.io.Serializable;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = {"channelId", "messageSequence"})
 public class ChannelSequenceId implements Serializable{
