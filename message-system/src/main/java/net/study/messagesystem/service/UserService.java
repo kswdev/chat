@@ -16,9 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static java.util.function.Predicate.*;
 
 @Slf4j
 @Service
@@ -35,26 +38,24 @@ public class UserService {
     @Transactional(readOnly = true)
     public Optional<String> getUsername(UserId userId) {
         String key = cacheService.buildKey(KeyPrefix.USERNAME, userId.id().toString());
-        return cacheService.get(key)
-                .or(() -> userRepository.findByUserId(userId.id())
-                        .map(UsernameProjection::getUsername)
-                        .map(username -> {
+        return cacheService
+                .get(key)
+                .or(() ->
+                        userRepository.findByUserId(userId.id())
+                                .map(UsernameProjection::getUsername)
+                                .map(username -> {
                                     cacheService.set(key, username, TTL);
                                     return username;
-                                }
-                        ));
+                                })
+                );
     }
 
     @Transactional(readOnly = true)
     public Pair<Map<UserId, String>, ResultType> getUsernames(Set<UserId> userIds) {
-        if (userIds.size() > LIMIT_FIND_COUNT) {
-            return Pair.of(Collections.emptyMap(), ResultType.OVER_LIMIT);
-        }
-
-        Map<UserId, String> cachedUsernames = getCachedUsernames(userIds);
-        Map<UserId, String> allUsernames = fetchMissingUsernames(userIds, cachedUsernames);
-
-        return Pair.of(allUsernames, ResultType.SUCCESS);
+        return Optional.of(userIds)
+                .filter(ids -> ids.size() <= LIMIT_FIND_COUNT)
+                .map(this::processUsernames)
+                .orElse(Pair.of(Collections.emptyMap(), ResultType.OVER_LIMIT));
     }
 
     @Transactional(readOnly = true)
@@ -104,6 +105,14 @@ public class UserService {
         return userRepository.getReferenceById(userId.id());
     }
 
+    private Pair<Map<UserId, String>, ResultType> processUsernames(Set<UserId> userIds) {
+        Map<UserId, String> cachedUsernames = getCachedUsernames(userIds);
+
+        return findMissingUserIds(userIds, cachedUsernames)
+                .map(missingIds -> fetchAndCacheUsernames(missingIds, cachedUsernames))
+                .orElse(Pair.of(cachedUsernames, ResultType.SUCCESS));
+    }
+
     private Map<UserId, String> getCachedUsernames(Set<UserId> userIds) {
         List<UserId> userIdList = new ArrayList<>(userIds);
         List<String> cacheKeys = userIdList.stream()
@@ -121,36 +130,57 @@ public class UserService {
                 ));
     }
 
-    private Map<UserId, String> fetchMissingUsernames(Set<UserId> allUserIds, Map<UserId, String> cachedUsernames) {
-        Set<UserId> missingUserIds = allUserIds.stream()
-                .filter(userId -> !cachedUsernames.containsKey(userId))
-                .collect(Collectors.toSet());
+    private Optional<Set<UserId>> findMissingUserIds(Set<UserId> userIds, Map<UserId, String> cachedUsernames) {
+        Set<UserId> missingIds = userIds.stream()
+                .filter(not(cachedUsernames::containsKey))
+                .collect(Collectors.toUnmodifiableSet());
 
-        if (missingUserIds.isEmpty()) {
-            return cachedUsernames;
-        }
+        return missingIds.isEmpty() ? Optional.empty() : Optional.of(missingIds);
+    }
 
-        Map<UserId, String> dbUsernames = userRepository
-                .findUserIdAndUsernameByUserIdIn(missingUserIds.stream().map(UserId::id).toList())
+    private Pair<Map<UserId, String>, ResultType> fetchAndCacheUsernames(Set<UserId> missingUserIds, Map<UserId, String> cachedUsernames) {
+        return Optional.of(missingUserIds)
+                .map(this::fetchMissingUsernames)
+                .map(missingUsernames -> {
+                    cacheMissingUsernames(missingUsernames);
+                    return mergeUsernames(cachedUsernames, missingUsernames);
+                })
+                .map(allUsernames -> Pair.of(allUsernames, ResultType.SUCCESS))
+                .orElse(Pair.of(cachedUsernames, ResultType.SUCCESS));
+    }
+
+    private void cacheMissingUsernames(Map<UserId, String> missingUsernames) {
+        Optional.of(missingUsernames)
+                .map(this::buildCacheEntries)
+                .ifPresent(entries -> cacheService.set(entries, TTL));
+    }
+
+    private Map<String, String> buildCacheEntries(Map<UserId, String> usernames) {
+        return usernames.entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> cacheService.buildKey(KeyPrefix.USERNAME, entry.getKey().id().toString()),
+                        Map.Entry::getValue
+                ));
+    }
+
+    private Map<UserId, String> mergeUsernames(Map<UserId, String> cachedUsernames, Map<UserId, String> missingUsernames) {
+        return Stream.concat(cachedUsernames.entrySet().stream(), missingUsernames.entrySet().stream())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                ));
+    }
+
+    private Map<UserId, String> fetchMissingUsernames(Set<UserId> missingUserIds) {
+        return userRepository
+                .findUserIdAndUsernameByUserIdIn(
+                        missingUserIds.stream()
+                                .map(UserId::id)
+                                .toList())
                 .stream()
                 .collect(Collectors.toMap(
                         proj -> new UserId(proj.getUserId()),
                         UserIdUsernameProjection::getUsername
                 ));
-
-        // 캐시 저장
-        cacheService.set(
-                dbUsernames.entrySet().stream()
-                        .collect(Collectors.toMap(
-                                entry -> cacheService.buildKey(KeyPrefix.USERNAME, entry.getKey().id().toString()),
-                                Map.Entry::getValue
-                        )),
-                TTL
-        );
-
-        // 모든 결과 병합
-        return Stream.of(cachedUsernames, dbUsernames)
-                .flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
