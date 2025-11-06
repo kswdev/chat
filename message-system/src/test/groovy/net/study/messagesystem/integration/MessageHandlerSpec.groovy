@@ -5,6 +5,8 @@ import net.study.messagesystem.MessageSystemApplication
 import net.study.messagesystem.domain.channel.ChannelId
 import net.study.messagesystem.domain.user.UserId
 import net.study.messagesystem.dto.websocket.inbound.WriteMessage
+import net.study.messagesystem.entity.messae.ChannelSequenceId
+import net.study.messagesystem.repository.MessageRepository
 import net.study.messagesystem.service.ChannelService
 import net.study.messagesystem.service.UserService
 import org.spockframework.spring.SpringBean
@@ -39,6 +41,8 @@ class MessageHandlerSpec extends Specification {
 
     @Autowired private UserService userService;
     @Autowired private ObjectMapper objectMapper;
+    @Autowired private MessageRepository messageRepository;
+
     @SpringBean private ChannelService channelService = Stub();
 
     def "Group Chat Basic Test"() {
@@ -87,10 +91,10 @@ class MessageHandlerSpec extends Specification {
         unRegister(sessionIdA)
         unRegister(sessionIdB)
         unRegister(sessionIdC)
-
         clientA.session?.close()
         clientB.session?.close()
         clientC.session?.close()
+        deleteMessages([resultA, resultB, resultC])
     }
 
     def register(String username, String password) {
@@ -139,5 +143,10 @@ class MessageHandlerSpec extends Specification {
         },headers, new URI(url)).get()
 
         return [queue: blockingQueue, session: webSocketSession]
+    }
+
+    def deleteMessages(List<String> results) {
+        def seqIds = results.collectMany { text -> (text =~ /"messageSeqId":(\d+)/).collect{ it[1] }}
+        seqIds.forEach { messageRepository.deleteById(new ChannelSequenceId(1L, it as Long))}
     }
 }
