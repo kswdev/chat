@@ -13,7 +13,7 @@ public class RoutingDataSource extends AbstractRoutingDataSource {
         String datasourceKey = TransactionSynchronizationManager.isCurrentTransactionReadOnly() ? "replica" : "source";
 
         Long channelId = ShardContext.getChannelId();
-        if (channelId == null) {
+        if (channelId != null) {
             datasourceKey += channelId % 2 == 0 ? "Message2" : "Message1";
         }
         log.info("Routing to datasource: {}", datasourceKey);
