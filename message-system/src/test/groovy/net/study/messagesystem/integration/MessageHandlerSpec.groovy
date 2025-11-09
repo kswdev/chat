@@ -2,6 +2,7 @@ package net.study.messagesystem.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.study.messagesystem.MessageSystemApplication
+import net.study.messagesystem.database.ShardContext
 import net.study.messagesystem.domain.channel.ChannelId
 import net.study.messagesystem.domain.user.UserId
 import net.study.messagesystem.dto.websocket.inbound.WriteMessage
@@ -147,6 +148,8 @@ class MessageHandlerSpec extends Specification {
 
     def deleteMessages(List<String> results) {
         def seqIds = results.collectMany { text -> (text =~ /"messageSeqId":(\d+)/).collect{ it[1] }}
-        seqIds.forEach { messageRepository.deleteById(new ChannelSequenceId(1L, it as Long))}
+        try(ShardContext.ShardContextScope ignored = new ShardContext.ShardContextScope(1L)) {
+            seqIds.forEach { messageRepository.deleteById(new ChannelSequenceId(1L, it as Long)) }
+        }
     }
 }
