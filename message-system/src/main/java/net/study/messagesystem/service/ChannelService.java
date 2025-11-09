@@ -38,10 +38,10 @@ public class ChannelService {
     private final JsonUtil jsonUtil;
     private final CacheService cacheService;
     private final SessionService sessionService;
+    private final MessageShardService messageShardService;
     private final UserConnectionService userConnectionService;
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
-    private final MessageRepository messageRepository;
 
     @Transactional(readOnly = true)
     public Optional<Channel> getChannel(InviteCode inviteCode) {
@@ -274,9 +274,7 @@ public class ChannelService {
     }
 
     private Pair<Optional<ChannelEntry>, ResultType> createChannelEntry(ChannelId channelId, UserId userId, String title, MessageSeqId lastReadMsgSeq) {
-        MessageSeqId lastChannelMessageSeqId = messageRepository.findLastMessageSequenceByChannelId(channelId.id())
-                .map(MessageSeqId::new)
-                .orElseGet(() -> new MessageSeqId(0L));
+        MessageSeqId lastChannelMessageSeqId = messageShardService.findLastMessageSequenceByChannelId(channelId);
 
         return sessionService.setActiveChannel(userId, channelId)
                 ? Pair.of(Optional.of(new ChannelEntry(title, lastReadMsgSeq, lastChannelMessageSeqId)), ResultType.SUCCESS)

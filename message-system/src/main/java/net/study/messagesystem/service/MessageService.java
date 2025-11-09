@@ -38,8 +38,8 @@ public class MessageService {
     private final PushService pushService;
     private final UserService userService;
     private final ChannelService channelService;
+    private final MessageShardService messageShardService;
     private final WebSocketSessionManager sessionManager;
-    private final MessageRepository messageRepository;
     private final UserChannelRepository userChannelRepository;
 
     @Transactional
@@ -63,8 +63,7 @@ public class MessageService {
             MessageSeqId startMessageSeqId,
             MessageSeqId endMessageSeqId
     ) {
-        List<MessageInfoProjection> messageInfos = messageRepository
-                .findByChannelIdAndMessageSequenceBetween(channelId.id(), startMessageSeqId.id(), endMessageSeqId.id());
+        List<MessageInfoProjection> messageInfos = messageShardService.findByChannelIdAndMessageSequenceBetween(channelId, startMessageSeqId, endMessageSeqId);
 
         if (messageInfos.isEmpty()) {
             return Pair.of(List.of(), ResultType.SUCCESS);
@@ -109,8 +108,7 @@ public class MessageService {
     }
 
     private void saveMessage(ChannelId channelId, UserId senderUserId, MessageSeqId messageSeqId, String content) {
-        messageRepository.save(
-                new MessageEntity(channelId.id(), messageSeqId.id(), senderUserId.id(), content));
+        messageShardService.save(channelId, messageSeqId, senderUserId, content);
     }
 
     private void sendMessageToParticipants(ChannelId channelId, UserId senderUserId, MessageSeqId messageSeqId, Long serial, String payload) {
