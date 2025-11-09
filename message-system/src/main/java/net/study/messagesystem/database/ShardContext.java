@@ -28,7 +28,7 @@ public abstract class ShardContext {
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             ShardContext.clear();
         }
     }
