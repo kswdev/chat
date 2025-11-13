@@ -1,6 +1,5 @@
 package net.study.messageconnection.service;
 
-import io.micrometer.observation.Observation;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
