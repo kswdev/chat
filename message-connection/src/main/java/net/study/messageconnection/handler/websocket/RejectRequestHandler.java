@@ -4,14 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messageconnection.constant.IdKey;
 import net.study.messageconnection.constant.MessageType;
-import net.study.messageconnection.constant.UserConnectionStatus;
 import net.study.messageconnection.domain.user.UserId;
+import net.study.messageconnection.dto.kafka.RejectRequestRecord;
 import net.study.messageconnection.dto.websocket.inbound.RejectRequest;
 import net.study.messageconnection.dto.websocket.outbound.ErrorResponse;
-import net.study.messageconnection.dto.websocket.outbound.RejectResponse;
+import net.study.messageconnection.kafka.KafkaProducer;
 import net.study.messageconnection.service.ClientNotificationService;
-import net.study.messageconnection.service.UserConnectionService;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -20,21 +18,15 @@ import org.springframework.web.socket.WebSocketSession;
 @RequiredArgsConstructor
 public class RejectRequestHandler implements BaseRequestHandler<RejectRequest> {
 
-    private final UserConnectionService userConnectionService;
+    private final KafkaProducer kafkaProducer;
     private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRequest(WebSocketSession senderSession, RejectRequest request) {
-        UserId rejecterUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
-        Pair<Boolean, String> result = userConnectionService.reject(rejecterUserId, request.getUsername());
-
-        if (result.getFirst()) {
-            String inviterUsername = result.getSecond();
-            clientNotificationService.sendError(senderSession, rejecterUserId, new RejectResponse(inviterUsername, UserConnectionStatus.REJECTED));
-        } else {
-            String errorMessage = result.getSecond();
-            clientNotificationService.sendError(senderSession, rejecterUserId, new ErrorResponse(errorMessage, MessageType.REJECT_REQUEST));
-        }
+        UserId senderUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
+        kafkaProducer.sendRequest(
+                new RejectRequestRecord(senderUserId, request.getUsername()),
+                () -> clientNotificationService.sendError(senderSession, new ErrorResponse(MessageType.REJECT_REQUEST, "Reject failed.")));
     }
 
     @Override

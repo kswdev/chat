@@ -27,8 +27,7 @@ public class CreateRequestHandler implements BaseRequestHandler<CreateRequest> {
 
         kafkaProducer.sendRequest(
                 new CreateRequestRecord(senderUserId, request.getTitle(), request.getParticipantUsernames()),
-                () -> clientNotificationService.sendError(senderSession, new ErrorResponse(MessageType.CREATE_REQUEST, "create channel failed."))
-        );
+                () -> clientNotificationService.sendError(senderSession, new ErrorResponse(MessageType.CREATE_REQUEST, "create channel failed.")));
     }
 
     @Override
