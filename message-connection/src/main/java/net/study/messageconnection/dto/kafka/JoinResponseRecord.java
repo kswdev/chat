@@ -4,10 +4,10 @@ import net.study.messageconnection.constant.MessageType;
 import net.study.messageconnection.domain.channel.ChannelId;
 import net.study.messageconnection.domain.user.UserId;
 
-public record EnterRequestRecord(UserId userId, ChannelId channelId) implements RecordInterface {
+public record JoinResponseRecord(UserId userId, ChannelId channelId, String title) implements RecordInterface {
 
     @Override
     public String type() {
-        return MessageType.ENTER_REQUEST;
+        return MessageType.JOIN_RESPONSE;
     }
 }
