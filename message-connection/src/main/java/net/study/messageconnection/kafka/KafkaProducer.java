@@ -34,14 +34,14 @@ public class KafkaProducer {
     public void sendMessageUsingPartitionKey(ChannelId channelId, UserId userId, RecordInterface recordInterface, Runnable errorCallback) {
         String partitionKey = "%d-%d".formatted(channelId.id(), userId.id());
         jsonUtil.toJson(recordInterface)
-                .ifPresent(record -> kafkaTemplate.send(pushTopic, partitionKey, record)
-                        .whenComplete(logResult(pushTopic, record, partitionKey, errorCallback)));
+                .ifPresent(record -> kafkaTemplate.send(messageTopic, partitionKey, record)
+                        .whenComplete(logResult(messageTopic, record, partitionKey, errorCallback)));
     }
 
     public void sendRequest(RecordInterface recordInterface, Runnable errorCallback) {
         jsonUtil.toJson(recordInterface)
-                .ifPresent(record -> kafkaTemplate.send(pushTopic, record)
-                        .whenComplete(logResult(pushTopic, record, null, errorCallback)));
+                .ifPresent(record -> kafkaTemplate.send(requestTopic, record)
+                        .whenComplete(logResult(requestTopic, record, null, errorCallback)));
     }
 
     public void sendPushNotification(RecordInterface recordInterface) {
