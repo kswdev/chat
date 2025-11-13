@@ -25,7 +25,8 @@ public class FetchMessageRequestHandler implements BaseRequestHandler<FetchMessa
     public void handleRequest(WebSocketSession senderSession, FetchMessagesRequest request) {
         UserId senderUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
 
-        kafkaProducer.sendRequest(
+        kafkaProducer.sendMessageUsingPartitionKey(
+                request.getChannelId(), senderUserId,
                 new FetchMessagesRequestRecord(senderUserId, request.getChannelId(), request.getStartMessageSeqId(), request.getEndMessageSeqId()),
                 () -> clientNotificationService.sendError(senderSession, new ErrorResponse(MessageType.FETCH_MESSAGES_REQUEST, "fetch messages request failed")));
     }

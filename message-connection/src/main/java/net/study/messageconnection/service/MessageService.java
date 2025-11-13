@@ -12,7 +12,6 @@ import net.study.messageconnection.domain.user.UserId;
 import net.study.messageconnection.dto.projection.MessageInfoProjection;
 import net.study.messageconnection.dto.websocket.outbound.BaseMessage;
 import net.study.messageconnection.dto.websocket.outbound.WriteMessageAck;
-import net.study.messageconnection.repository.channel.UserChannelRepository;
 import net.study.messageconnection.session.WebSocketSessionManager;
 import net.study.messageconnection.util.JsonUtil;
 import org.springframework.stereotype.Service;
@@ -34,11 +33,8 @@ public class MessageService {
 
     private final JsonUtil jsonUtil;
     private final PushService pushService;
-    private final UserService userService;
-    private final ChannelService channelService;
     private final MessageShardService messageShardService;
     private final WebSocketSessionManager sessionManager;
-    private final UserChannelRepository userChannelRepository;
 
     @Transactional
     public void sendMessage(
