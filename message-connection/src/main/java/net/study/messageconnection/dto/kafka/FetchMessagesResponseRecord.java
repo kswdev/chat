@@ -2,14 +2,15 @@ package net.study.messageconnection.dto.kafka;
 
 import net.study.messageconnection.constant.MessageType;
 import net.study.messageconnection.domain.channel.ChannelId;
-import net.study.messageconnection.domain.message.MessageSeqId;
+import net.study.messageconnection.domain.message.Message;
 import net.study.messageconnection.domain.user.UserId;
+
+import java.util.List;
 
 public record FetchMessagesResponseRecord(
         UserId userId,
         ChannelId channelId,
-        MessageSeqId startMessageSeqId,
-        MessageSeqId endMessageSeqId
+        List<Message> messages
 ) implements RecordInterface {
 
     @Override
