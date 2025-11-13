@@ -33,7 +33,6 @@ public class MessageService {
 
     private final JsonUtil jsonUtil;
     private final PushService pushService;
-    private final MessageShardService messageShardService;
     private final WebSocketSessionManager sessionManager;
 
     @Transactional
