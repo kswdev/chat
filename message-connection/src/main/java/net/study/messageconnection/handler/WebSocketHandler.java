@@ -7,6 +7,7 @@ import net.study.messageconnection.constant.IdKey;
 import net.study.messageconnection.domain.user.UserId;
 import net.study.messageconnection.dto.websocket.inbound.BaseRequest;
 import net.study.messageconnection.handler.websocket.RequestDispatcher;
+import net.study.messageconnection.service.SessionService;
 import net.study.messageconnection.session.WebSocketSessionManager;
 import net.study.messageconnection.util.JsonUtil;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private final JsonUtil jsonUtil;
     private final WebSocketSessionManager sessionManager;
+    private final SessionService sessionService;
     private final RequestDispatcher requestDispatcher;
 
     @Override
@@ -31,18 +33,23 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 new ConcurrentWebSocketSessionDecorator(session, 5000, 100 * 1024);
         UserId userId = getUserId(session);
         sessionManager.putSession(userId, sessionDecorator);
+        sessionService.setOnline(userId, true);
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) {
         log.error("Transport error: [{}], from {}", exception.getMessage(), session.getId());
         sessionManager.closeSession(getUserId(session));
+        sessionService.setOnline(getUserId(session), false);
+        sessionService.deActiveChannel(getUserId(session));
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         log.info("Disconnected: [{}] from {}", status.toString(), session.getId());
         sessionManager.closeSession(getUserId(session));
+        sessionService.setOnline(getUserId(session), false);
+        sessionService.deActiveChannel(getUserId(session));
     }
 
     @Override
