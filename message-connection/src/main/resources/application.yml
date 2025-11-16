@@ -48,6 +48,8 @@ message-system:
         prefix-topic: connection-notification
         prefix-group-id: listen-group
         concurrency: 3
+        partitions: 6
+        replications-factor: 3
 
 logging:
   level:
