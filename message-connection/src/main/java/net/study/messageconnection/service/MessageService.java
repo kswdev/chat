@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messageconnection.domain.user.UserId;
 import net.study.messageconnection.dto.kafka.MessageNotificationRecord;
-import net.study.messageconnection.dto.websocket.outbound.BaseMessage;
 import net.study.messageconnection.dto.websocket.outbound.MessageNotification;
 import net.study.messageconnection.session.WebSocketSessionManager;
 import net.study.messageconnection.util.JsonUtil;
@@ -34,52 +33,29 @@ public class MessageService {
     }
 
     private void sendMessageAsync(UserId participantId, MessageNotification notification, MessageNotificationRecord record) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                sendToWebSocketOrPush(participantId, notification, record);
-            } catch (Exception e) {
-                log.error("Failed to send message to user {}", participantId, e);
-                handleMessageFailure(record);
-            }
-        }, senderThreadPool);
+        CompletableFuture.runAsync(() ->
+                sendToWebSocketOrPush(participantId, notification, record), senderThreadPool);
     }
 
     private void sendToWebSocketOrPush(UserId participantId, MessageNotification notification, MessageNotificationRecord record) {
         WebSocketSession session = sessionManager.getSession(participantId);
 
         if (session != null && session.isOpen()) {
-            sendWebSocketMessage(session, notification, participantId, record);
+            sendWebSocketMessage(session, notification, record);
         } else {
-            handleMessageFailure(record);
+            pushService.pushMessage(record);
         }
     }
 
-    private void sendWebSocketMessage(WebSocketSession session, MessageNotification notification, UserId participantId, MessageNotificationRecord record) {
-        String payload = convertToJson(notification);
-        if (payload == null) {
-            log.error("Failed to convert message to JSON for user {}", participantId);
-            handleMessageFailure(record);
-            return;
-        }
-
-        try {
-            sessionManager.sendMessage(session, payload);
-        } catch (IOException e) {
-            log.warn("WebSocket message failed for user {}, falling back to push notification", participantId, e);
-            handleMessageFailure(record);
-        }
-    }
-
-    private String convertToJson(BaseMessage message) {
-        return jsonUtil.toJson(message)
-                .orElseGet(() -> {
-                    log.error("Failed to serialize message. messageType: {}", message.getType());
-                    return null;
+    private void sendWebSocketMessage(WebSocketSession session, MessageNotification notification, MessageNotificationRecord record) {
+        jsonUtil.toJson(notification)
+                .ifPresent(payload -> {
+                    try {
+                        sessionManager.sendMessage(session, payload);
+                    } catch (IOException e) {
+                        pushService.pushMessage(record);
+                    }
                 });
-    }
-
-    private void handleMessageFailure(MessageNotificationRecord record) {
-        pushService.pushMessage(record);
     }
 
     private MessageNotification createNotificationMessage(MessageNotificationRecord record) {
