@@ -4,22 +4,20 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.MessageType;
+import net.study.messagesystem.domain.channel.ChannelId;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.kafka.*;
-import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
-import net.study.messagesystem.session.WebSocketSessionManager;
-import net.study.messagesystem.util.JsonUtil;
+import net.study.messagesystem.kafka.KafkaProducer;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.WebSocketSession;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClientNotificationService {
 
-    private final WebSocketSessionManager webSocketSessionManager;
+    private final SessionService sessionService;
+    private final KafkaProducer kafkaProducer;
     private final PushService pushService;
-    private final JsonUtil jsonUtil;
 
     @PostConstruct
     private void init() {
@@ -35,25 +33,32 @@ public class ClientNotificationService {
         pushService.registerPushMessageType(MessageType.QUIT_RESPONSE, QuitResponseRecord.class);
     }
 
-    public void sendMessage(WebSocketSession session, UserId userId, BaseMessage message) {
-        sendPayload(session, userId, message);
+    public void sendMessage(UserId userId, RecordInterface recordInterface) {
+        sessionService
+                .getListenTopic(userId)
+                .ifPresentOrElse(
+                        topic -> kafkaProducer.sendResponse(topic, recordInterface),
+                        () -> pushService.pushMessage(recordInterface));
     }
 
-    public void sendMessage(UserId userId, BaseMessage message) {
-        sendPayload(webSocketSessionManager.getSession(userId), userId, message);
+    public void sendMessageUsingPartitionKey(UserId userId, ChannelId channelId, RecordInterface recordInterface) {
+        sessionService
+                .getListenTopic(userId)
+                .ifPresentOrElse(
+                        topic -> kafkaProducer.sendMessageUsingPartitionKey(topic, channelId, userId, recordInterface),
+                        () -> pushService.pushMessage(recordInterface));
     }
 
-    public void sendPayload(WebSocketSession session, UserId userId, BaseMessage message) {
-        jsonUtil.toJson(message)
-                .ifPresentOrElse(payload -> {
-                    try {
-                        if (session != null)
-                            webSocketSessionManager.sendMessage(session, payload);
-                        else
-                            pushService.pushMessage(userId, message.getType(), payload);
-                    } catch (Exception e) {
-                        pushService.pushMessage(userId, message.getType(), payload);
-                    }
-                }, () -> log.error("Failed to send message. messageType: {}", message.getType()));
+    public void sendError(ErrorResponseRecord errorResponseRecord) {
+        sessionService
+                .getListenTopic(errorResponseRecord.userId())
+                .ifPresentOrElse(
+                        topic -> kafkaProducer.sendResponse(topic, errorResponseRecord),
+                        () -> log.warn("Send error failed. type: {}, error: {}, user: {}",
+                                errorResponseRecord.messageType(),
+                                errorResponseRecord.message(),
+                                errorResponseRecord.userId()
+                        ));
     }
+
 }
