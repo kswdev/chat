@@ -1,9 +1,9 @@
-package net.study.messagesystem.service;
+package net.study.messagesystem.kafka;
 
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.dto.kafka.outbound.RecordInterface;
+import net.study.messagesystem.dto.kafka.RecordInterface;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class KafkaProducerService {
+public class KafkaProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final JsonUtil jsonUtil;

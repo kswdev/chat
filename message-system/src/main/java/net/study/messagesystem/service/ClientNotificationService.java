@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.domain.user.UserId;
-import net.study.messagesystem.dto.kafka.outbound.*;
+import net.study.messagesystem.dto.kafka.*;
 import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
 import net.study.messagesystem.session.WebSocketSessionManager;
 import net.study.messagesystem.util.JsonUtil;
@@ -23,16 +23,16 @@ public class ClientNotificationService {
 
     @PostConstruct
     private void init() {
-        pushService.registerPushMessageType(MessageType.NOTIFY_JOIN, JoinNotification.class);
-        pushService.registerPushMessageType(MessageType.NOTIFY_ACCEPT, AcceptNotification.class);
-        pushService.registerPushMessageType(MessageType.JOIN_RESPONSE, JoinResponse.class);
-        pushService.registerPushMessageType(MessageType.INVITE_RESPONSE, InviteResponse.class);
-        pushService.registerPushMessageType(MessageType.ACCEPT_RESPONSE, AcceptResponse.class);
-        pushService.registerPushMessageType(MessageType.ASK_INVITE, InviteNotification.class);
-        pushService.registerPushMessageType(MessageType.DISCONNECT_RESPONSE, DisconnectResponse.class);
-        pushService.registerPushMessageType(MessageType.REJECT_RESPONSE, RejectResponse.class);
-        pushService.registerPushMessageType(MessageType.CREATE_RESPONSE, CreateResponse.class);
-        pushService.registerPushMessageType(MessageType.QUIT_RESPONSE, QuitResponse.class);
+        pushService.registerPushMessageType(MessageType.NOTIFY_JOIN, JoinNotificationRecord.class);
+        pushService.registerPushMessageType(MessageType.NOTIFY_ACCEPT, AcceptNotificationRecord.class);
+        pushService.registerPushMessageType(MessageType.JOIN_RESPONSE, JoinResponseRecord.class);
+        pushService.registerPushMessageType(MessageType.INVITE_RESPONSE, InviteResponseRecord.class);
+        pushService.registerPushMessageType(MessageType.ACCEPT_RESPONSE, AcceptResponseRecord.class);
+        pushService.registerPushMessageType(MessageType.ASK_INVITE, InviteNotificationRecord.class);
+        pushService.registerPushMessageType(MessageType.DISCONNECT_RESPONSE, DisconnectResponseRecord.class);
+        pushService.registerPushMessageType(MessageType.REJECT_RESPONSE, RejectResponseRecord.class);
+        pushService.registerPushMessageType(MessageType.CREATE_RESPONSE, CreateResponseRecord.class);
+        pushService.registerPushMessageType(MessageType.QUIT_RESPONSE, QuitResponseRecord.class);
     }
 
     public void sendMessage(WebSocketSession session, UserId userId, BaseMessage message) {
