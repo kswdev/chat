@@ -19,7 +19,6 @@ import net.study.messagesystem.dto.projection.LastReadMsgSeqProjection;
 import net.study.messagesystem.dto.projection.UserIdProjection;
 import net.study.messagesystem.entity.channel.ChannelEntity;
 import net.study.messagesystem.entity.channel.UserChannelEntity;
-import net.study.messagesystem.repository.MessageRepository;
 import net.study.messagesystem.repository.channel.ChannelRepository;
 import net.study.messagesystem.repository.channel.UserChannelRepository;
 import net.study.messagesystem.util.JsonUtil;
@@ -116,13 +115,18 @@ public class ChannelService {
                 .map(userIds -> userIds.stream()
                         .map(Long::valueOf)
                         .map(UserId::new)
-                        .toList())
+                        .collect(Collectors.toList()))
+
                 .orElseGet(() -> {
                     List<UserId> userIds = userChannelRepository.findUserIdsByChannelId(channelId.id()).stream()
                             .map(UserIdProjection::getUserId)
                             .map(UserId::new)
-                            .toList();
-                    jsonUtil.toJson(userIds.stream().map(UserId::id).toList()).ifPresent(json -> cacheService.set(key, json, 3600));
+                            .collect(Collectors.toList());
+
+                    jsonUtil
+                            .toJson(userIds.stream().map(UserId::id).toList())
+                            .ifPresent(json -> cacheService.set(key, json, 3600));
+
                     return userIds;
                 });
     }
