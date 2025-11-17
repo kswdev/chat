@@ -13,12 +13,12 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Component
-public class ResponseDispatcher {
+public class RecordDispatcher {
 
     private final Map<Class<? extends RecordInterface>, BaseRecordHandler<? extends RecordInterface>> handlers = new HashMap<>();
 
     @Autowired
-    private ResponseDispatcher(List<BaseRecordHandler<? extends RecordInterface>> BaseRecordHandlers) {
+    private RecordDispatcher(List<BaseRecordHandler<? extends RecordInterface>> BaseRecordHandlers) {
         for (BaseRecordHandler<? extends RecordInterface> handler : BaseRecordHandlers) {
             Class<? extends RecordInterface> type = handler.getRequestType();
             this.handlers.put(type, handler);
