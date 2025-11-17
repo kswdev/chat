@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messageauth.auth.CustomUserDetails;
+import net.study.messagecommon.auth.CustomUserDetails;
 import net.study.messagesystem.constant.IdKey;
 import net.study.messagesystem.domain.user.UserId;
 import org.springframework.http.HttpStatus;
