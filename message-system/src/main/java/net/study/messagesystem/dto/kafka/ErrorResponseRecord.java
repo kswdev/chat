@@ -6,8 +6,8 @@ import net.study.messagesystem.domain.user.UserId;
 
 public record ErrorResponseRecord(
         UserId userId,
-        String messageType,
-        String message
+        String message,
+        String messageType
 ) implements RecordInterface {
 
     @Override
