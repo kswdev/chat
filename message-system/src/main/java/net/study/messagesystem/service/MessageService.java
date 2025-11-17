@@ -3,30 +3,23 @@ package net.study.messagesystem.service;
 import com.mysema.commons.lang.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.MessageType;
 import net.study.messagesystem.constant.ResultType;
 import net.study.messagesystem.domain.channel.ChannelId;
 import net.study.messagesystem.domain.message.Message;
 import net.study.messagesystem.domain.message.MessageSeqId;
 import net.study.messagesystem.domain.user.UserId;
+import net.study.messagesystem.dto.kafka.MessageNotificationRecord;
+import net.study.messagesystem.dto.kafka.WriteMessageAckRecord;
+import net.study.messagesystem.dto.kafka.WriteMessageRecord;
 import net.study.messagesystem.dto.projection.MessageInfoProjection;
-import net.study.messagesystem.dto.websocket.outbound.BaseMessage;
-import net.study.messagesystem.dto.websocket.outbound.WriteMessageAck;
-import net.study.messagesystem.entity.messae.MessageEntity;
-import net.study.messagesystem.repository.MessageRepository;
+import net.study.messagesystem.kafka.KafkaProducer;
 import net.study.messagesystem.repository.channel.UserChannelRepository;
-import net.study.messagesystem.session.WebSocketSessionManager;
-import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,27 +27,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MessageService {
 
-    private final JsonUtil jsonUtil;
     private final PushService pushService;
     private final UserService userService;
+    private final KafkaProducer kafkaProducer;
+    private final SessionService sessionService;
     private final ChannelService channelService;
     private final MessageShardService messageShardService;
-    private final WebSocketSessionManager sessionManager;
     private final UserChannelRepository userChannelRepository;
 
     @Transactional
-    public void sendMessage(
-            UserId senderUserId,
-            String content,
-            ChannelId channelId,
-            MessageSeqId messageSeqId,
-            Long serial,
-            BaseMessage message
-    ) {
-        String payload = convertToJson(message);
-
-        saveMessage(channelId, senderUserId, messageSeqId, content);
-        sendMessageToParticipants(channelId, senderUserId, messageSeqId, serial, payload);
+    public void sendMessage(WriteMessageRecord record) {
+        saveMessage(record);
+        sendMessageToParticipants(record);
     }
 
     @Transactional(readOnly = true)
@@ -98,67 +82,46 @@ public class MessageService {
         }
     }
 
-    private String convertToJson(BaseMessage message) {
-        Optional<String> json = jsonUtil.toJson(message);
-        if (json.isEmpty()) {
-            log.error("Failed to send message. messageType: {}", message.getType());
-            return null;
-        }
-        return json.get();
+    private void saveMessage(WriteMessageRecord record) {
+        messageShardService.save(record.channelId(), record.messageSeqId(), record.userId(), record.content());
     }
 
-    private void saveMessage(ChannelId channelId, UserId senderUserId, MessageSeqId messageSeqId, String content) {
-        messageShardService.save(channelId, messageSeqId, senderUserId, content);
-    }
+    private void sendMessageToParticipants(WriteMessageRecord record) {
+        UserId senderUserId = record.userId();
+        ChannelId channelId = record.channelId();
+        MessageSeqId messageSeqId = record.messageSeqId();
+        String senderUsername = userService.getUsername(senderUserId).orElse("unknown");
+        String content = record.content();
+        Long serial = record.serial();
 
-    private void sendMessageToParticipants(ChannelId channelId, UserId senderUserId, MessageSeqId messageSeqId, Long serial, String payload) {
         List<UserId> allParticipantsUserIds = channelService.getParticipantsUserIds(channelId);
-        List<UserId> onlineParticipantsUserIds = channelService.getOnlineParticipantsUserIds(channelId, allParticipantsUserIds);
+        List<UserId> onlineParticipantsUserIds = sessionService.getOnlineParticipantUserIds(channelId, allParticipantsUserIds);
+        Map<String, List<UserId>> listenTopics = sessionService.getListenTopics(allParticipantsUserIds);
 
-        allParticipantsUserIds.forEach(participantId -> {
-            if (senderUserId.equals(participantId)) {
-                handleSenderMessage(senderUserId, channelId, messageSeqId, serial);
-            } else {
-                handleRecipientMessage(participantId, onlineParticipantsUserIds, payload);
+        allParticipantsUserIds.removeAll(onlineParticipantsUserIds);
+
+        listenTopics.forEach((topic, participantIds) -> {
+            if (participantIds.contains(senderUserId)) {
+                handleSenderMessage(topic, senderUserId, channelId, messageSeqId, serial);
+                allParticipantsUserIds.remove(senderUserId);
             }
+
+            kafkaProducer.sendMessageUsingPartitionKey(
+                    topic, channelId, senderUserId,
+                    new MessageNotificationRecord(senderUserId, channelId, messageSeqId, senderUsername, content, participantIds));
         });
-    }
 
-    private void handleSenderMessage(UserId senderUserId, ChannelId channelId, MessageSeqId messageSeqId, Long serial) {
-        updateLastReadMsgSeq(senderUserId, channelId, messageSeqId);
-        sendWriteAckMessage(senderUserId, new WriteMessageAck(messageSeqId, serial));
-    }
-
-    private void handleRecipientMessage(UserId participantId, List<UserId> onlineParticipantsUserIds, String payload) {
-        if (onlineParticipantsUserIds.contains(participantId)) {
-            sendWebSocketMessage(participantId, payload);
-        } else {
-            sendPushMessage(participantId, payload);
+        if (!allParticipantsUserIds.isEmpty()) {
+            pushService.pushMessage(new MessageNotificationRecord(senderUserId, channelId, messageSeqId, senderUsername, content, allParticipantsUserIds));
         }
     }
 
-    private void sendWebSocketMessage(UserId participantId, String payload) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                WebSocketSession session = sessionManager.getSession(participantId);
-                if (session != null) {
-                    sessionManager.sendMessage(session, payload);
-                } else {
-                    sendPushMessage(participantId, payload);
-                }
-            } catch (IOException e) {
-                log.warn("WebSocket message failed for user {}, falling back to push notification", participantId, e);
-                sendPushMessage(participantId, payload);
-            }
-        });
+    private void handleSenderMessage(String topic, UserId senderUserId, ChannelId channelId, MessageSeqId messageSeqId, Long serial) {
+        updateLastReadMsgSeq(senderUserId, channelId, messageSeqId);
+        sendWriteAckMessage(topic, channelId, senderUserId, new WriteMessageAckRecord(senderUserId, serial, messageSeqId));
     }
 
-    private void sendPushMessage(UserId participantId, String payload) {
-        pushService.pushMessage(participantId, MessageType.NOTIFY_MESSAGE, payload);
-    }
-
-    private void sendWriteAckMessage(UserId userId, WriteMessageAck message) {
-        jsonUtil.toJson(message)
-                .ifPresent(writeMsgAck -> sendWebSocketMessage(userId, writeMsgAck));
+    private void sendWriteAckMessage(String topic, ChannelId channelId, UserId userId, WriteMessageAckRecord record) {
+        kafkaProducer.sendMessageUsingPartitionKey(topic, channelId, userId, record);
     }
 }
