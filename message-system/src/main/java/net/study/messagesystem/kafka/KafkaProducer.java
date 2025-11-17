@@ -25,26 +25,26 @@ public class KafkaProducer {
     @Value("${message-system.kafka.listeners.push.topic}")
     private String pushTopic;
 
-    public void sendMessageUsingPartitionKey(String topic, ChannelId channelId, UserId userId, RecordInterface recordInterface, Runnable errorCallback) {
+    public void sendMessageUsingPartitionKey(String topic, ChannelId channelId, UserId userId, RecordInterface recordInterface) {
         String partitionKey = "%d-%d".formatted(channelId.id(), userId.id());
         jsonUtil.toJson(recordInterface)
                 .ifPresent(record -> kafkaTemplate.send(topic, partitionKey, record)
-                        .whenComplete(logResult(topic, record, partitionKey, errorCallback)));
+                        .whenComplete(logResult(topic, record, partitionKey)));
     }
 
-    public void sendResponse(String topic, RecordInterface recordInterface, Runnable errorCallback) {
+    public void sendResponse(String topic, RecordInterface recordInterface) {
         jsonUtil.toJson(recordInterface)
                 .ifPresent(record -> kafkaTemplate.send(topic, record)
-                        .whenComplete(logResult(topic, record, null, errorCallback)));
+                        .whenComplete(logResult(topic, record, null)));
     }
 
     public void sendPushNotification(RecordInterface recordInterface) {
         jsonUtil.toJson(recordInterface)
                 .ifPresent(record -> kafkaTemplate.send(pushTopic, record)
-                        .whenComplete(logResult(pushTopic, record, null, null)));
+                        .whenComplete(logResult(pushTopic, record, null)));
     }
 
-    private BiConsumer<SendResult<String, String>, Throwable> logResult(String topic, String record, String partitionKey, Runnable errorCallback) {
+    private BiConsumer<SendResult<String, String>, Throwable> logResult(String topic, String record, String partitionKey) {
         return (sendResult, throwable) -> {
             if (throwable != null) {
                 log.error("Kafka send failed. record: {} with key: {} to topic: {}, cause: {}",
@@ -52,9 +52,6 @@ public class KafkaProducer {
             } else {
                 log.info("Kafka send success. {}, topic: {} with key: {}",
                         sendResult.getProducerRecord().value(), topic, partitionKey);
-
-                if (errorCallback != null)
-                    errorCallback.run();
             }
         };
     }
