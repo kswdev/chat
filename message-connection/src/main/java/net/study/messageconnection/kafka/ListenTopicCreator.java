@@ -42,7 +42,7 @@ public class ListenTopicCreator {
 
     @PostConstruct
     public void init() {
-        createTopic(getConsumeTopic(), partitions, replicationFactor);
+        createTopic(getListenTopic(), partitions, replicationFactor);
     }
 
     public void createTopic(String topicName, int partitions, short replicationFactor) {
@@ -68,7 +68,7 @@ public class ListenTopicCreator {
         }
     }
 
-    public String getConsumeTopic() {
+    public String getListenTopic() {
         return "%s-%s".formatted(prefixListenTopic, prefixServerId);
     }
 

@@ -25,7 +25,7 @@ public class SessionService {
     public void setOnline(UserId userId, boolean status) {
         String key = buildUserLocationKey(userId);
         if (status)
-            cacheService.set(key, listenTopicCreator.getConsumeTopic(), TTL);
+            cacheService.set(key, listenTopicCreator.getListenTopic(), TTL);
         else
             cacheService.delete(key);
     }
