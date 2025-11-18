@@ -20,8 +20,8 @@ public class ListenTopicConsumer {
     private final JsonUtil jsonUtil;
 
     @KafkaListener(
-            topics = "{__Listener.getListenTopic()}",
-            groupId = "{__Listener.getConsumerGroupId()}",
+            topics = "#{__listener.getListenTopic()}",
+            groupId = "#{__listener.getConsumerGroupId()}",
             concurrency = "${message-system.kafka.listeners.push.concurrency}")
     public void listenTopicConsumerGroup(
             ConsumerRecord<String, String> consumerRecord,
