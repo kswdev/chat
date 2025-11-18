@@ -55,12 +55,12 @@ public class KafkaProducer {
             if (throwable != null) {
                 log.error("Kafka send failed. record: {} with key: {} to topic: {}, cause: {}",
                         record, topic, partitionKey, throwable.getMessage());
-            } else {
-                log.info("Kafka send success. {}, topic: {} with key: {}",
-                        sendResult.getProducerRecord().value(), topic, partitionKey);
 
                 if (errorCallback != null)
                     errorCallback.run();
+            } else {
+                log.info("Kafka send success. {}, topic: {} with key: {}",
+                        sendResult.getProducerRecord().value(), topic, partitionKey);
             }
         };
     }
