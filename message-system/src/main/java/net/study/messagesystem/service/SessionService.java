@@ -57,11 +57,8 @@ public class SessionService {
 
         for (int i = 0; i < userIds.size(); i++) {
             String value = channelIds.get(i);
-            onlineParticipantUserIds.add(
-                    value != null && value.equals(channelId.id().toString())
-                            ? userIds.get(i)
-                            : null
-            );
+            if (value != null && value.equals(channelId.id().toString()))
+                onlineParticipantUserIds.add(userIds.get(i));
         }
 
         return onlineParticipantUserIds;
