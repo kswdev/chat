@@ -8,6 +8,7 @@ import net.study.messagesystem.constant.MessageType;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = JoinRequestRecord.class, name = MessageType.JOIN_REQUEST),
         @JsonSubTypes.Type(value = EnterRequestRecord.class, name = MessageType.ENTER_REQUEST),
+        @JsonSubTypes.Type(value = EnterResponseRecord.class, name = MessageType.ENTER_RESPONSE),
         @JsonSubTypes.Type(value = RejectRequestRecord.class, name = MessageType.REJECT_REQUEST),
         @JsonSubTypes.Type(value = RejectResponseRecord.class, name = MessageType.REJECT_RESPONSE),
         @JsonSubTypes.Type(value = LeaveRequestRecord.class, name = MessageType.LEAVE_REQUEST),
@@ -27,6 +28,7 @@ import net.study.messagesystem.constant.MessageType;
         @JsonSubTypes.Type(value = FetchChannelsRequestRecord.class, name = MessageType.FETCH_CHANNELS_REQUEST),
         @JsonSubTypes.Type(value = FetchChannelsRequestRecord.class, name = MessageType.FETCH_CHANNELS_REQUEST),
         @JsonSubTypes.Type(value = FetchUserInviteCodeRequestRecord.class, name = MessageType.FETCH_USER_INVITE_CODE_REQUEST),
+        @JsonSubTypes.Type(value = FetchUserInviteCodeResponseRecord.class, name = MessageType.FETCH_USER_INVITE_CODE_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserConnectionsRequestRecord.class, name = MessageType.FETCH_USER_CONNECTIONS_REQUEST),
         @JsonSubTypes.Type(value = FetchChannelInviteCodeRequestRecord.class, name = MessageType.FETCH_CHANNEL_INVITE_CODE_REQUEST),
 
@@ -34,6 +36,7 @@ import net.study.messagesystem.constant.MessageType;
         @JsonSubTypes.Type(value = JoinNotificationRecord.class, name = MessageType.NOTIFY_JOIN),
         @JsonSubTypes.Type(value = AcceptNotificationRecord.class, name = MessageType.NOTIFY_ACCEPT),
         @JsonSubTypes.Type(value = MessageNotificationRecord.class, name = MessageType.NOTIFY_MESSAGE),
+        @JsonSubTypes.Type(value = WriteMessageAckRecord.class, name = MessageType.WRITE_MESSAGE_ACK),
         @JsonSubTypes.Type(value = ReadMessageAckRecord.class, name = MessageType.READ_MESSAGE_ACK),
         @JsonSubTypes.Type(value = WriteMessageRecord.class, name = MessageType.WRITE_MESSAGE),
 })
