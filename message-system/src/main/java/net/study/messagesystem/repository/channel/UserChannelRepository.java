@@ -38,6 +38,7 @@ public interface UserChannelRepository extends JpaRepository<UserChannelEntity, 
                SET uc.lastReadMsgSeq = :lastReadMsgSeq
              WHERE uc.userId = :userId
                AND uc.channelId = :channelId
+               AND uc.lastReadMsgSeq < :lastReadMsgSeq
     """)
     int updateLastReadMsgSeqByUserIdAndChannelId(
             @Param("userId") Long userId,
