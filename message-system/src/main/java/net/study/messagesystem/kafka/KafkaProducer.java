@@ -22,7 +22,7 @@ public class KafkaProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final JsonUtil jsonUtil;
 
-    @Value("${message-system.kafka.listeners.push.topic}")
+    @Value("${message-system.kafka.topics.push}")
     private String pushTopic;
 
     public void sendMessageUsingPartitionKey(String topic, ChannelId channelId, UserId userId, RecordInterface recordInterface) {
