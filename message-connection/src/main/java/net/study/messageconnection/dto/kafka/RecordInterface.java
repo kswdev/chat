@@ -38,6 +38,7 @@ import net.study.messageconnection.constant.MessageType;
         @JsonSubTypes.Type(value = WriteMessageAckRecord.class, name = MessageType.WRITE_MESSAGE_ACK),
         @JsonSubTypes.Type(value = ReadMessageAckRecord.class, name = MessageType.READ_MESSAGE_ACK),
         @JsonSubTypes.Type(value = WriteMessageRecord.class, name = MessageType.WRITE_MESSAGE),
+        @JsonSubTypes.Type(value = ErrorResponseRecord.class, name = MessageType.ERROR),
 })
 public interface RecordInterface {
     String type();
