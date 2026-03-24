@@ -12,6 +12,6 @@ public record FetchUserConnectionsResponseRecord(
 
     @Override
     public String type() {
-        return MessageType.FETCH_MESSAGES_RESPONSE;
+        return MessageType.FETCH_USER_CONNECTIONS_RESPONSE;
     }
 }
