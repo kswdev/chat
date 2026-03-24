@@ -13,7 +13,7 @@ import java.io.IOException;
 public class MessageClient {
 
     public static void main(String[] args) {
-        final String BASE_URL = "localhost:80";
+        final String BASE_URL = "localhost:8080";
         final String WEBSOCKET_ENDPOINT = "/ws/v1/message";
 
         TerminalService terminalService;
