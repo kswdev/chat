@@ -26,7 +26,7 @@ import net.study.messagesystem.constant.MessageType;
         @JsonSubTypes.Type(value = DisconnectRequestRecord.class, name = MessageType.DISCONNECT_REQUEST),
         @JsonSubTypes.Type(value = DisconnectResponseRecord.class, name = MessageType.DISCONNECT_RESPONSE),
         @JsonSubTypes.Type(value = FetchChannelsRequestRecord.class, name = MessageType.FETCH_CHANNELS_REQUEST),
-        @JsonSubTypes.Type(value = FetchChannelsRequestRecord.class, name = MessageType.FETCH_CHANNELS_REQUEST),
+        @JsonSubTypes.Type(value = FetchChannelsResponseRecord.class, name = MessageType.FETCH_CHANNELS_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserInviteCodeRequestRecord.class, name = MessageType.FETCH_USER_INVITE_CODE_REQUEST),
         @JsonSubTypes.Type(value = FetchUserInviteCodeResponseRecord.class, name = MessageType.FETCH_USER_INVITE_CODE_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserConnectionsRequestRecord.class, name = MessageType.FETCH_USER_CONNECTIONS_REQUEST),
