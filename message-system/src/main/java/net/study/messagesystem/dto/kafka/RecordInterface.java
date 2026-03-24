@@ -30,6 +30,7 @@ import net.study.messagesystem.constant.MessageType;
         @JsonSubTypes.Type(value = FetchUserInviteCodeRequestRecord.class, name = MessageType.FETCH_USER_INVITE_CODE_REQUEST),
         @JsonSubTypes.Type(value = FetchUserInviteCodeResponseRecord.class, name = MessageType.FETCH_USER_INVITE_CODE_RESPONSE),
         @JsonSubTypes.Type(value = FetchUserConnectionsRequestRecord.class, name = MessageType.FETCH_USER_CONNECTIONS_REQUEST),
+        @JsonSubTypes.Type(value = FetchUserConnectionsResponseRecord.class, name = MessageType.FETCH_USER_CONNECTIONS_RESPONSE),
         @JsonSubTypes.Type(value = FetchChannelInviteCodeRequestRecord.class, name = MessageType.FETCH_CHANNEL_INVITE_CODE_REQUEST),
 
         @JsonSubTypes.Type(value = InviteNotificationRecord.class, name = MessageType.ASK_INVITE),
@@ -39,6 +40,7 @@ import net.study.messagesystem.constant.MessageType;
         @JsonSubTypes.Type(value = WriteMessageAckRecord.class, name = MessageType.WRITE_MESSAGE_ACK),
         @JsonSubTypes.Type(value = ReadMessageAckRecord.class, name = MessageType.READ_MESSAGE_ACK),
         @JsonSubTypes.Type(value = WriteMessageRecord.class, name = MessageType.WRITE_MESSAGE),
+        @JsonSubTypes.Type(value = ErrorResponseRecord.class, name = MessageType.ERROR),
 })
 public interface RecordInterface {
     String type();
