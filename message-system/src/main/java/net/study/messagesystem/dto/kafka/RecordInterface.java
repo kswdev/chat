@@ -21,7 +21,6 @@ import net.study.messagesystem.constant.MessageType;
         @JsonSubTypes.Type(value = InviteResponseRecord.class, name = MessageType.INVITE_RESPONSE),
         @JsonSubTypes.Type(value = AcceptRequestRecord.class, name = MessageType.ACCEPT_REQUEST),
         @JsonSubTypes.Type(value = AcceptResponseRecord.class, name = MessageType.ACCEPT_RESPONSE),
-        @JsonSubTypes.Type(value = AcceptNotificationRecord.class, name = MessageType.NOTIFY_ACCEPT),
         @JsonSubTypes.Type(value = RejectResponseRecord.class, name = MessageType.REJECT_RESPONSE),
         @JsonSubTypes.Type(value = DisconnectRequestRecord.class, name = MessageType.DISCONNECT_REQUEST),
         @JsonSubTypes.Type(value = DisconnectResponseRecord.class, name = MessageType.DISCONNECT_RESPONSE),
