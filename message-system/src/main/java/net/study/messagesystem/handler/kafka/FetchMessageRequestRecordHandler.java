@@ -34,7 +34,7 @@ public class FetchMessageRequestRecordHandler implements BaseRecordHandler<Fetch
 
         if (result.getSecond().equals(ResultType.SUCCESS)) {
             List<Message> messages = result.getFirst();
-            clientNotificationService.sendMessage(senderUserId, new FetchMessagesResponseRecord(senderUserId, channelId, messages));
+            clientNotificationService.sendMessageUsingPartitionKey(senderUserId, channelId, new FetchMessagesResponseRecord(senderUserId, channelId, messages));
         } else {
             clientNotificationService.sendError(new ErrorResponseRecord(senderUserId, result.getSecond().getMessage(), MessageType.FETCH_MESSAGES_REQUEST));
         }
