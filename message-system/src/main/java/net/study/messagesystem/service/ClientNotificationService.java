@@ -23,6 +23,7 @@ public class ClientNotificationService {
     private void init() {
         pushService.registerPushMessageType(MessageType.NOTIFY_JOIN, JoinNotificationRecord.class);
         pushService.registerPushMessageType(MessageType.NOTIFY_ACCEPT, AcceptNotificationRecord.class);
+        pushService.registerPushMessageType(MessageType.NOTIFY_MESSAGE, MessageNotificationRecord.class);
         pushService.registerPushMessageType(MessageType.JOIN_RESPONSE, JoinResponseRecord.class);
         pushService.registerPushMessageType(MessageType.INVITE_RESPONSE, InviteResponseRecord.class);
         pushService.registerPushMessageType(MessageType.ACCEPT_RESPONSE, AcceptResponseRecord.class);
