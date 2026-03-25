@@ -96,7 +96,9 @@ public class MessageService {
 
         List<UserId> allParticipantsUserIds = channelService.getParticipantsUserIds(channelId);
         List<UserId> onlineParticipantsUserIds = sessionService.getOnlineParticipantUserIds(channelId, allParticipantsUserIds);
-        Map<String, List<UserId>> listenTopics = sessionService.getListenTopics(allParticipantsUserIds);
+
+        // 커넥션 서비스 분리로 인해 각 커넥션 시버스 노드 번호를 키로 해당 노드에 속하는 유저 집합 조회
+        Map<String, List<UserId>> listenTopics = sessionService.getListenTopics(onlineParticipantsUserIds);
 
         allParticipantsUserIds.removeAll(onlineParticipantsUserIds);
 
