@@ -8,6 +8,6 @@ public record WriteMessageAckRecord(UserId userId, Long serial, MessageSeqId mes
 
     @Override
     public String type() {
-        return MessageType.WRITE_MESSAGE;
+        return MessageType.WRITE_MESSAGE_ACK;
     }
 }
