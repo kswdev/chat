@@ -2,8 +2,11 @@ package net.study.messageauth.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messageauth.auth.RestApiLoginAuthFilter;
+import net.study.messageauth.auth.token.TokenIssuer;
+import net.study.messageauth.auth.token.jwt.JwtIssuer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -13,6 +16,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,7 +29,10 @@ import java.io.IOException;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final TokenIssuer tokenIssuer;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,7 +49,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, AuthenticationManager authenticationManager) throws Exception {
-        RestApiLoginAuthFilter restApiLoginAuthFilter = new RestApiLoginAuthFilter(new AntPathRequestMatcher("/api/v1/auth/login", "POST"), authenticationManager);
+        RestApiLoginAuthFilter restApiLoginAuthFilter = new RestApiLoginAuthFilter(new AntPathRequestMatcher("/api/v1/auth/login", "POST"), authenticationManager, tokenIssuer);
 
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
@@ -55,6 +62,7 @@ public class SecurityConfig {
                                         "/api/v1/auth/login",
                                         "/ws/v1/connect").permitAll()
                                 .anyRequest().authenticated())
+                .sessionManagement(auth -> auth.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(logout -> logout
                                 .logoutUrl("/api/v1/auth/logout")
                                 .logoutSuccessHandler(this::logoutHandler))

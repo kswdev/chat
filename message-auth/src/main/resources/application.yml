@@ -57,3 +57,7 @@ logging:
     sun.rmi: info
     javax.management: info
     root: info
+
+security.jwt:
+  secret-key: 1234
+  expiration-time: 3600000

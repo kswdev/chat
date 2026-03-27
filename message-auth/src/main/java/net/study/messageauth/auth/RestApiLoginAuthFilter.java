@@ -5,30 +5,31 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import net.study.messageauth.auth.token.TokenIssuer;
 import net.study.messageauth.dto.rest.login.LoginRequest;
-import net.study.messagecommon.auth.CustomUserDetails;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 public class RestApiLoginAuthFilter extends AbstractAuthenticationProcessingFilter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final TokenIssuer jwtIssuer;
 
-    public RestApiLoginAuthFilter(RequestMatcher requiresAuthenticationRequestMatcher, AuthenticationManager authenticationManager) {
+    public RestApiLoginAuthFilter(
+            RequestMatcher requiresAuthenticationRequestMatcher,
+            AuthenticationManager authenticationManager,
+            TokenIssuer jwtIssuer
+    ) {
         super(requiresAuthenticationRequestMatcher, authenticationManager);
+        this.jwtIssuer = jwtIssuer;
     }
 
     @Override
@@ -42,20 +43,10 @@ public class RestApiLoginAuthFilter extends AbstractAuthenticationProcessingFilt
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        ((CustomUserDetails) authResult.getPrincipal()).erasePassword();
-        securityContext.setAuthentication(authResult);
-        HttpSessionSecurityContextRepository contextRepository = new HttpSessionSecurityContextRepository();
-        contextRepository.saveContext(securityContext, request, response);
-
-        String sessionId = request.getSession().getId();
-        String encodedSessionId = Base64.getEncoder().encodeToString(sessionId.getBytes(StandardCharsets.UTF_8));
-
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType(MediaType.TEXT_PLAIN_VALUE);
-        response.getWriter().write(encodedSessionId);
-        response.getWriter().flush();
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
+        String username = authentication.getName();
+        String token = jwtIssuer.issue(username);
+        response.addHeader("access-token", token);
     }
 
     @Override
