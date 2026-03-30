@@ -2,9 +2,9 @@ package net.study.messageauth.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.study.messageauth.auth.dto.CustomUserDetails;
 import net.study.messageauth.entity.user.UserEntity;
 import net.study.messageauth.repository.UserRepository;
-import net.study.messagecommon.auth.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
