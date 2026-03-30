@@ -27,15 +27,17 @@ spring:
           predicates:
             - Path=/api/v1/auth/**
 
-        - id: websocket-route
+        - id: websocket-route-message
           uri: ws://localhost:8090/
           predicates:
             - Path=/ws/v1/message
+          filters:
+            - AuthorizationHeaderFilter
 
 ### jwt
 security.jwt:
-  secret-key: secret_key
-  expiration-time: 86400000
+  secret-key: 1234
+  expiration-time: 3600000
 
 ### logging
 logging:
