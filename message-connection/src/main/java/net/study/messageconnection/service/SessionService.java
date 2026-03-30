@@ -6,18 +6,13 @@ import net.study.messagecommon.constant.IdKey;
 import net.study.messageconnection.constant.KeyPrefix;
 import net.study.messageconnection.domain.user.UserId;
 import net.study.messageconnection.kafka.ListenTopicCreator;
-import org.springframework.session.Session;
-import org.springframework.session.SessionRepository;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SessionService {
 
-    private final SessionRepository<? extends Session> httpSessionRepository;
     private final ListenTopicCreator listenTopicCreator;
     private final CacheService cacheService;
     private final long TTL = 300;
@@ -35,17 +30,9 @@ public class SessionService {
         return cacheService.delete(channelIdKey);
     }
 
-    public void refreshTTL(UserId userId, String httpSessionId) {
-        try {
-            Session httpSession = httpSessionRepository.findById(httpSessionId);
-            if (httpSession != null) {
-                httpSession.setLastAccessedTime(Instant.now());
-                cacheService.expire(buildChannelIdKey(userId), TTL);
-                cacheService.expire(buildUserLocationKey(userId), TTL);
-            }
-        } catch (Exception e) {
-            log.error("Redis find failed. id: {}, cause:{}", httpSessionId, e.getMessage());
-        }
+    public void refreshTTL(UserId userId) {
+        cacheService.expire(buildChannelIdKey(userId), TTL);
+        cacheService.expire(buildUserLocationKey(userId), TTL);
     }
 
     private String buildChannelIdKey(UserId userId) {
