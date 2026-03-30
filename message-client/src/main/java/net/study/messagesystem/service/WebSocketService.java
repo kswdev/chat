@@ -69,7 +69,7 @@ public class WebSocketService {
 
             @Override
             public void beforeRequest(Map<String, List<String>> headers) {
-                headers.put("Cookie", List.of("SESSION=" + sessionId));
+                headers.put("Authorization", List.of("Bearer " + sessionId));
             }
         };
 

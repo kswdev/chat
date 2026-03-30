@@ -66,7 +66,7 @@ public class RestApiService {
                     .header("Content-Type", "application/json");
 
             if (!sessionId.isEmpty())
-                builder.header("Cookie", "SESSION=" + sessionId);
+                builder.header("Authorization", "Bearer " + sessionId);
 
             if (body != null)
                 JsonUtil.toJson(body)
