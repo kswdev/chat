@@ -14,7 +14,7 @@ public class JwtIssuer implements TokenIssuer {
 
     private final JwtProperties properties;
 
-    public String issue(String memId) {
+    public String issue(Long memId) {
         return JWT.create()
                 .withSubject(String.valueOf(memId))
                 .withExpiresAt(new Date(System.currentTimeMillis() + properties.getExpirationTime()))

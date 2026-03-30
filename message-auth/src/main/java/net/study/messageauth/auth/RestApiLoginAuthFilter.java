@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import net.study.messageauth.auth.dto.CustomUserDetails;
 import net.study.messageauth.auth.token.TokenIssuer;
 import net.study.messageauth.dto.rest.login.LoginRequest;
 import org.springframework.http.MediaType;
@@ -44,8 +45,8 @@ public class RestApiLoginAuthFilter extends AbstractAuthenticationProcessingFilt
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
-        String username = authentication.getName();
-        String token = jwtIssuer.issue(username);
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+        String token = jwtIssuer.issue(user.getUserId());
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.TEXT_PLAIN_VALUE);

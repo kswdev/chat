@@ -1,5 +1,6 @@
 package net.study.messageauth.auth
 
+import net.study.messageauth.auth.dto.CustomUserDetails
 import net.study.messageauth.auth.token.TokenIssuer
 import org.springframework.mock.web.MockFilterChain
 import org.springframework.mock.web.MockHttpServletRequest
@@ -28,7 +29,8 @@ class RestApiLoginAuthFilterSpec extends Specification {
 
         def response = new MockHttpServletResponse()
 
-        def auth = new UsernamePasswordAuthenticationToken("user", "pass")
+        def user = new CustomUserDetails(1L, "user", "pass")
+        def auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())
 
         when:
         filter.doFilter(request, response, new MockFilterChain())
