@@ -46,7 +46,11 @@ public class RestApiLoginAuthFilter extends AbstractAuthenticationProcessingFilt
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
         String username = authentication.getName();
         String token = jwtIssuer.issue(username);
-        response.addHeader("access-token", token);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(MediaType.TEXT_PLAIN_VALUE);
+        response.getWriter().write(token);
+        response.getWriter().flush();
     }
 
     @Override

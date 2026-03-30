@@ -38,6 +38,6 @@ class RestApiLoginAuthFilterSpec extends Specification {
         1 * manager.authenticate(_) >> auth
         1 * issuer.issue(_) >> 'any'
         response.status == 200
-        response.getHeader("access-token") != null
+        response.getContentAsString() == 'any'
     }
 }
