@@ -2,7 +2,7 @@ package net.study.messageconnection.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messageconnection.constant.IdKey;
+import net.study.messagecommon.constant.IdKey;
 import net.study.messageconnection.constant.KeyPrefix;
 import net.study.messageconnection.domain.user.UserId;
 import net.study.messageconnection.kafka.ListenTopicCreator;

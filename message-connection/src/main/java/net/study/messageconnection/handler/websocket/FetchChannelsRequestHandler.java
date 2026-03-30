@@ -2,7 +2,7 @@ package net.study.messageconnection.handler.websocket;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messageconnection.constant.IdKey;
+import net.study.messagecommon.constant.IdKey;
 import net.study.messageconnection.constant.MessageType;
 import net.study.messageconnection.domain.user.UserId;
 import net.study.messageconnection.dto.kafka.FetchChannelsRequestRecord;
