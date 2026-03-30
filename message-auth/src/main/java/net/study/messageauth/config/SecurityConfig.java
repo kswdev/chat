@@ -59,8 +59,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
                                         "/api/v1/auth/register",
-                                        "/api/v1/auth/login",
-                                        "/ws/v1/connect").permitAll()
+                                        "/api/v1/auth/login").permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(auth -> auth.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(logout -> logout
