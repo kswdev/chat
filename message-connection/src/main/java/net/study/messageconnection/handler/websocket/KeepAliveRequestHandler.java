@@ -1,10 +1,9 @@
 package net.study.messageconnection.handler.websocket;
 
 import lombok.RequiredArgsConstructor;
-import net.study.messageconnection.constant.IdKey;
+import net.study.messagecommon.constant.IdKey;
 import net.study.messageconnection.domain.user.UserId;
 import net.study.messageconnection.dto.websocket.inbound.KeepAliveRequest;
-import net.study.messageconnection.handler.websocket.BaseRequestHandler;
 import net.study.messageconnection.service.SessionService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;

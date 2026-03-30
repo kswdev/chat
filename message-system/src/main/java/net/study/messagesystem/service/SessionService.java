@@ -2,7 +2,7 @@ package net.study.messagesystem.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.IdKey;
+import net.study.messagecommon.constant.IdKey;
 import net.study.messagesystem.constant.KeyPrefix;
 import net.study.messagesystem.domain.channel.ChannelId;
 import net.study.messagesystem.domain.user.UserId;
