@@ -4,15 +4,12 @@ import jakarta.servlet.http.HttpSession;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagecommon.auth.CustomUserDetails;
 import net.study.messageconnection.constant.IdKey;
 import net.study.messageconnection.domain.user.UserId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
@@ -33,6 +30,7 @@ public class CustomHttpSessionHandshakeInterceptor extends HttpSessionHandshakeI
             @NonNull Map<String, Object> attributes
     ) {
         Optional<HttpSession> sessionOpt = getHttpSession(request);
+        log.info("WebSocket handshake request: {}", sessionOpt);
         if (sessionOpt.isEmpty()) {
             log.warn("WebSocket handshake failed: HttpSession is null or request type invalid");
             response.setStatusCode(HttpStatus.UNAUTHORIZED); // or BAD_REQUEST depending on case
@@ -60,11 +58,6 @@ public class CustomHttpSessionHandshakeInterceptor extends HttpSessionHandshakeI
     }
 
     private Optional<Long> getUserId() {
-        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-                .filter(Authentication::isAuthenticated)
-                .map(Authentication::getPrincipal)
-                .filter(CustomUserDetails.class::isInstance)
-                .map(CustomUserDetails.class::cast)
-                .map(CustomUserDetails::getUserId);
+        return Optional.empty();
     }
 }

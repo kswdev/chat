@@ -8,7 +8,6 @@ plugins {
 dependencies {
     implementation project(':message-common')
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.session:spring-session-data-redis'
     implementation 'org.springframework.kafka:spring-kafka'
