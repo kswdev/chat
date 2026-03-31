@@ -45,9 +45,13 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 
             TokenUser tokenUser = jwtUtils.decode(token);
 
-            addAuthorizationHeaders(request, tokenUser);
+            ServerHttpRequest modifiedRequest = addAuthorizationHeaders(request, tokenUser);
 
-            return chain.filter(exchange);
+            return chain.filter(
+                    exchange.mutate()
+                            .request(modifiedRequest)
+                            .build()
+            );
         };
     }
 
@@ -67,8 +71,8 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
         return authorization.replace("Bearer ", "");
     }
 
-    private void addAuthorizationHeaders(ServerHttpRequest request, TokenUser tokenUser) {
-        request.mutate()
+    private ServerHttpRequest addAuthorizationHeaders(ServerHttpRequest request, TokenUser tokenUser) {
+        return request.mutate()
                 .header("X-Authorization-Id", tokenUser.getId())
                 .header("X-Authorization-Role", tokenUser.getRole().stream()
                         .map(Role::getName)
