@@ -3,7 +3,7 @@ package net.study.messagesystem.service;
 import com.mysema.commons.lang.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.KeyPrefix;
+import net.study.messagecommon.constant.KeyPrefix;
 import net.study.messagesystem.constant.ResultType;
 import net.study.messagesystem.domain.user.InviteCode;
 import net.study.messagesystem.domain.user.User;

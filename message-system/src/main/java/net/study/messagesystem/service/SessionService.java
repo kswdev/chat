@@ -3,7 +3,7 @@ package net.study.messagesystem.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagecommon.constant.IdKey;
-import net.study.messagesystem.constant.KeyPrefix;
+import net.study.messagecommon.constant.KeyPrefix;
 import net.study.messagesystem.domain.channel.ChannelId;
 import net.study.messagesystem.domain.user.UserId;
 import org.springframework.stereotype.Service;
