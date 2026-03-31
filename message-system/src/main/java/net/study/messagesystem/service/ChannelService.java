@@ -4,7 +4,7 @@ import com.mysema.commons.lang.Pair;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.KeyPrefix;
+import net.study.messagecommon.constant.KeyPrefix;
 import net.study.messagesystem.constant.ResultType;
 import net.study.messagesystem.constant.UserConnectionStatus;
 import net.study.messagesystem.domain.channel.Channel;
