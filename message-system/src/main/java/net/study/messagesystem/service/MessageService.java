@@ -105,12 +105,12 @@ public class MessageService {
         listenTopics.forEach((topic, participantIds) -> {
             if (participantIds.contains(senderUserId)) {
                 handleSenderMessage(topic, senderUserId, channelId, messageSeqId, serial);
-                allParticipantsUserIds.remove(senderUserId);
-            } else {
-                kafkaProducer.sendMessageUsingPartitionKey(
-                        topic, channelId, senderUserId,
-                        new MessageNotificationRecord(senderUserId, channelId, messageSeqId, senderUsername, content, participantIds));
+                participantIds.remove(senderUserId);
             }
+
+            kafkaProducer.sendMessageUsingPartitionKey(
+                    topic, channelId, senderUserId,
+                    new MessageNotificationRecord(senderUserId, channelId, messageSeqId, senderUsername, content, participantIds));
         });
 
         if (!allParticipantsUserIds.isEmpty()) {
