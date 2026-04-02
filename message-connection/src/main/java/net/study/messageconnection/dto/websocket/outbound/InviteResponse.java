@@ -1,8 +1,8 @@
 package net.study.messageconnection.dto.websocket.outbound;
 
 import lombok.Getter;
-import net.study.messageconnection.constant.MessageType;
-import net.study.messageconnection.constant.UserConnectionStatus;
+import net.study.messagecommon.constant.MessageType;
+import net.study.messagecommon.constant.UserConnectionStatus;
 import net.study.messageconnection.domain.user.InviteCode;
 
 @Getter

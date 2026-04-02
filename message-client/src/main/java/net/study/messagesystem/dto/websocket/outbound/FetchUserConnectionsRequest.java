@@ -1,8 +1,8 @@
 package net.study.messagesystem.dto.websocket.outbound;
 
 import lombok.Getter;
-import net.study.messagesystem.constant.MessageType;
-import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagecommon.constant.MessageType;
+import net.study.messagecommon.constant.UserConnectionStatus;
 
 @Getter
 public class FetchUserConnectionsRequest extends BaseRequest{

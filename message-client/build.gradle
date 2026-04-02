@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    implementation project(':message-common')
     implementation 'org.jline:jline-terminal:3.28.0'
     implementation 'org.jline:jline-reader:3.28.0'
     implementation 'org.glassfish.tyrus:tyrus-client:2.2.0'

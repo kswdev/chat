@@ -1,7 +1,7 @@
 package net.study.messageconnection.dto.websocket.outbound;
 
 import lombok.Getter;
-import net.study.messageconnection.constant.MessageType;
+import net.study.messagecommon.constant.MessageType;
 
 @Getter
 public class ErrorResponse extends BaseMessage {

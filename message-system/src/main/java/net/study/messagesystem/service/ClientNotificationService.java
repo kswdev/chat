@@ -3,7 +3,7 @@ package net.study.messagesystem.service;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.MessageType;
+import net.study.messagecommon.constant.MessageType;
 import net.study.messagesystem.domain.channel.ChannelId;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.kafka.*;

@@ -1,6 +1,6 @@
 package net.study.messagesystem.dto.websocket.outbound;
 
-import net.study.messagesystem.constant.MessageType;
+import net.study.messagecommon.constant.MessageType;
 
 public class KeepAliveRequest extends BaseRequest {
 

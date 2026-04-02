@@ -3,7 +3,7 @@ package net.study.messagesystem.integration
 import lombok.RequiredArgsConstructor;
 import net.study.messagesystem.MessageSystemApplication
 import net.study.messagecommon.constant.KeyPrefix
-import net.study.messagesystem.constant.UserConnectionStatus
+import net.study.messagecommon.constant.UserConnectionStatus
 import net.study.messagesystem.domain.user.UserId
 import net.study.messagesystem.entity.user.UserEntity
 import net.study.messagesystem.entity.user.connection.UserConnectionId

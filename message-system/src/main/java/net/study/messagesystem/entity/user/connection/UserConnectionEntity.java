@@ -2,14 +2,14 @@ package net.study.messagesystem.entity.user.connection;
 
 import jakarta.persistence.*;
 import lombok.*;
-import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagecommon.constant.UserConnectionStatus;
 import net.study.messagesystem.entity.BaseEntity;
 import net.study.messagesystem.entity.user.UserEntity;
 import org.springframework.data.util.Pair;
 
 import java.util.Arrays;
 
-import static net.study.messagesystem.constant.UserConnectionStatus.*;
+import static net.study.messagecommon.constant.UserConnectionStatus.*;
 
 @NamedEntityGraph(name = "UserConnectionEntity.withAll", attributeNodes = {
         @NamedAttributeNode("partnerAUser"),

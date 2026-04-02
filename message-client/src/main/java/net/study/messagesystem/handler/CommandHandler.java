@@ -1,6 +1,6 @@
 package net.study.messagesystem.handler;
 
-import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagecommon.constant.UserConnectionStatus;
 import net.study.messagesystem.dto.channel.ChannelId;
 import net.study.messagesystem.dto.user.InviteCode;
 import net.study.messagesystem.dto.websocket.outbound.*;

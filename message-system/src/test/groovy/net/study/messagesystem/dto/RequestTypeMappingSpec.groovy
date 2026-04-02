@@ -1,7 +1,7 @@
 package net.study.messagesystem.dto
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import net.study.messagesystem.constant.UserConnectionStatus
+import net.study.messagecommon.constant.UserConnectionStatus
 import net.study.messagesystem.domain.channel.ChannelId
 import net.study.messagesystem.dto.kafka.AcceptRequestRecord
 import net.study.messagesystem.dto.kafka.CreateRequestRecord

@@ -1,6 +1,6 @@
 package net.study.messagesystem.repository.connection;
 
-import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagecommon.constant.UserConnectionStatus;
 import net.study.messagesystem.entity.user.connection.UserConnectionEntity;
 
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package net.study.messagesystem.constant;
+package net.study.messagecommon.constant;
 
 public class MessageType {
 

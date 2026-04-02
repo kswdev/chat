@@ -1,7 +1,7 @@
 package net.study.messagesystem.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import net.study.messagesystem.constant.UserConnectionStatus
+import net.study.messagecommon.constant.UserConnectionStatus
 import net.study.messagesystem.dto.projection.InviterUserIdProjection
 import net.study.messagesystem.dto.projection.UserConnectionStatusProjection
 import net.study.messagesystem.domain.user.InviteCode

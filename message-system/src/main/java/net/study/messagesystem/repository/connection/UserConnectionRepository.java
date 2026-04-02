@@ -1,7 +1,7 @@
 package net.study.messagesystem.repository.connection;
 
 import jakarta.persistence.LockModeType;
-import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagecommon.constant.UserConnectionStatus;
 import net.study.messagesystem.dto.projection.InviterUserIdProjection;
 import net.study.messagesystem.dto.projection.UserConnectionStatusProjection;
 import net.study.messagesystem.dto.projection.UserIdUsernameInviterUserIdProjection;

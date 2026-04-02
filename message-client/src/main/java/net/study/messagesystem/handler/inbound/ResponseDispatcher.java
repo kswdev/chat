@@ -1,6 +1,6 @@
 package net.study.messagesystem.handler.inbound;
 
-import net.study.messagesystem.constant.MessageType;
+import net.study.messagecommon.constant.MessageType;
 import net.study.messagesystem.dto.message.MessageSeqId;
 import net.study.messagesystem.dto.websocket.inbound.*;
 import net.study.messagesystem.dto.websocket.outbound.FetchMessagesRequest;

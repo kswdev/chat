@@ -1,7 +1,7 @@
 package net.study.messageconnection.dto
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import net.study.messageconnection.constant.UserConnectionStatus
+import net.study.messagecommon.constant.UserConnectionStatus
 import net.study.messageconnection.domain.channel.ChannelId
 import net.study.messageconnection.dto.websocket.inbound.*
 import net.study.messageconnection.util.JsonUtil

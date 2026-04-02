@@ -2,7 +2,7 @@ package net.study.messagesystem.handler.kafka;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagecommon.constant.UserConnectionStatus;
 import net.study.messagesystem.domain.connection.Connection;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.kafka.FetchUserConnectionsRequestRecord;

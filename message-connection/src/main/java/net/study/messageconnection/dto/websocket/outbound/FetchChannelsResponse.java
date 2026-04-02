@@ -1,9 +1,8 @@
 package net.study.messageconnection.dto.websocket.outbound;
 
 import lombok.Getter;
-import net.study.messageconnection.constant.MessageType;
+import net.study.messagecommon.constant.MessageType;
 import net.study.messageconnection.domain.channel.Channel;
-import net.study.messageconnection.dto.websocket.outbound.BaseMessage;
 
 import java.util.List;
 

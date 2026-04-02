@@ -1,8 +1,6 @@
 package net.study.messageconnection.dto.kafka;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import net.study.messageconnection.constant.MessageType;
+import net.study.messagecommon.constant.MessageType;
 import net.study.messageconnection.domain.user.InviteCode;
 import net.study.messageconnection.domain.user.UserId;
 

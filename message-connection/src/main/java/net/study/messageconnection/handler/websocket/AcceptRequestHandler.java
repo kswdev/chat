@@ -3,7 +3,7 @@ package net.study.messageconnection.handler.websocket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagecommon.constant.IdKey;
-import net.study.messageconnection.constant.MessageType;
+import net.study.messagecommon.constant.MessageType;
 import net.study.messageconnection.domain.user.UserId;
 import net.study.messageconnection.dto.kafka.AcceptRequestRecord;
 import net.study.messageconnection.dto.websocket.inbound.AcceptRequest;

@@ -2,7 +2,7 @@ package net.study.messagepush.dto.kafka.inbound;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import net.study.messagepush.constant.MessageType;
+import net.study.messagecommon.constant.MessageType;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({

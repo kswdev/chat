@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagecommon.constant.KeyPrefix;
 import net.study.messagesystem.constant.ResultType;
-import net.study.messagesystem.constant.UserConnectionStatus;
+import net.study.messagecommon.constant.UserConnectionStatus;
 import net.study.messagesystem.domain.channel.Channel;
 import net.study.messagesystem.domain.channel.ChannelEntry;
 import net.study.messagesystem.domain.channel.ChannelId;
