@@ -1,10 +1,11 @@
-package net.study.messageauth.controller;
+package net.study.messageuser.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messageauth.dto.rest.signup.SignUpRequest;
-import net.study.messageauth.service.UserService;
+
+import net.study.messageuser.dto.rest.signup.SignUpRequest;
+import net.study.messageuser.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/user")
 public class UserController {
 
     private final UserService userService;
@@ -36,8 +37,8 @@ public class UserController {
     @PostMapping("/unregister")
     public ResponseEntity<String> unregister(HttpServletRequest request) {
         try {
-            userService.removeUser();
-            request.getSession().invalidate();
+            String userId = request.getHeader("X-Authorization-Id");
+            userService.removeUser(userId);
             return ResponseEntity.ok("User unregister.");
         } catch (Exception ex) {
             log.error("Remove user failed. cause: {}", ex.getMessage());

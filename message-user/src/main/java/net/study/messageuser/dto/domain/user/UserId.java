@@ -1,4 +1,4 @@
-package net.study.messageauth.dto.domain.user;
+package net.study.messageuser.dto.domain.user;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

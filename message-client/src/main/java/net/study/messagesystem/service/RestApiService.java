@@ -26,7 +26,7 @@ public class RestApiService {
     }
 
     public boolean register(String username, String password) {
-        return request("/api/v1/auth/register", "", new SignUpRequest(username, password))
+        return request("/api/v1/user/register", "", new SignUpRequest(username, password))
                 .filter(isStatusCodeOK())
                 .isPresent();
     }
@@ -34,7 +34,7 @@ public class RestApiService {
     public boolean unregister() {
         if (sessionId.isEmpty()) return false;
 
-        return request("/api/v1/auth/unregister", sessionId, null)
+        return request("/api/v1/user/unregister", sessionId, null)
                 .filter(isStatusCodeOK())
                 .isPresent();
     }

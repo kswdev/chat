@@ -58,7 +58,6 @@ public class SecurityConfig {
                 .addFilterAt(restApiLoginAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
-                                        "/api/v1/auth/register",
                                         "/api/v1/auth/login").permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(auth -> auth.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
