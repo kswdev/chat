@@ -11,11 +11,8 @@ java {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
+    implementation project(':message-common')
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.cloud:spring-cloud-stream'
     implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka-reactive'
@@ -47,3 +44,5 @@ dependencyManagement {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.register("prepareKotlinBuildScriptModel") {}
