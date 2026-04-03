@@ -1,7 +1,7 @@
 package net.study.messageconnectionflux.domain.message;
 
 
-import net.study.messageconnection.domain.channel.ChannelId;
+import net.study.messageconnectionflux.domain.channel.ChannelId;
 
 public record Message(
         ChannelId channelId,
