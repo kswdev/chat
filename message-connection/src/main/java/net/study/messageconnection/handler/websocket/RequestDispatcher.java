@@ -2,7 +2,6 @@ package net.study.messageconnection.handler.websocket;
 
 import lombok.extern.slf4j.Slf4j;
 import net.study.messageconnection.dto.websocket.inbound.BaseRequest;
-import net.study.messageconnection.handler.websocket.BaseRequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
