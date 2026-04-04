@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,12 +27,12 @@ public class JsonUtil {
         }
     }
 
-    public <T> Optional<T> fromJson(String json, Class<T> clazz) {
+    public <T> Mono<T> fromJson(String json, Class<T> clazz) {
         try {
-            return Optional.of(objectMapper.readValue(json, clazz));
+            return Mono.just(objectMapper.readValue(json, clazz));
         } catch (Exception e) {
             printParseError(json);
-            return Optional.empty();
+            return Mono.empty();
         }
     }
 
