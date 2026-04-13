@@ -5,23 +5,35 @@ import net.study.messageconnectionflux.domain.user.UserId
 import net.study.messageconnectionflux.dto.websocket.inbound.AcceptRequest
 import net.study.messageconnectionflux.dto.websocket.inbound.BaseRequest
 import net.study.messageconnectionflux.handler.request.RequestDispatcher
+import net.study.messageconnectionflux.service.cache.SessionService
+import net.study.messageconnectionflux.session.WebSocketSessionManager
 import net.study.messageconnectionflux.util.JsonUtil
+import org.reactivestreams.Publisher
 import org.springframework.web.reactive.socket.HandshakeInfo
 import org.springframework.web.reactive.socket.WebSocketMessage
 import org.springframework.web.reactive.socket.WebSocketSession
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.Sinks
+import reactor.test.StepVerifier
 import spock.lang.Specification
+
+import java.time.Duration
 
 class MessageWebSocketHandlerSpec extends Specification {
 
-    private MessageWebSocketHandler handler
-    private RequestDispatcher dispatcher = Mock()
     private JsonUtil jsonUtil = Mock()
+    private RequestDispatcher dispatcher = Mock()
+
     private WebSocketSession session = Stub()
+    private SessionService cacheService = Mock()
+
+    private MessageWebSocketHandler handler
+    private WebSocketSessionManager sessionManager
 
     def setup() {
-        handler = new MessageWebSocketHandler(jsonUtil, dispatcher)
+        sessionManager = new WebSocketSessionManager()
+        handler = new MessageWebSocketHandler(jsonUtil, dispatcher, sessionManager, cacheService)
         def handshakeInfo = Mock(HandshakeInfo)
         def attributes = Map.of(IdKey.USER_ID.getValue(), new UserId(0L))
 
@@ -41,10 +53,46 @@ class MessageWebSocketHandlerSpec extends Specification {
         BaseRequest request = new AcceptRequest("test1")
 
         when:
-        handler.handle(session).block()
+        handler.handle(session)
+                .take(Duration.ofMillis(100)) // 🔥 무한 스트림 방지
+                .block()
 
         then:
         1 * jsonUtil.fromJson(payload, BaseRequest.class) >> Mono.just(request)
         1 * dispatcher.dispatch(session, request) >> Mono.empty()
+    }
+
+    def "메시지 발신 → WebSocket 전송 (StepVerifier)"() {
+        given:
+        def userId = new UserId(0L)
+        def sinkCaptor = Sinks.many().unicast().onBackpressureBuffer()
+
+        session.receive() >> Flux.never()
+
+        session.textMessage(_ as String) >> { String text ->
+            Stub(WebSocketMessage) {
+                getPayloadAsText() >> text
+            }
+        }
+
+        session.send(_ as Publisher) >> { Publisher<WebSocketMessage> publisher ->
+            Flux.from(publisher)
+                    .doOnNext { msg -> sinkCaptor.tryEmitNext(msg.getPayloadAsText()) }
+                    .then()
+        }
+
+        when:
+        def result = handler.handle(session)
+
+        then:
+        StepVerifier
+                .create(sinkCaptor.asFlux())
+                .then {
+                    result.subscribe()
+                    sessionManager.sendMessage(userId, "hello")
+                }
+                .expectNext("hello")
+                .thenCancel()
+                .verify()
     }
 }
