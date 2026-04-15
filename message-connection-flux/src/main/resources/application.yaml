@@ -1,8 +1,9 @@
-spring.application.name: message-connection-flux
-
 server:
   port: 8090
   id: ${server.id}
+
+spring:
+  application.name: message-connection-flux
 
   data:
     redis:
