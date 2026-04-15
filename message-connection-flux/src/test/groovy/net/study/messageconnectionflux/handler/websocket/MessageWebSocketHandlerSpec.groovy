@@ -5,7 +5,7 @@ import net.study.messageconnectionflux.domain.user.UserId
 import net.study.messageconnectionflux.dto.websocket.inbound.AcceptRequest
 import net.study.messageconnectionflux.dto.websocket.inbound.BaseRequest
 import net.study.messageconnectionflux.handler.request.RequestDispatcher
-import net.study.messageconnectionflux.service.cache.SessionService
+import net.study.messageconnectionflux.service.SessionService
 import net.study.messageconnectionflux.session.WebSocketSessionManager
 import net.study.messageconnectionflux.util.JsonUtil
 import org.reactivestreams.Publisher

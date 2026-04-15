@@ -1,4 +1,4 @@
-package net.study.messageconnectionflux.service.cache;
+package net.study.messageconnectionflux.service;
 
 import net.study.messageconnectionflux.domain.user.UserId;
 
