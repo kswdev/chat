@@ -28,9 +28,8 @@ public class RequestDispatcher {
     public Mono<Void> dispatch(WebSocketSession session, BaseRequest request) {
         return Mono.justOrEmpty(this.getHandler(request))
                 .map(this::castToSpecificHandler)
-                .flatMap(handler -> Mono.fromRunnable(() -> handler.handleRequest(session, request)))
-                .onErrorContinue((err, __) -> loggingIfNoSuchHandler(request))
-                .then();
+                .flatMap(handler -> handler.handleRequest(session, request))
+                .onErrorContinue((err, __) -> loggingIfNoSuchHandler(request));
     }
 
     private BaseRequestHandler<? extends BaseRequest> getHandler(BaseRequest request) {

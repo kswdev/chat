@@ -29,7 +29,7 @@ class AcceptRequestHandlerSpec extends Specification {
         AcceptRequest request = new AcceptRequest(username)
 
         when:
-        acceptRequestHandler.handleRequest(senderSession, request)
+        acceptRequestHandler.handleRequest(senderSession, request).block()
 
         then:
         1 * senderSession.getAttributes() >> Map.of(IdKey.USER_ID.getValue(), accepterUserId)

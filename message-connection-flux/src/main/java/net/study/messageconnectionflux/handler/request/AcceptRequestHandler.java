@@ -12,6 +12,7 @@ import net.study.messageconnectionflux.kafka.KafkaProducer;
 import net.study.messageconnectionflux.service.ClientNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
@@ -22,13 +23,12 @@ public class AcceptRequestHandler implements BaseRequestHandler<AcceptRequest> {
     private final ClientNotificationService clientNotificationService;
 
     @Override
-    public void handleRequest(WebSocketSession senderSession, AcceptRequest request) {
+    public Mono<Void> handleRequest(WebSocketSession senderSession, AcceptRequest request) {
         UserId accepterUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
 
-        kafkaProducer.sendRequest(
+        return kafkaProducer.sendRequest(
                 new AcceptRequestRecord(accepterUserId, request.getUsername()),
-                () -> clientNotificationService.sendError(accepterUserId, new ErrorResponse(MessageType.ACCEPT_REQUEST, "accept request failed.")))
-                .subscribe();
+                () -> clientNotificationService.sendError(accepterUserId, new ErrorResponse(MessageType.ACCEPT_REQUEST, "accept request failed.")));
     }
 
     @Override
