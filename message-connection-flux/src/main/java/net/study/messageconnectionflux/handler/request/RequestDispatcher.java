@@ -28,8 +28,9 @@ public class RequestDispatcher {
     public Mono<Void> dispatch(WebSocketSession session, BaseRequest request) {
         return Mono.justOrEmpty(this.getHandler(request))
                 .map(this::castToSpecificHandler)
-                .flatMap(handler -> handler.handleRequest(session, request))
-                .switchIfEmpty(Mono.fromRunnable(loggingIfNoSuchHandler(request)));
+                .flatMap(handler -> Mono.fromRunnable(() -> handler.handleRequest(session, request)))
+                .onErrorContinue((err, __) -> loggingIfNoSuchHandler(request))
+                .then();
     }
 
     private BaseRequestHandler<? extends BaseRequest> getHandler(BaseRequest request) {
@@ -41,7 +42,7 @@ public class RequestDispatcher {
         return (BaseRequestHandler<T>) handler;
     }
 
-    private static Runnable loggingIfNoSuchHandler(BaseRequest request) {
-        return () -> log.error("No suitable handler found for request type: {}", request.getClass().getName());
+    private void loggingIfNoSuchHandler(BaseRequest request) {
+        log.error("No suitable handler found for request type: {}", request.getClass().getName());
     }
 }

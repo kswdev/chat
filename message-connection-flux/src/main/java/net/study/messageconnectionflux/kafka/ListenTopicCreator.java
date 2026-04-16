@@ -3,6 +3,7 @@ package net.study.messageconnectionflux.kafka;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.errors.TopicExistsException;
@@ -11,33 +12,35 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
 public class ListenTopicCreator {
 
-    private final KafkaAdmin admin;
     private final String prefixListenTopic;
     private final String prefixGroupId;
     private final int partitions;
     private final short replicationFactor;
     private final String prefixServerId;
+    private final String bootstrapServers;
 
     public ListenTopicCreator(
             KafkaAdmin admin,
-            @Value("${message-system.kafka.listeners.push.prefix-topic}") String prefixListenTopic,
             @Value("${message-system.kafka.listeners.push.prefix-group-id}") String prefixGroupId,
+            @Value("${server.id}") String prefixServerId,
+            @Value("${message-system.kafka.listeners.push.prefix-topic}") String prefixListenTopic,
+            @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers,
             @Value("${message-system.kafka.listeners.push.partitions}") int partitions,
-            @Value("${message-system.kafka.listeners.push.replications-factor}") short replicationFactor,
-            @Value("${server.id}")  String prefixServerId
+            @Value("${message-system.kafka.listeners.push.replications-factor}") short replicationFactor
     ) {
-        this.admin = admin;
-        this.prefixListenTopic = prefixListenTopic;
         this.prefixGroupId = prefixGroupId;
+        this.prefixServerId = prefixServerId;
+        this.prefixListenTopic = prefixListenTopic;
+        this.bootstrapServers = bootstrapServers;
         this.partitions = partitions;
         this.replicationFactor = replicationFactor;
-        this.prefixServerId = prefixServerId;
     }
 
     @PostConstruct
@@ -46,7 +49,13 @@ public class ListenTopicCreator {
     }
 
     public void createTopic(String topicName, int partitions, short replicationFactor) {
-        try(AdminClient adminClient = AdminClient.create(admin.getConfigurationProperties())) {
+        Map<String, Object> configs = Map.of(
+                "bootstrap.servers", bootstrapServers,
+                AdminClientConfig.RETRIES_CONFIG, 5,
+                AdminClientConfig.RETRY_BACKOFF_MS_CONFIG, 1000
+        );
+
+        try(AdminClient adminClient = AdminClient.create(configs)) {
             NewTopic newTopic = new NewTopic(topicName, partitions, replicationFactor);
             CreateTopicsResult topicsResult = adminClient.createTopics(List.of(newTopic));
             topicsResult.values().forEach((topic, future) -> {

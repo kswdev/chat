@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono;
 
 public interface BaseRequestHandler<T extends BaseRequest> {
     Class<T> getRequestType();
-    Mono<Void> handleRequest(WebSocketSession session, T request);
+    void handleRequest(WebSocketSession session, T request);
 }

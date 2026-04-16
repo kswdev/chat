@@ -8,18 +8,17 @@ import net.study.messageconnectionflux.domain.user.UserId;
 import net.study.messageconnectionflux.dto.kafka.RecordInterface;
 import net.study.messageconnectionflux.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-
-import java.util.function.BiConsumer;
+import reactor.core.publisher.Mono;
+import reactor.kafka.sender.KafkaSender;
+import reactor.kafka.sender.SenderRecord;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class KafkaProducer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaSender<String, String> kafkaSender;
     private final JsonUtil jsonUtil;
 
     @Value("${message-system.kafka.topics.message}")
@@ -27,41 +26,55 @@ public class KafkaProducer {
 
     @Value("${message-system.kafka.topics.request}")
     private String requestTopic;
-    
+
     @Value("${message-system.kafka.topics.push}")
     private String pushTopic;
 
-    public void sendMessageUsingPartitionKey(ChannelId channelId, UserId userId, RecordInterface recordInterface, Runnable errorCallback) {
+    public Mono<Void> sendMessageUsingPartitionKey(
+            ChannelId channelId,
+            UserId userId,
+            RecordInterface recordInterface,
+            Runnable errorCallback
+    ) {
         String partitionKey = "%d-%d".formatted(channelId.id(), userId.id());
-        jsonUtil.toJson(recordInterface)
-                .ifPresent(record -> kafkaTemplate.send(messageTopic, partitionKey, record)
-                        .whenComplete(logResult(messageTopic, record, partitionKey, errorCallback)));
+
+        return jsonUtil.toJson(recordInterface)
+                .map(record -> send(messageTopic, partitionKey, record, errorCallback))
+                .orElse(Mono.empty());
     }
 
-    public void sendRequest(RecordInterface recordInterface, Runnable errorCallback) {
-        jsonUtil.toJson(recordInterface)
-                .ifPresent(record -> kafkaTemplate.send(requestTopic, record)
-                        .whenComplete(logResult(requestTopic, record, null, errorCallback)));
+    public Mono<Void> sendRequest(RecordInterface recordInterface, Runnable errorCallback) {
+        return jsonUtil.toJson(recordInterface)
+                .map(record -> send(requestTopic, null, record, errorCallback))
+                .orElse(Mono.empty());
     }
 
-    public void sendPushNotification(RecordInterface recordInterface) {
-        jsonUtil.toJson(recordInterface)
-                .ifPresent(record -> kafkaTemplate.send(pushTopic, record)
-                        .whenComplete(logResult(pushTopic, record, null, null)));
+    public Mono<Void> sendPushNotification(RecordInterface recordInterface) {
+        return jsonUtil.toJson(recordInterface)
+                .map(record -> send(pushTopic, null, record, null))
+                .orElse(Mono.empty());
     }
 
-    private BiConsumer<SendResult<String, String>, Throwable> logResult(String topic, String record, String partitionKey, Runnable errorCallback) {
-        return (sendResult, throwable) -> {
-            if (throwable != null) {
-                log.error("Kafka send failed. record: {} with key: {} to topic: {}, cause: {}",
-                        record, topic, partitionKey, throwable.getMessage());
+    // =========================
+    // 공통 send 로직
+    // =========================
+    private Mono<Void> send(String topic, String key, String value, Runnable errorCallback) {
+        SenderRecord<String, String, Void> record =
+                SenderRecord.create(topic, null, null, key, value, null);
 
-                if (errorCallback != null)
-                    errorCallback.run();
-            } else {
-                log.info("Kafka send success. {}, topic: {} with key: {}",
-                        sendResult.getProducerRecord().value(), topic, partitionKey);
-            }
-        };
+        return kafkaSender.send(Mono.just(record))
+                .doOnNext(result -> {
+                    if (result.exception() != null) {
+                        log.error("Kafka send failed. record: {} with key: {} to topic: {}, cause: {}",
+                                value, key, topic, result.exception().getMessage());
+
+                        if (errorCallback != null)
+                            errorCallback.run();
+                    } else {
+                        log.info("Kafka send success. {}, topic: {} with key: {}",
+                                value, topic, key);
+                    }
+                })
+                .then();
     }
 }

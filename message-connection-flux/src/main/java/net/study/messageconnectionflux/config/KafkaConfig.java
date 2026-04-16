@@ -1,60 +1,60 @@
 package net.study.messageconnectionflux.config;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messageconnectionflux.kafka.KafkaConsumerConsumerAwareRebalanceListener;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.producer.Producer;
+import net.study.messageconnectionflux.kafka.ListenTopicCreator;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaAdmin;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.ContainerProperties;
+import reactor.kafka.receiver.KafkaReceiver;
+import reactor.kafka.receiver.ReceiverOptions;
+import reactor.kafka.sender.KafkaSender;
+import reactor.kafka.sender.SenderOptions;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class KafkaConfig {
+
+    private final ListenTopicCreator listenTopicCreator;
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
     @Bean
-    public KafkaAdmin kafkaAdmin() {
-        Map<String, Object> configs = Map.of(
-                "bootstrap.servers", bootstrapServers,
-                AdminClientConfig.RETRIES_CONFIG, 5,
-                AdminClientConfig.RETRY_BACKOFF_MS_CONFIG, 1000
+    public KafkaReceiver<String, String> kafkaReceiver() {
+        Map<String, Object> props = Map.of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                ConsumerConfig.GROUP_ID_CONFIG, listenTopicCreator.getConsumerGroupId(),
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false
         );
-        return new KafkaAdmin(configs);
+
+        ReceiverOptions<String, String> options =
+                ReceiverOptions.<String, String>create(props)
+                        .subscription(List.of(listenTopicCreator.getListenTopic()))
+                        .addAssignListener(partitions -> log.info("assigned: {}", partitions))
+                        .addRevokeListener(partitions -> log.info("revoked: {}", partitions));
+
+        return KafkaReceiver.create(options);
     }
 
     @Bean
-    public KafkaTemplate<String, String> kafkaTemplate(DefaultKafkaProducerFactory<String, String> producerFactory) {
-        Producer<String, String> producer = producerFactory.createProducer();
-        producer.close();
-        log.info("KafkaProducer initialized.");
-        return new KafkaTemplate<>(producerFactory);
-    }
+    public KafkaSender<String, String> kafkaSender() {
+        Map<String, Object> props = Map.of(
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class
+        );
 
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(
-            ConsumerFactory<String, String> consumerFactory,
-            KafkaConsumerConsumerAwareRebalanceListener awareRebalanceListener
-    ) {
-        ConcurrentKafkaListenerContainerFactory<String, String> containerFactory = new ConcurrentKafkaListenerContainerFactory<>();
-        containerFactory.setConsumerFactory(consumerFactory);
-        containerFactory.getContainerProperties()
-                .setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-
-        containerFactory.getContainerProperties()
-                .setConsumerRebalanceListener(awareRebalanceListener);
-
-        log.info("set ackMode: {}", containerFactory.getContainerProperties().getAckMode());
-        return containerFactory;
+        return KafkaSender.create(SenderOptions.create(props));
     }
 }
