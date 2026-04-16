@@ -1,11 +1,9 @@
 package net.study.messageconnectionflux.handler.request
 
 import net.study.messagecommon.constant.IdKey
-import net.study.messagecommon.constant.MessageType
 import net.study.messageconnectionflux.domain.user.UserId
 import net.study.messageconnectionflux.dto.kafka.AcceptRequestRecord
 import net.study.messageconnectionflux.dto.websocket.inbound.AcceptRequest
-import net.study.messageconnectionflux.dto.websocket.outbound.ErrorResponse
 import net.study.messageconnectionflux.kafka.KafkaProducer
 import net.study.messageconnectionflux.service.ClientNotificationService
 import org.springframework.web.reactive.socket.WebSocketSession
