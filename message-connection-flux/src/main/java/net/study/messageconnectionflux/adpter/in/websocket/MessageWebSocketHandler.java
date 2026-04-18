@@ -68,8 +68,9 @@ public class MessageWebSocketHandler implements WebSocketHandler {
 
     private UserId getUserId(WebSocketSession session) {
         String userId = session.getHandshakeInfo().getHeaders().getFirst(IdKey.USER_ID.getValue());
-        session.getAttributes().put(IdKey.USER_ID.getValue(), userId);
         assert userId != null;
-        return new UserId(Long.valueOf(userId));
+        UserId currentUserId = new UserId(Long.valueOf(userId));
+        session.getAttributes().put(IdKey.USER_ID.getValue(), currentUserId);
+        return currentUserId;
     }
 }
