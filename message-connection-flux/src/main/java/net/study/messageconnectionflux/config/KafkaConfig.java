@@ -2,7 +2,7 @@ package net.study.messageconnectionflux.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.study.messageconnectionflux.kafka.ListenTopicCreator;
+import net.study.messageconnectionflux.adpter.kafka.ListenTopicCreator;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
