@@ -3,11 +3,11 @@ package net.study.messageconnectionflux.adpter.in.websocket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagecommon.constant.IdKey;
-import net.study.messageconnectionflux.adpter.in.websocket.request.RequestDispatcher;
-import net.study.messageconnectionflux.adpter.out.persistence.redis.WebSocketSessionManager;
-import net.study.messageconnectionflux.application.dto.websocket.inbound.BaseRequest;
-import net.study.messageconnectionflux.application.port.in.SessionService;
 import net.study.messageconnectionflux.domain.user.UserId;
+import net.study.messageconnectionflux.application.dto.websocket.inbound.BaseRequest;
+import net.study.messageconnectionflux.adpter.in.websocket.request.RequestDispatcher;
+import net.study.messageconnectionflux.application.port.in.SessionService;
+import net.study.messageconnectionflux.adpter.out.persistence.redis.WebSocketSessionManager;
 import net.study.messageconnectionflux.util.JsonUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -67,8 +67,9 @@ public class MessageWebSocketHandler implements WebSocketHandler {
     }
 
     private UserId getUserId(WebSocketSession session) {
-        return new UserId(Long.valueOf(session.getHandshakeInfo()
-                .getHeaders()
-                .get(IdKey.USER_ID.getValue()).getFirst()));
+        String userId = session.getHandshakeInfo().getHeaders().getFirst(IdKey.USER_ID.getValue());
+        session.getAttributes().put(IdKey.USER_ID.getValue(), userId);
+        assert userId != null;
+        return new UserId(Long.valueOf(userId));
     }
 }
