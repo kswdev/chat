@@ -1,5 +1,6 @@
 package net.study.webgateway.auth.filter;
 
+import net.study.messagecommon.constant.IdKey;
 import net.study.webgateway.auth.jwt.JwtUtils;
 import net.study.webgateway.auth.jwt.TokenUser;
 import net.study.webgateway.auth.role.Role;
@@ -73,7 +74,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
 
     private ServerHttpRequest addAuthorizationHeaders(ServerHttpRequest request, TokenUser tokenUser) {
         return request.mutate()
-                .header("X-Authorization-Id", tokenUser.getId())
+                .header(IdKey.USER_ID.getValue(), tokenUser.getId())
                 .header("X-Authorization-Role", tokenUser.getRole().stream()
                         .map(Role::getName)
                         .collect(Collectors.joining(",")))
