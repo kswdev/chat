@@ -90,7 +90,7 @@ class MessageWebSocketHandlerSpec extends Specification {
                 .create(sinkCaptor.asFlux())
                 .then {
                     result.subscribe()
-                    sessionManager.sendMessage(userId, "hello")
+                    sessionManager.pushMessage(userId, "hello")
                 }
                 .expectNext("hello")
                 .thenCancel()

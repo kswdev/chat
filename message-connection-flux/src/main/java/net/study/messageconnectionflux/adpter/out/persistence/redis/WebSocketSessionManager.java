@@ -31,7 +31,11 @@ public class WebSocketSessionManager {
         log.info("Sink removed: {}", userId);
     }
 
-    public void sendMessage(UserId userId, String message) {
+    public boolean hasActiveSession(UserId userId) {
+        return sinks.containsKey(userId);
+    }
+
+    public void pushMessage(UserId userId, String message) {
         Many<String> sink = sinks.get(userId);
 
         if (sink == null) {
