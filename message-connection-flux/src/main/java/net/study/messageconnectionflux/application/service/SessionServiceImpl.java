@@ -20,12 +20,14 @@ public class SessionServiceImpl implements SessionService {
     private final CachePort cachePort;
     private final long TTL = 300;
 
-    public void setOnline(UserId userId, boolean status) {
+    public Mono<Boolean> setOnline(UserId userId, boolean status) {
         String key = buildUserLocationKey(userId);
         if (status)
-            cachePort.set(key, listenTopicCreator.getListenTopic(), TTL);
-        else
+            return cachePort.set(key, listenTopicCreator.getListenTopic(), TTL);
+        else {
             cachePort.delete(key);
+            return Mono.just(true);
+        }
     }
 
     public Mono<Long> deActiveChannel(UserId userId) {

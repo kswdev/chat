@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono;
 
 public interface SessionService {
 
-    void setOnline(UserId userId, boolean status);
+    Mono<Boolean> setOnline(UserId userId, boolean status);
     Mono<Long> deActiveChannel(UserId userId);
     void refreshTTL(UserId userId);
 }

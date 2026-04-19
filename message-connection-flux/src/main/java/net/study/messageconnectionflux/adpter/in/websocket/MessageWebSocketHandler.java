@@ -31,8 +31,6 @@ public class MessageWebSocketHandler implements WebSocketHandler {
     public Mono<Void> handle(WebSocketSession session) {
         UserId userId = getUserId(session);
 
-        sessionService.setOnline(userId, true);
-
         Many<String> sink = sessionManager.create(userId);
         Flux<WebSocketMessage> output = sink
                 .asFlux()
@@ -55,9 +53,11 @@ public class MessageWebSocketHandler implements WebSocketHandler {
 
                 .then();
 
-        return session
-                .send(output)
-                .and(input);
+        return sessionService.setOnline(userId, true)
+                .then(session
+                        .send(output)
+                        .and(input)
+                );
     }
 
     private void closeSession(UserId userId) {
