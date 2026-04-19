@@ -43,6 +43,11 @@ public class ClientNotificationPush implements ClientNotificationService {
         sendPayload(userId, errorResponse, null);
     }
 
+    @Override
+    public void sendMessage(UserId userId, BaseMessage message, RecordInterface recordInterface) {
+        sendPayload(userId, message, recordInterface);
+    }
+
     private void sendPayload(UserId userId, BaseMessage message, RecordInterface recordInterface) {
         Runnable pushMessage = () -> {
             if (recordInterface != null) {

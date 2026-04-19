@@ -7,5 +7,5 @@ public interface SessionService {
 
     Mono<Boolean> setOnline(UserId userId, boolean status);
     Mono<Long> deActiveChannel(UserId userId);
-    void refreshTTL(UserId userId);
+    Mono<Boolean> refreshTTL(UserId userId);
 }

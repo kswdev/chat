@@ -35,9 +35,11 @@ public class SessionServiceImpl implements SessionService {
         return cachePort.delete(channelIdKey);
     }
 
-    public void refreshTTL(UserId userId) {
-        cachePort.expire(buildChannelIdKey(userId), TTL);
-        cachePort.expire(buildUserLocationKey(userId), TTL);
+    public Mono<Boolean> refreshTTL(UserId userId) {
+        Mono<Boolean> channelIdKey = cachePort.expire(buildChannelIdKey(userId), TTL);
+        Mono<Boolean> userLocationKey = cachePort.expire(buildUserLocationKey(userId), TTL);
+        return channelIdKey.zipWith(userLocationKey,
+                (a, b) -> a && b);
     }
 
     private String buildChannelIdKey(UserId userId) {
