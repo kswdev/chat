@@ -234,11 +234,17 @@ const MAX_SERIAL_WAIT_MS = 3000;
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { send, addHandler, removeHandler } = useWebSocket();
-  const { username } = useAuth();
+  useAuth();
+  const stateRef = useRef(state);
   const pendingSerials = useRef<
     Map<number, { resolve: () => void; reject: (r: string) => void }>
   >(new Map());
   const serialCounter = useRef(0);
+
+  // stateRef를 항상 최신 state로 유지
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   // ── WebSocket 핸들러 등록 ──────────────────────
 
@@ -277,7 +283,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         'ENTER_RESPONSE',
         (msg) => {
           const m = msg as EnterResponse;
-          const channel = state.channels.find((c) => c.channelId === m.channelId) ?? {
+          const channel = stateRef.current.channels.find((c) => c.channelId === m.channelId) ?? {
             channelId: m.channelId,
             title: m.title,
             headCount: 0,
@@ -356,7 +362,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         'NOTIFY_MESSAGE',
         (msg) => {
           const m = msg as MessageNotification;
-          const lastSeq = state.lastSeqId[m.channelId] ?? 0;
+          const lastSeq = stateRef.current.lastSeqId[m.channelId] ?? 0;
 
           // 갭 감지: 순서가 맞지 않으면 누락 메시지 조회
           if (m.messageSeqId > lastSeq + 1 && lastSeq > 0) {
@@ -449,15 +455,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const m = msg as FetchUserConnectionsResponse;
           const accepted = m.connections.filter((c) => c.status === 'ACCEPTED');
           const pending = m.connections.filter((c) => c.status === 'PENDING');
-          if (accepted.length > 0 || m.connections.every((c) => c.status === 'ACCEPTED')) {
-            dispatch({ type: 'SET_ACCEPTED_CONNECTIONS', connections: m.connections.filter(c => c.status === 'ACCEPTED') });
-          }
-          if (pending.length > 0 || m.connections.every((c) => c.status === 'PENDING')) {
-            dispatch({ type: 'SET_PENDING_CONNECTIONS', connections: m.connections.filter(c => c.status === 'PENDING') });
-          }
-          // 혼합된 경우 모두 분리
-          if (accepted.length > 0 && pending.length > 0) {
+          if (accepted.length > 0) {
             dispatch({ type: 'SET_ACCEPTED_CONNECTIONS', connections: accepted });
+          }
+          if (pending.length > 0) {
             dispatch({ type: 'SET_PENDING_CONNECTIONS', connections: pending });
           }
         },
@@ -515,7 +516,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     handlers.forEach(([type, handler]) => addHandler(type, handler));
     return () => handlers.forEach(([type]) => removeHandler(type));
-  }, [addHandler, removeHandler, send, state.channels, state.lastSeqId]);
+  }, [addHandler, removeHandler, send]);
 
   // ── 액션 함수들 ──────────────────────────────
 
@@ -596,7 +597,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         });
       });
     },
-    [send, state.currentChannel, username],
+    [send, state.currentChannel],
   );
 
   const fetchMessages = useCallback(

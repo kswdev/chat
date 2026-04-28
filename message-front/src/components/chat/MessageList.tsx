@@ -21,7 +21,7 @@ export default function MessageList({ messages, channelId, onLoadMore }: Message
   const handleScroll = () => {
     const el = containerRef.current;
     if (!el) return;
-    if (el.scrollTop === 0 && messages.length > 0) {
+    if (el.scrollTop < 5 && messages.length > 0) {
       const oldestSeqId = messages[0].messageSeqId;
       if (oldestSeqId > 1) {
         const start = Math.max(1, oldestSeqId - 20);

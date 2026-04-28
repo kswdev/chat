@@ -57,10 +57,19 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
    * 서버의 AuthorizationHeaderFilter에서 쿼리 파라미터 토큰도
    * 허용하도록 수정이 필요합니다.
    */
+  const closeWs = useCallback((ws: WebSocket) => {
+    ws.onopen = null;
+    ws.onmessage = null;
+    ws.onerror = null;
+    ws.onclose = null;
+    ws.close();
+  }, []);
+
   const connect = useCallback(
     (token: string) => {
       if (wsRef.current) {
-        wsRef.current.close();
+        closeWs(wsRef.current);
+        wsRef.current = null;
       }
 
       setStatus('connecting');
@@ -93,15 +102,17 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         wsRef.current = null;
       };
     },
-    [startKeepAlive, stopKeepAlive],
+    [closeWs, startKeepAlive, stopKeepAlive],
   );
 
   const disconnect = useCallback(() => {
     stopKeepAlive();
-    wsRef.current?.close();
-    wsRef.current = null;
+    if (wsRef.current) {
+      closeWs(wsRef.current);
+      wsRef.current = null;
+    }
     setStatus('disconnected');
-  }, [stopKeepAlive]);
+  }, [closeWs, stopKeepAlive]);
 
   const addHandler = useCallback((type: string, handler: MessageHandler) => {
     handlersRef.current.set(type, handler);
@@ -115,9 +126,12 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     return () => {
       stopKeepAlive();
-      wsRef.current?.close();
+      if (wsRef.current) {
+        closeWs(wsRef.current);
+        wsRef.current = null;
+      }
     };
-  }, [stopKeepAlive]);
+  }, [closeWs, stopKeepAlive]);
 
   return (
     <WebSocketContext.Provider
