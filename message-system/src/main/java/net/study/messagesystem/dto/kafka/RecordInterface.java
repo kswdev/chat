@@ -7,6 +7,7 @@ import net.study.messagecommon.constant.MessageType;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = JoinRequestRecord.class, name = MessageType.JOIN_REQUEST),
+        @JsonSubTypes.Type(value = JoinResponseRecord.class, name = MessageType.JOIN_RESPONSE),
         @JsonSubTypes.Type(value = EnterRequestRecord.class, name = MessageType.ENTER_REQUEST),
         @JsonSubTypes.Type(value = EnterResponseRecord.class, name = MessageType.ENTER_RESPONSE),
         @JsonSubTypes.Type(value = RejectRequestRecord.class, name = MessageType.REJECT_REQUEST),
