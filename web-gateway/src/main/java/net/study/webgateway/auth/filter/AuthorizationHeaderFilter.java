@@ -64,16 +64,27 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
     }
 
     private boolean containsAuthorization(ServerHttpRequest request) {
-        return request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION);
+        return request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION) ||
+                request.getURI().getQuery().contains("token=");
     }
 
     private String extractToken(ServerHttpRequest request) {
-        String authorization = request.getHeaders().getOrEmpty(HttpHeaders.AUTHORIZATION).get(0);
-        return authorization.replace("Bearer ", "");
+
+        if (request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+            String authorization = request.getHeaders().getOrEmpty(HttpHeaders.AUTHORIZATION).get(0);
+            return authorization.replace("Bearer ", "");
+        }
+
+        // 웹 용 임시 검증로직
+        if (request.getURI().getQuery().contains("token="))
+            return request.getURI().getQuery().split("=")[1];
+
+        return "";
     }
 
     private ServerHttpRequest addAuthorizationHeaders(ServerHttpRequest request, TokenUser tokenUser) {
         return request.mutate()
+                .header("Authorization", "Bearer ")
                 .header(IdKey.USER_ID.getValue(), tokenUser.getId())
                 .header("X-Authorization-Role", tokenUser.getRole().stream()
                         .map(Role::getName)
