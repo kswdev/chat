@@ -1,5 +1,6 @@
 package net.study.messageconnectionflux.auth;
 
+import lombok.extern.slf4j.Slf4j;
 import net.study.messagecommon.constant.IdKey;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -44,7 +45,7 @@ public class WebSocketMessageFilter implements WebFilter {
     }
 
     private Optional<Long> getUserId(ServerWebExchange exchange) {
-        String userId = exchange.getRequest().getHeaders().getFirst("X-Authorization-Id");
+        String userId = exchange.getRequest().getHeaders().getFirst(IdKey.USER_ID.getValue());
         if (userId == null) {
             return Optional.empty();
         }

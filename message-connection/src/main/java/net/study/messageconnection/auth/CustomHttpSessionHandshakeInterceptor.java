@@ -39,7 +39,7 @@ public class CustomHttpSessionHandshakeInterceptor extends HttpSessionHandshakeI
     }
 
     private Optional<Long> getUserId(ServerHttpRequest request) {
-        String userId = request.getHeaders().getFirst("X-Authorization-Id");
+        String userId = request.getHeaders().getFirst(IdKey.USER_ID.getValue());
         if (userId == null) {
             return Optional.empty();
         }
