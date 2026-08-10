@@ -46,6 +46,7 @@ spring:
           filters:
             - AuthorizationHeaderFilter
 
+
 ### jwt
 security.jwt:
   secret-key: 1234
@@ -56,3 +57,18 @@ logging:
   level:
     org.springframework.cloud.gateway: info
     reactor.netty: info
+
+### actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: web-gateway
+
+  endpoint:
+    prometheus:
+      access: unrestricted
