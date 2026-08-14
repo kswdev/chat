@@ -17,5 +17,8 @@ data/
 /dataSources/
 /dataSources.local.xml
 
+/message-system/pinpoint-agent-2.5.2/
+/ELK/
+
 # npm
 node_modules/
