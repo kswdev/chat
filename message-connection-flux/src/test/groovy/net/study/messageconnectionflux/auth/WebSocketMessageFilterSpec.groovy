@@ -35,7 +35,7 @@ class WebSocketMessageFilterSpec extends Specification {
         def request = MockServerHttpRequest.get("/ws/v1/message")
                 .header(HttpHeaders.UPGRADE, "websocket")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                .header("X-Authorization-Id", "123")
+                .header(IdKey.USER_ID.getValue(), "123")
                 .build()
 
         def exchange = MockServerWebExchange.from(request)
