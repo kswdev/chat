@@ -36,6 +36,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          batch_size: 200
     defer-datasource-initialization: true
 
   data:
