@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import net.study.messagecommon.constant.IdKey;
 import net.study.messageuser.dto.rest.signup.SignUpRequest;
 import net.study.messageuser.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,7 @@ public class UserController {
     @PostMapping("/unregister")
     public ResponseEntity<String> unregister(HttpServletRequest request) {
         try {
-            String userId = request.getHeader("X-Authorization-Id");
+            String userId = request.getHeader(IdKey.USER_ID.getValue());
             userService.removeUser(userId);
             return ResponseEntity.ok("User unregister.");
         } catch (Exception ex) {
