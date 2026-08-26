@@ -27,6 +27,7 @@ spring:
         delivery.timeout.ms: 10000
         request.timeout.ms: 3000
         retry.backoff.ms: 100
+
     consumer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -35,6 +36,11 @@ spring:
         allow.auto.create.topics: false
         enable.auto.commit: false
         partition.assignment.strategy: org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
 
 message-system:
   kafka:
@@ -50,9 +56,26 @@ message-system:
         partitions: 6
         replications-factor: 3
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info
+  metrics:
+    tags:
+      application: message-connection-flux
+
+  tracing:
+    sampling:
+      probability: 1.0   # 개발/테스트 중엔 100% 샘플링, 운영에선 0.1 등으로 낮춤
+  otlp:
+    tracing:
+      endpoint: http://localhost:14318/v1/traces
+
 logging:
   level:
     org.hibernate.orm.jdbc.bind: trace
     sun.rmi: info
     javax.management: info
     root: info
+

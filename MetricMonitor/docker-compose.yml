@@ -32,6 +32,46 @@ services:
     networks:
       - monitoring
 
+  influxdb:
+    image: influxdb:latest
+    container_name: influx
+    ports:
+      - "18086:8086"
+    networks:
+      - monitoring
+    environment:
+      - INFLUXDB_ADMIN_ENABLED=true
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./influx/config:/etc/influxdb
+      - ./influxdb:/var/lib/influxdb
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "14318:4318"   # OTLP HTTP
+      - "13200:3200"   # Tempo query
+    networks:
+      - monitoring
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    command:
+      - --kafka.server=host.docker.internal:29094
+      - --kafka.server=host.docker.internal:29095
+      - --kafka.server=host.docker.internal:29096
+      - --kafka.version=3.8.1
+    ports:
+      - "19308:9308"
+    networks:
+      - monitoring
+
 volumes:
   grafana-storage:
 
