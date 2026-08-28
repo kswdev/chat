@@ -1,0 +1,26 @@
+# MySQL과 다른 점: Kafka 3브로커는 역할이 전부 동일합니다(broker+controller 겸용).
+# 그래서 StatefulSet 하나로 3개를 다 표현할 수 있고, 여기 이 ConfigMap 값들도
+# 3개 pod가 전부 똑같이 씁니다. (pod마다 달라야 하는 NODE_ID, ADVERTISED_LISTENERS만
+# StatefulSet의 시작 스크립트에서 별도로 계산합니다 — 다음 파일에서 다룹니다.)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-common-config
+  namespace: chat-system
+data:
+  KAFKA_KRAFT_CLUSTER_ID: "2ce827af-446c-456f-9bf9-c2de30f1d3b5"
+  KAFKA_PROCESS_ROLES: "broker,controller"
+  ALLOW_PLAINTEXT_LISTENER: "yes"
+  KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+  KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+  KAFKA_LISTENERS: "INTERNAL://:9092,CONTROLLER://:9093"
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+  # quorum voters는 컨트롤러 역할을 하는 노드들의 "고정 주소 목록"이라, 애초에
+  # 개수가 유동적인 걸 지원하지 않습니다. 3개로 고정한다는 전제가 이 한 줄에 박혀있어요.
+  KAFKA_CONTROLLER_QUORUM_VOTERS: "0@kafka-0.kafka-headless.chat-system.svc.cluster.local:9093,1@kafka-1.kafka-headless.chat-system.svc.cluster.local:9093,2@kafka-2.kafka-headless.chat-system.svc.cluster.local:9093"
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "3"
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "3"
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "2"
+  KAFKA_MIN_INSYNC_REPLICAS: "2"
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+  KAFKA_LOG_DIRS: "/bitnami/kafka/data"

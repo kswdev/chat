@@ -1,0 +1,43 @@
+# kafka-ui는 상태가 없는(stateless) 조회용 도구라서 StatefulSet이 아니라 그냥 Deployment로
+# 충분합니다. PVC도 필요 없고, pod가 어떤 이름으로 뜨든 상관없어요 — 이게 StatefulSet과
+# Deployment를 가르는 핵심 기준입니다: "내가 다른 컴포넌트에게 안정적인 정체성으로
+# 기억되어야 하는가?" kafka-ui는 아니고, kafka 브로커 3개는 맞고요.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ui
+  namespace: chat-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-ui
+  template:
+    metadata:
+      labels:
+        app: kafka-ui
+    spec:
+      containers:
+        - name: kafka-ui
+          image: provectuslabs/kafka-ui:v0.7.2
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KAFKA_CLUSTERS_0_NAME
+              value: Local-Kafka-Cluster
+            - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+              value: "kafka-0.kafka-headless.chat-system.svc.cluster.local:9092,kafka-1.kafka-headless.chat-system.svc.cluster.local:9092,kafka-2.kafka-headless.chat-system.svc.cluster.local:9092"
+---
+# 일반 ClusterIP Service: 클러스터 밖에서는 직접 못 열고, 아래 안내처럼
+# kubectl port-forward로 잠깐 터널을 뚫어서 브라우저로 봅니다.
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui
+  namespace: chat-system
+spec:
+  selector:
+    app: kafka-ui
+  ports:
+    - port: 8080
+      targetPort: 8080

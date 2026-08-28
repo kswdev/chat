@@ -1,0 +1,24 @@
+# 여기서 재밌는 차이점 하나 — docker-compose에서는 6개 노드가 전부 "같은 호스트 IP"를
+# 공유해야 했기 때문에 포트를 6380~6385로 억지로 나눠 썼습니다. 근데 쿠버네티스에서는
+# pod마다 자기만의 고유 IP를 받기 때문에, 6개 pod 전부 그냥 표준 포트(6379/16379)를
+# 똑같이 써도 충돌이 안 납니다. "포트를 나눠 쓰던 이유" 자체가 사라지는 거예요.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster-config
+  namespace: chat-system
+data:
+  ALLOW_EMPTY_PASSWORD: "yes"
+  REDIS_PORT_NUMBER: "6379"
+  REDIS_CLUSTER_REPLICAS: "1"
+  # 클러스터를 "처음 구성"할 때만 쓰는 부트스트랩용 주소 목록이라, 여기는 IP가 아니라
+  # headless Service가 만들어주는 고정 DNS 이름을 그대로 씁니다. 이 이름들은 실행되는
+  # 시점에 실제 IP로 매번 새로 조회(resolve)되기 때문에, pod가 재시작돼서 IP가 바뀌어도
+  # 이 목록 자체는 안 바뀝니다.
+  REDIS_NODES: >-
+    redis-cluster-0.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-1.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-2.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-3.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-4.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-5.redis-cluster-headless.chat-system.svc.cluster.local:6379

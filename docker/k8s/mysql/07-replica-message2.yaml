@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-replica-message2
+  namespace: chat-system
+spec:
+  clusterIP: None
+  selector:
+    app: mysql-replica-message2
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-replica-message2
+  namespace: chat-system
+spec:
+  serviceName: mysql-replica-message2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-replica-message2
+  template:
+    metadata:
+      labels:
+        app: mysql-replica-message2
+    spec:
+      # initContainer: 메인 컨테이너가 뜨기 "전에" 반드시 끝나야 하는 준비 작업입니다.
+      # docker-compose의 depends_on(condition: service_healthy)를 k8s엔 그대로 옮길 방법이
+      # 없어서, 여기서 소스가 3306 포트로 응답할 때까지 직접 폴링하는 걸로 대체합니다.
+      initContainers:
+        - name: wait-for-source
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - "until nc -z mysql-source-message2 3306; do echo waiting for mysql-source-message2; sleep 3; done"
+      containers:
+        - name: mysql
+          image: mysql:8.0.40
+          args:
+            - --server-id=6
+            - --relay_log=/var/lib/mysql/mysql-relay-bin.log
+            - --read-only=1
+            - --enforce-gtid-consistency=ON
+            - --gtid-mode=ON
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: mysql-credentials, key: MYSQL_ROOT_PASSWORD }
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD"]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: mysql-init-replica-message2
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 5Gi

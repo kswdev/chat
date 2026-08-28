@@ -1,0 +1,33 @@
+# kafka-ui와 같은 이유로 Deployment. 상태 없는 조회용 도구입니다.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-insight
+  namespace: chat-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-insight
+  template:
+    metadata:
+      labels:
+        app: redis-insight
+    spec:
+      containers:
+        - name: redis-insight
+          image: redis/redisinsight:2.64.1
+          ports:
+            - containerPort: 5540
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-insight
+  namespace: chat-system
+spec:
+  selector:
+    app: redis-insight
+  ports:
+    - port: 5540
+      targetPort: 5540
