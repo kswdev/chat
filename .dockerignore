@@ -1,0 +1,12 @@
+.git
+.claude
+.gradle
+.idea
+build
+data
+docker
+ELK
+gradle
+*.md
+.gitignore
+*/build
