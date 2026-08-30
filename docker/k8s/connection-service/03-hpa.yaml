@@ -1,0 +1,22 @@
+# 지금까지 만든 MySQL/Kafka/Redis는 전부 "이유가 있어서 오토스케일링이 안 되는" 것들이었죠.
+# message-connection-flux는 Redis Pub/Sub 라스트마일 구조 덕분에 진짜로 상태 없는
+# (stateless) pod가 됐기 때문에, 여기서만 HPA가 원래 의도대로 동작합니다.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: message-connection-flux
+  namespace: chat-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: message-connection-flux
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

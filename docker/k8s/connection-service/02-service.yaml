@@ -1,0 +1,14 @@
+# web-gateway/application.yaml 의 "uri: ws://localhost:8090/" 하드코딩을
+# "uri: ws://message-connection-flux.chat-system.svc.cluster.local:8090/" 로 바꾸시면
+# 됩니다. ClusterIP Service라서 뒤에 떠있는 여러 pod로 알아서 로드밸런싱됩니다.
+apiVersion: v1
+kind: Service
+metadata:
+  name: message-connection-flux
+  namespace: chat-system
+spec:
+  selector:
+    app: message-connection-flux
+  ports:
+    - port: 8090
+      targetPort: 8090

@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: message-connection-flux
+  namespace: chat-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: message-connection-flux

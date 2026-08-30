@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-connection-flux
+  namespace: chat-system
+spec:
+  # 터미널 1
+  # kubectl get pods -n chat-system -l app=message-connection-flux
+  # 나온 pod 이름 2개를 확인하고
+
+  # kubectl port-forward pod/<pod이름-1> 8090:8090 -n chat-system
+
+  # 터미널 2 (새 창)
+  # kubectl port-forward pod/<pod이름-2> 8091:8090 -n chat-system
+  replicas: 2
+  selector:
+    matchLabels:
+      app: message-connection-flux
+  template:
+    metadata:
+      labels:
+        app: message-connection-flux
+    spec:
+      # scale-in/롤링 업데이트로 pod가 내려갈 때, 바로 죽이지 않고 잠깐(15초) 여유를 줘서
+      # 진행 중인 WebSocket 연결이 갑자기 뚝 끊기지 않고 클라이언트가 재연결할 시간을 벌게 합니다.
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: message-connection-flux
+          image: message-connection-flux:local   # 직접 빌드한 이미지 이름/태그로 바꿔주세요
+          ports:
+            - containerPort: 8090
+          env:
+            # 이게 이번 재설계의 핵심입니다. Kafka topic 이름 대신, 이 pod 자신의 이름을
+            # Redis Pub/Sub 채널 이름(ws:deliver:{POD_NAME})으로 씁니다. 코드에서
+            # System.getenv("POD_NAME")으로 읽어서 구독하도록 반영하시면 됩니다.
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: SERVER_PORT
+              value: "8090"
+          envFrom:
+            - configMapRef:
+                name: message-connection-flux-config
+          # HPA가 "CPU 사용률"을 계산하려면 분모가 되는 requests 값이 반드시 있어야 합니다.
+          # 지금은 임의값이라, 실제 부하 테스트(JMeter) 결과 보고 조정하시는 걸 추천해요.
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+          # Spring Boot Actuator(/actuator/health)가 있다는 전제입니다. 만약 이 의존성이
+          # 없으면 httpGet 대신 tcpSocket(port: 8090)으로 바꿔주세요.
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8090
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8090
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          lifecycle:
+            preStop:
+              exec:
+                # readiness를 먼저 내려서 Service가 이 pod로 새 연결을 안 보내게 만들고,
+                # 그 뒤 기존 연결들이 자연스럽게 마무리될 시간을 15초 줍니다.
+                command: ["sh", "-c", "sleep 15"]

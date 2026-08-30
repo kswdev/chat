@@ -1,0 +1,19 @@
+# 인프라 자체의 ConfigMap(kafka-common-config, redis-cluster-config)과는 다른 용도입니다.
+# 그건 "Kafka/Redis 서버 자신"의 설정이고, 이건 "그걸 찾아가는 클라이언트(앱)"의 설정이에요.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: message-connection-flux-config
+  namespace: chat-system
+data:
+  KAFKA_BOOTSTRAP_SERVERS: >-
+    kafka-0.kafka-headless.chat-system.svc.cluster.local:9092,
+    kafka-1.kafka-headless.chat-system.svc.cluster.local:9092,
+    kafka-2.kafka-headless.chat-system.svc.cluster.local:9092
+  REDIS_CLUSTER_NODES: >-
+    redis-cluster-0.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-1.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-2.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-3.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-4.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-5.redis-cluster-headless.chat-system.svc.cluster.local:6379
