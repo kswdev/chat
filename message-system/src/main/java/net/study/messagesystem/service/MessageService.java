@@ -12,7 +12,6 @@ import net.study.messagesystem.dto.kafka.MessageNotificationRecord;
 import net.study.messagesystem.dto.kafka.WriteMessageAckRecord;
 import net.study.messagesystem.dto.kafka.WriteMessageRecord;
 import net.study.messagesystem.dto.projection.MessageInfoProjection;
-import net.study.messagesystem.kafka.KafkaProducer;
 import net.study.messagesystem.repository.channel.UserChannelRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +28,7 @@ public class MessageService {
 
     private final PushService pushService;
     private final UserService userService;
-    private final KafkaProducer kafkaProducer;
+    private final RedisNotifier redisNotifier;
     private final SessionService sessionService;
     private final ChannelService channelService;
     private final MessageShardService messageShardService;
@@ -108,8 +107,8 @@ public class MessageService {
                 participantIds.remove(senderUserId);
             }
 
-            kafkaProducer.sendMessageUsingPartitionKey(
-                    topic, channelId, senderUserId,
+            redisNotifier.publish(
+                    topic,
                     new MessageNotificationRecord(senderUserId, channelId, messageSeqId, senderUsername, content, participantIds));
         });
 
@@ -120,10 +119,10 @@ public class MessageService {
 
     private void handleSenderMessage(String topic, UserId senderUserId, ChannelId channelId, MessageSeqId messageSeqId, Long serial) {
         updateLastReadMsgSeq(senderUserId, channelId, messageSeqId);
-        sendWriteAckMessage(topic, channelId, senderUserId, new WriteMessageAckRecord(senderUserId, serial, messageSeqId));
+        sendWriteAckMessage(topic, new WriteMessageAckRecord(senderUserId, serial, messageSeqId));
     }
 
-    private void sendWriteAckMessage(String topic, ChannelId channelId, UserId userId, WriteMessageAckRecord record) {
-        kafkaProducer.sendMessageUsingPartitionKey(topic, channelId, userId, record);
+    private void sendWriteAckMessage(String topic, WriteMessageAckRecord record) {
+        redisNotifier.publish(topic, record);
     }
 }

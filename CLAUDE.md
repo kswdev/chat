@@ -71,11 +71,19 @@ Client
         ├─→ /api/v1/auth/**   → message-auth (8081)   [JWT issuance]
         ├─→ /api/v1/user/**   → message-user (8082)   [user registration]
         └─→ /ws/v1/message    → message-connection-flux (8090)  [WebSocket]
-                                       ↓ Kafka (message-request)
+                                       ↓ Kafka (message-request / message-relay)
                                  message-system (8070)
-                                       ↓ MySQL shards + Redis
-                                       ↓ Kafka (push-notification)
-                                 message-push  [delivery to clients]
+                                       ↓ MySQL shards + Redis (세션 조회: userId → podName)
+                                       │
+                                       ├─(온라인)→ Redis Pub/Sub (ws:deliver:{podName})
+                                       │                 ↓
+                                       │         message-connection-flux  [구독 중인 그 pod]
+                                       │                 ↓ WebSocket
+                                       │               Client
+                                       │
+                                       └─(오프라인)→ Kafka (push-notification)
+                                                         ↓
+                                                   message-push  [모바일 푸시(APNs/FCM) 발송]
 ```
 
 ### Modules

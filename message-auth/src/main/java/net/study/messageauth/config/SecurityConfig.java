@@ -70,15 +70,7 @@ public class SecurityConfig {
     private void logoutHandler(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         response.setContentType(MediaType.TEXT_PLAIN_VALUE);
         response.setCharacterEncoding("UTF-8");
-        String message;
-
-        if (authentication != null && authentication.isAuthenticated()) {
-            response.setStatus(HttpStatus.OK.value());
-            message = "로그아웃 성공";
-        } else {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            message = "로그아웃 실패";
-        }
+        String message = "로그아웃 성공";
 
         try {
             response.getWriter().write(message);

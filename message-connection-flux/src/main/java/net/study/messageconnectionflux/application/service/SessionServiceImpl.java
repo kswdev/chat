@@ -6,8 +6,8 @@ import net.study.messagecommon.constant.IdKey;
 import net.study.messagecommon.constant.KeyPrefix;
 import net.study.messageconnectionflux.application.port.in.SessionService;
 import net.study.messageconnectionflux.application.port.out.CachePort;
+import net.study.messageconnectionflux.config.PodIdentity;
 import net.study.messageconnectionflux.domain.user.UserId;
-import net.study.messageconnectionflux.adpter.kafka.ListenTopicCreator;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -16,14 +16,14 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class SessionServiceImpl implements SessionService {
 
-    private final ListenTopicCreator listenTopicCreator;
+    private final PodIdentity podIdentity;
     private final CachePort cachePort;
     private final long TTL = 300;
 
     public Mono<Boolean> setOnline(UserId userId, boolean status) {
         String key = buildUserLocationKey(userId);
         if (status)
-            return cachePort.set(key, listenTopicCreator.getListenTopic(), TTL);
+            return cachePort.set(key, podIdentity.getPodName(), TTL);
         else {
             cachePort.delete(key);
             return Mono.just(true);

@@ -25,19 +25,6 @@ public class KafkaProducer {
     @Value("${message-system.kafka.topics.push}")
     private String pushTopic;
 
-    public void sendMessageUsingPartitionKey(String topic, ChannelId channelId, UserId userId, RecordInterface recordInterface) {
-        String partitionKey = "%d-%d".formatted(channelId.id(), userId.id());
-        jsonUtil.toJson(recordInterface)
-                .ifPresent(record -> kafkaTemplate.send(topic, partitionKey, record)
-                        .whenComplete(logResult(topic, record, partitionKey)));
-    }
-
-    public void sendResponse(String topic, RecordInterface recordInterface) {
-        jsonUtil.toJson(recordInterface)
-                .ifPresent(record -> kafkaTemplate.send(topic, record)
-                        .whenComplete(logResult(topic, record, null)));
-    }
-
     public void sendPushNotification(RecordInterface recordInterface) {
         jsonUtil.toJson(recordInterface)
                 .ifPresent(record -> kafkaTemplate.send(pushTopic, record)

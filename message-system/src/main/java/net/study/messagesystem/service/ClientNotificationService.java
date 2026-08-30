@@ -4,10 +4,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagecommon.constant.MessageType;
-import net.study.messagesystem.domain.channel.ChannelId;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.kafka.*;
-import net.study.messagesystem.kafka.KafkaProducer;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -16,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class ClientNotificationService {
 
     private final SessionService sessionService;
-    private final KafkaProducer kafkaProducer;
+    private final RedisNotifier redisNotifier;
     private final PushService pushService;
 
     @PostConstruct
@@ -38,15 +36,15 @@ public class ClientNotificationService {
         sessionService
                 .getListenTopic(userId)
                 .ifPresentOrElse(
-                        topic -> kafkaProducer.sendResponse(topic, recordInterface),
+                        topic -> redisNotifier.publish(topic, recordInterface),
                         () -> pushService.pushMessage(recordInterface));
     }
 
-    public void sendMessageUsingPartitionKey(UserId userId, ChannelId channelId, RecordInterface recordInterface) {
+    public void sendMessageUsingPartitionKey(UserId userId, RecordInterface recordInterface) {
         sessionService
                 .getListenTopic(userId)
                 .ifPresentOrElse(
-                        topic -> kafkaProducer.sendMessageUsingPartitionKey(topic, channelId, userId, recordInterface),
+                        podName -> redisNotifier.publish(podName, recordInterface),
                         () -> pushService.pushMessage(recordInterface));
     }
 
@@ -54,7 +52,7 @@ public class ClientNotificationService {
         sessionService
                 .getListenTopic(errorResponseRecord.userId())
                 .ifPresentOrElse(
-                        topic -> kafkaProducer.sendResponse(topic, errorResponseRecord),
+                        podName -> redisNotifier.publish(podName, errorResponseRecord),
                         () -> log.warn("Send error failed. type: {}, error: {}, user: {}",
                                 errorResponseRecord.messageType(),
                                 errorResponseRecord.message(),
