@@ -53,7 +53,7 @@ message-system:
 
 logging:
   level:
-    org.hibernate.orm.jdbc.bind: trace
+    org.hibernate.orm.jdbc.bind: error
     sun.rmi: info
     javax.management: info
     root: info

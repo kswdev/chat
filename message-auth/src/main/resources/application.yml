@@ -6,9 +6,9 @@ spring:
   datasource:
     source:
       hikari:
-        jdbc-url: jdbc:mysql://localhost:13306/chat?useSSL=false&allowPublicKeyRetrieval=true
-        username: dev_user
-        password: dev_password
+        jdbc-url: ${SOURCE_DB_URL:jdbc:mysql://localhost:13306/chat?useSSL=false&allowPublicKeyRetrieval=true}
+        username: ${DB_USERNAME:dev_user}
+        password: ${DB_PASSWORD:dev_password}
         driver-class-name: com.mysql.cj.jdbc.Driver
         pool-name: SourceConnectionPool
         minimum-idle: 10
@@ -18,9 +18,9 @@ spring:
 
     replica:
       hikari:
-        jdbc-url: jdbc:mysql://localhost:13307/chat?useSSL=false&allowPublicKeyRetrieval=true
-        username: dev_user
-        password: dev_password
+        jdbc-url: ${REPLICA_DB_URL:jdbc:mysql://localhost:13307/chat?useSSL=false&allowPublicKeyRetrieval=true}
+        username: ${DB_USERNAME:dev_user}
+        password: ${DB_PASSWORD:dev_password}
         driver-class-name: com.mysql.cj.jdbc.Driver
         pool-name: ReplicaConnectionPool
         minimum-idle: 10

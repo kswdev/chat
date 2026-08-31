@@ -2,14 +2,14 @@
 # 멀티모듈 프로젝트라서 settings.gradle과 다른 모듈들도 다 있어야
 # ":message-connection-flux:bootJar" 태스크가 의존성을 제대로 찾습니다.
 # 그래서 프로젝트 루트 전체를 복사해서 빌드합니다.
-FROM gradle:8.10-jdk21 AS build
+FROM gradle:8.10-jdk17 AS build
 WORKDIR /workspace
 COPY . .
-RUN gradle :message-connection-flux:bootJar -x test --no-daemon
+RUN ./gradlew :message-connection-flux:bootJar -x test --no-daemon
 
 # ── 2단계: 실행 ──────────────────────────────────────────────
 # JDK가 아니라 JRE만 있는 slim 이미지로 최종 크기를 줄입니다.
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # non-root로 실행 (컨테이너가 루트 권한으로 뜨는 걸 막는 기본적인 보안 습관)

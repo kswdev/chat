@@ -24,7 +24,10 @@ metadata:
 spec:
   serviceName: redis-cluster-headless
   replicas: 6
-
+  # 처음엔 OrderedReady + PING 기반 readiness면 괜찮을 거라 판단했는데, 실제로는
+  # bitnami 이미지가 자기가 creator든 아니든 시작할 때 REDIS_NODES에 적힌 6개
+  # 상대가 전부 존재하는지부터 확인하려고 합니다. 그래서 Kafka와 똑같이 6개를
+  # 동시에 띄워야 서로를 바로 찾을 수 있습니다.
   podManagementPolicy: Parallel
   selector:
     matchLabels:

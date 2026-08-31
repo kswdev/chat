@@ -23,24 +23,24 @@ spring:
 
       routes:
         - id: message-auth
-          uri: http://localhost:8081/
+          uri: http://message-auth.chat-system.svc.cluster.local:8081/
           predicates:
             - Path=/api/v1/auth/**
 
         - id: message-user-register
-          uri: http://localhost:8082/
+          uri: http://message-user.chat-system.svc.cluster.local:8082/
           predicates:
             - Path=/api/v1/user/register
 
         - id: message-user-unregister
-          uri: http://localhost:8082/
+          uri: http://message-user.chat-system.svc.cluster.local:8082/
           predicates:
             - Path=/api/v1/user/unregister
           filters:
             - AuthorizationHeaderFilter
 
         - id: websocket-route-message
-          uri: ws://localhost:8090/
+          uri: ws://message-connection-flux.chat-system.svc.cluster.local:8090/
           predicates:
             - Path=/ws/v1/message
           filters:
@@ -78,4 +78,4 @@ management:
       probability: 1.0   # 개발/테스트 중엔 100% 샘플링, 운영에선 0.1 등으로 낮춤
   otlp:
     tracing:
-      endpoint: http://localhost:14318/v1/traces
+      endpoint: http://tempo.monitoring.svc.cluster.local:4318/v1/traces

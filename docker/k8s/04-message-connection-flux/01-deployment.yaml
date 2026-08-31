@@ -4,14 +4,6 @@ metadata:
   name: message-connection-flux
   namespace: chat-system
 spec:
-  # 터미널 1
-  # kubectl get pods -n chat-system -l app=message-connection-flux
-  # 나온 pod 이름 2개를 확인하고
-
-  # kubectl port-forward pod/<pod이름-1> 8090:8090 -n chat-system
-
-  # 터미널 2 (새 창)
-  # kubectl port-forward pod/<pod이름-2> 8091:8090 -n chat-system
   replicas: 2
   selector:
     matchLabels:

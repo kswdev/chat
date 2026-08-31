@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning-datasources
+  namespace: monitoring
+data:
+  datasources.yml: |
+    apiVersion: 1
+
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        # 컨테이너 이름 "prometheus" 대신, Helm(kube-prometheus-stack)이 만든
+        # Service 이름입니다. 정확한 이름은 `kubectl get svc -n monitoring`으로
+        # 확인해주세요 — 보통 <helm release 이름>-kube-prom-prometheus 형태입니다.
+        url: http://prometheus-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090
+        isDefault: true
+        editable: true
+
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo.monitoring.svc.cluster.local:3200
+        editable: true
+
+      - name: InfluxDB
+        type: influxdb
+        access: proxy
+        url: http://influxdb.monitoring.svc.cluster.local:8086
+        database: jmeter
+        editable: true

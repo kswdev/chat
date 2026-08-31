@@ -58,7 +58,9 @@ public class SecurityConfig {
                 .addFilterAt(restApiLoginAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
-                                        "/api/v1/auth/login").permitAll()
+                                        "/actuator/health",
+                                        "/api/v1/auth/login"
+                                ).permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(auth -> auth.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(logout -> logout

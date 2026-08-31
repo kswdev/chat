@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-system
+  namespace: chat-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: message-system
+  template:
+    metadata:
+      labels:
+        app: message-system
+    spec:
+      containers:
+        - name: message-system
+          image: message-system:local
+          ports:
+            - containerPort: 8070
+          envFrom:
+            - configMapRef:
+                name: message-system-config
+          env:
+            # 이미 만들어둔 mysql-credentials Secret을 재사용합니다 (계정 정보를 중복 관리 안 하려고).
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef: { name: mysql-credentials, key: MYSQL_USER }
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: mysql-credentials, key: MYSQL_PASSWORD }
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8070
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8070
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: message-system
+  namespace: chat-system
+spec:
+  selector:
+    app: message-system
+  ports:
+    - port: 8070
+      targetPort: 8070
+---
+# message-connection-flux와 달리, 여기는 애초에 stateless HTTP 서비스가 아니라
+# "Kafka consumer group에 참여하는 워커"입니다. Kafka consumer group은 멤버가
+# 늘고 줄 때마다 파티션을 알아서 재분배해주기 때문에, 이 서비스는 원래부터
+# HPA랑 궁합이 좋습니다 (message-connection-flux처럼 별도의 라우팅 재설계가 필요 없었어요).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: message-system
+  namespace: chat-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: message-system
+  minReplicas: 1
+  maxReplicas: 1
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: message-system
+  namespace: chat-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: message-system
