@@ -32,10 +32,6 @@ kind: Service
 metadata:
   name: kafka-exporter
   namespace: monitoring
-  labels:
-    # kube-prometheus-stack의 Prometheus가 "release: <helm release 이름>" 라벨이 붙은
-    # ServiceMonitor만 인식하도록 기본 설정돼 있어서, 여기도 맞춰줍니다.
-    release: prometheus-stack
 spec:
   selector:
     app: kafka-exporter
@@ -43,18 +39,3 @@ spec:
     - name: metrics
       port: 9308
       targetPort: 9308
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: kafka-exporter
-  namespace: monitoring
-  labels:
-    release: prometheus-stack
-spec:
-  selector:
-    matchLabels:
-      app: kafka-exporter
-  endpoints:
-    - port: metrics
-      interval: 15s
