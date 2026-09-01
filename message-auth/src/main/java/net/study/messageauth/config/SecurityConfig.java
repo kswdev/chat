@@ -33,7 +33,7 @@ import java.io.IOException;
 public class SecurityConfig {
 
     private final TokenIssuer tokenIssuer;
-
+;
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -58,7 +58,7 @@ public class SecurityConfig {
                 .addFilterAt(restApiLoginAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
-                                        "/actuator/health",
+                                        "/actuator/**",
                                         "/api/v1/auth/login"
                                 ).permitAll()
                                 .anyRequest().authenticated())
