@@ -46,7 +46,7 @@ spec:
                 secretKeyRef: { name: mysql-credentials, key: MYSQL_PASSWORD }
           resources:
             requests: { cpu: "200m", memory: "384Mi" }
-            limits: { cpu: "400m", memory: "512Mi" }
+            limits: { cpu: "800m", memory: "1024Mi" }
           readinessProbe:
             httpGet: { path: /actuator/health, port: 8082 }
             initialDelaySeconds: 15
