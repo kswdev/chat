@@ -38,6 +38,12 @@ spring:
         format_sql: true
     defer-datasource-initialization: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
 logging:
   level:
     org.hibernate.orm.jdbc.bind: trace
