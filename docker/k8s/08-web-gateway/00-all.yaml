@@ -5,7 +5,7 @@ metadata:
   namespace: chat-system
 spec:
   replicas: 1  # 학습/로컬 단계라 1개만. 나중에 늘리려면 WebSocket 업그레이드 요청도
-               # 여러 pod로 분산돼야 하니 그때 HPA를 추가하면 됩니다.
+  # 여러 pod로 분산돼야 하니 그때 HPA를 추가하면 됩니다.
   selector:
     matchLabels:
       app: web-gateway

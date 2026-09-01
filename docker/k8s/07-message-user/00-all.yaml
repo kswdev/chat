@@ -79,7 +79,7 @@ spec:
     kind: Deployment
     name: message-user
   minReplicas: 1
-  maxReplicas: 1
+  maxReplicas: 3
   metrics:
     - type: Resource
       resource:

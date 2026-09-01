@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-cluster
+  namespace: chat-system
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: redis-cluster
+  endpoints:
+    - port: metrics
+      interval: 15s

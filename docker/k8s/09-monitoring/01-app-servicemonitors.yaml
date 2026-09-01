@@ -1,0 +1,79 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: message-connection-flux
+  namespace: chat-system
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: message-connection-flux
+  endpoints:
+    - targetPort: 8090
+      path: /actuator/prometheus
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: message-system
+  namespace: chat-system
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: message-system
+  endpoints:
+    - targetPort: 8070
+      path: /actuator/prometheus
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: message-auth
+  namespace: chat-system
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: message-auth
+  endpoints:
+    - targetPort: 8081
+      path: /actuator/prometheus
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: message-user
+  namespace: chat-system
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: message-user
+  endpoints:
+    - targetPort: 8082
+      path: /actuator/prometheus
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: web-gateway
+  namespace: chat-system
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: web-gateway
+  endpoints:
+    - targetPort: 8080
+      path: /actuator/prometheus
+      interval: 15s

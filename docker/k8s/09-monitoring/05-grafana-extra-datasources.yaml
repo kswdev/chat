@@ -1,0 +1,26 @@
+# kube-prometheus-stack의 Grafana는 grafana_datasource: "1" 라벨이 붙은 ConfigMap을
+# 자동으로 감지해서 datasource로 등록해주는 sidecar가 기본 내장돼 있습니다.
+# Prometheus는 Helm이 자체적으로 이미 datasource로 등록해두니 여기선 Tempo/InfluxDB만 추가합니다.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-extra-datasources
+  namespace: monitoring
+  labels:
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo.monitoring.svc.cluster.local:3200
+        editable: true
+
+      - name: InfluxDB
+        type: influxdb
+        access: proxy
+        url: http://influxdb.monitoring.svc.cluster.local:8086
+        database: excilys
+        editable: true

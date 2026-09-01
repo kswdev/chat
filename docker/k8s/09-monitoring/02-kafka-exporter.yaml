@@ -32,6 +32,8 @@ kind: Service
 metadata:
   name: kafka-exporter
   namespace: monitoring
+  labels:
+    release: prometheus-stack
 spec:
   selector:
     app: kafka-exporter
@@ -39,3 +41,18 @@ spec:
     - name: metrics
       port: 9308
       targetPort: 9308
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kafka-exporter
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: kafka-exporter
+  endpoints:
+    - port: metrics
+      interval: 15s

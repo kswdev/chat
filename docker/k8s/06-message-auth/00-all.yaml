@@ -72,7 +72,7 @@ spec:
     kind: Deployment
     name: message-auth
   minReplicas: 1
-  maxReplicas: 1
+  maxReplicas: 3
   metrics:
     - type: Resource
       resource:
