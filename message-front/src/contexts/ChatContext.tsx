@@ -39,7 +39,7 @@ import type {
 // State & Reducer
 // ──────────────────────────────────────────────
 
-interface ChatState {
+export interface ChatState {
   channels: Channel[];
   /** channelId → messages (sorted by messageSeqId) */
   messages: Record<number, ChatMessage[]>;
@@ -54,7 +54,7 @@ interface ChatState {
   error: string | null;
 }
 
-type ChatAction =
+export type ChatAction =
   | { type: 'SET_CHANNELS'; channels: Channel[] }
   | { type: 'ADD_CHANNEL'; channel: Channel }
   | { type: 'REMOVE_CHANNEL'; channelId: number }
@@ -72,7 +72,7 @@ type ChatAction =
   | { type: 'CLEAR_NOTIFICATIONS' }
   | { type: 'SET_ERROR'; message: string | null };
 
-function chatReducer(state: ChatState, action: ChatAction): ChatState {
+export function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case 'SET_CHANNELS':
       return { ...state, channels: action.channels };
@@ -182,7 +182,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
   }
 }
 
-const initialState: ChatState = {
+export const initialState: ChatState = {
   channels: [],
   messages: {},
   lastSeqId: {},
