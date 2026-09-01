@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.dto.kafka.RecordInterface;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamRecords;
@@ -12,6 +13,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+
+import static org.springframework.data.redis.connection.RedisStreamCommands.*;
 
 /**
  * 예전엔 KafkaProducer.sendResponse(topic, ...) / sendMessageUsingPartitionKey(topic, ...)가
@@ -44,8 +47,10 @@ public class RedisNotifier {
                             .ofMap(Map.of("payload", payload))
                             .withStreamKey(channel);
 
-                    RecordId id = stringRedisTemplate.opsForStream().add(record);
-                    stringRedisTemplate.opsForStream().trim(channel, MAX_STREAM_LENGTH);
+                    RecordId id = stringRedisTemplate.opsForStream()
+                            .add(record, XAddOptions.maxlen(MAX_STREAM_LENGTH).approximateTrimming(true));
+
+                    log.info("Redis stream add. channel: {}, recordId: {}", channel, id);
                 },
                 () -> log.error("Failed to serialize record for channel: {}", channel)
         );
