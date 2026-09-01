@@ -54,6 +54,8 @@ kind: Service
 metadata:
   name: message-system
   namespace: chat-system
+  labels:
+    app: message-system
 spec:
   selector:
     app: message-system
@@ -76,7 +78,7 @@ spec:
     kind: Deployment
     name: message-system
   minReplicas: 1
-  maxReplicas: 1
+  maxReplicas: 3
   metrics:
     - type: Resource
       resource:

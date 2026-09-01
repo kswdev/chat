@@ -54,6 +54,8 @@ kind: Service
 metadata:
   name: message-auth
   namespace: chat-system
+  labels:
+    app: message-auth
 spec:
   selector:
     app: message-auth
@@ -72,7 +74,7 @@ spec:
     kind: Deployment
     name: message-auth
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 6
   metrics:
     - type: Resource
       resource:

@@ -25,6 +25,7 @@ kubectl apply -f 02-kafka-exporter.yaml
 kubectl apply -f 03-tempo.yaml
 kubectl apply -f 04-influxdb.yaml
 kubectl apply -f 05-grafana-extra-datasources.yaml
+kubectl apply -f 06-redis-servicemonitor.yaml
 ```
 
 ## 2. InfluxDB에 database 생성 (JMeter Backend Listener용)

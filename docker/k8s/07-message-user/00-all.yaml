@@ -61,6 +61,8 @@ kind: Service
 metadata:
   name: message-user
   namespace: chat-system
+  labels:
+    app: message-system
 spec:
   selector:
     app: message-user

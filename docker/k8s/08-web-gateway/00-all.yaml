@@ -36,6 +36,8 @@ kind: Service
 metadata:
   name: web-gateway
   namespace: chat-system
+  labels:
+    app: web-gateway
 spec:
   selector:
     app: web-gateway

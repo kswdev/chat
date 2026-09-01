@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: redis-cluster-headless
   namespace: chat-system
+  labels:
+    app: redis-cluster
 spec:
   clusterIP: None
   # Kafka와 같은 이유입니다 — 6개 노드가 클러스터를 처음 구성할 때 서로를
@@ -84,6 +86,20 @@ spec:
               command: ["redis-cli", "-p", "6379", "ping"]
             initialDelaySeconds: 30
             periodSeconds: 20
+        # 사이드카: 같은 pod 안에서 로컬(localhost)로 자기 자신의 redis만 모니터링합니다.
+        # 6개 pod 전부 이 컨테이너를 갖게 되니, 결과적으로 "노드마다 자기 지표를 내보내는"
+        # 구조가 되고, Prometheus가 headless Service를 통해 6개를 각각 별도 타겟으로 긁습니다.
+        - name: redis-exporter
+          image: oliver006/redis_exporter:latest
+          env:
+            - name: REDIS_ADDR
+              value: "redis://localhost:6379"
+          ports:
+            - containerPort: 9121
+              name: metrics
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits: { cpu: "100m", memory: "128Mi" }
   volumeClaimTemplates:
     - metadata:
         name: data

@@ -6,6 +6,8 @@ kind: Service
 metadata:
   name: message-connection-flux
   namespace: chat-system
+  labels:
+    app: message-connection-flux
 spec:
   selector:
     app: message-connection-flux
