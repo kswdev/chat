@@ -5,8 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import net.study.messagesystem.dto.kafka.RecordInterface;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * 예전엔 KafkaProducer.sendResponse(topic, ...) / sendMessageUsingPartitionKey(topic, ...)가
@@ -22,6 +27,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RedisNotifier {
 
+    private static final long MAX_STREAM_LENGTH = 1000;
+
     private final StringRedisTemplate stringRedisTemplate;
     private final JsonUtil jsonUtil;
 
@@ -33,10 +40,12 @@ public class RedisNotifier {
 
         jsonUtil.toJson(recordInterface).ifPresentOrElse(
                 payload -> {
-                    // Pub/Sub은 발행 시점에 구독자가 없으면 그냥 유실됩니다(디스크에 안 남음).
-                    // Kafka topic과 달리 재시도/재처리 개념이 없다는 걸 감안하고 쓰는 자리입니다.
-                    Long received = stringRedisTemplate.convertAndSend(channel, payload);
-                    log.info("Redis publish. channel: {}, subscribers: {}", channel, received);
+                    MapRecord<String, String, String> record = StreamRecords.newRecord()
+                            .ofMap(Map.of("payload", payload))
+                            .withStreamKey(channel);
+
+                    RecordId id = stringRedisTemplate.opsForStream().add(record);
+                    stringRedisTemplate.opsForStream().trim(channel, MAX_STREAM_LENGTH);
                 },
                 () -> log.error("Failed to serialize record for channel: {}", channel)
         );

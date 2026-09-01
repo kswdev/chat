@@ -7,16 +7,17 @@ import net.study.messageconnectionflux.adpter.in.kafka.RecordDispatcher;
 import net.study.messageconnectionflux.application.dto.kafka.RecordInterface;
 import net.study.messageconnectionflux.config.PodIdentity;
 import net.study.messageconnectionflux.util.JsonUtil;
+import org.springframework.data.redis.connection.stream.Consumer;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
+import org.springframework.data.redis.core.ReactiveStreamOperations;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-/**
- * ListenTopicConsumer(Kafka)를 대체합니다. 이 pod 이름으로 만들어진 Redis 채널을
- * 구독하다가, message-system이 PUBLISH한 메시지를 받으면 기존과 동일하게
- * RecordDispatcher로 넘겨서 처리합니다. dispatch 이후 로직(핸들러, WebSocket 전달)은
- * 전송 수단이 Kafka든 Redis든 상관없이 그대로 재사용됩니다.
- */
+import java.time.Duration;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,19 +28,33 @@ public class RedisChannelSubscriber {
     private final RecordDispatcher recordDispatcher;
     private final JsonUtil jsonUtil;
 
+    private static final String CONSUMER_GROUP = "flux-consumer-group";
+
     @PostConstruct
     public void subscribe() {
         String channel = podIdentity.getDeliveryChannel();
+        String consumerName = podIdentity.getPodName();
 
-        redisOperations.listenToChannel(channel)
-                .doOnSubscribe(s -> log.info("Subscribed to Redis channel: {}", channel))
-                .flatMap(message -> {
-                    String payload = message.getMessage();
-                    log.info("received message from channel: {} payload: {}", channel, payload);
+        ReactiveStreamOperations<String, String, String> streamOps =
+                redisOperations.<String, String>opsForStream();
+
+        streamOps.createGroup(channel, ReadOffset.from("0"), CONSUMER_GROUP)
+                .onErrorResume(e -> Mono.empty())
+                .thenMany(
+                        streamOps.read(
+                                Consumer.from(CONSUMER_GROUP, consumerName),
+                                StreamReadOptions.empty().count(10).block(Duration.ofSeconds(2)),
+                                StreamOffset.create(channel, ReadOffset.lastConsumed())
+                        ).repeat()
+                )
+                .flatMap(record -> {
+                    String payload = record.getValue().get("payload");
+                    log.info("received message from stream: {} recordId: {} payload: {}", channel, record.getId(), payload);
 
                     return jsonUtil.fromJson(payload, RecordInterface.class)
                             .flatMap(recordInterface -> Mono.fromRunnable(() -> recordDispatcher.dispatch(recordInterface)))
-                            .doOnError(e -> log.error("Error processing redis message: {}", payload, e));
+                            .then(streamOps.acknowledge(CONSUMER_GROUP, record))
+                            .doOnError(e -> log.error("Error processing stream message: {}", payload, e));
                 }, 3)
                 .subscribe();
     }
