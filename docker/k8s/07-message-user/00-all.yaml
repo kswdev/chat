@@ -62,7 +62,7 @@ metadata:
   name: message-user
   namespace: chat-system
   labels:
-    app: message-system
+    app: message-user
 spec:
   selector:
     app: message-user

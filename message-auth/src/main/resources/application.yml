@@ -44,6 +44,10 @@ management:
       exposure:
         include: health,info,prometheus
 
+  metrics:
+    tags:
+      application: message-auth
+
 logging:
   level:
     org.hibernate.orm.jdbc.bind: trace
