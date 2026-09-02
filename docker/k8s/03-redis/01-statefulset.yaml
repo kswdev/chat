@@ -94,6 +94,8 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://localhost:6379"
+            - name: REDIS_EXPORTER_CHECK_STREAMS      # ← 이 두 줄 추가
+              value: "*"
           ports:
             - containerPort: 9121
               name: metrics
