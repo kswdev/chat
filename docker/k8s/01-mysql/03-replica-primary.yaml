@@ -46,6 +46,7 @@ spec:
             - --read-only=1
             - --enforce-gtid-consistency=ON
             - --gtid-mode=ON
+            - --max_connections=502
           ports:
             - containerPort: 3306
           env:
