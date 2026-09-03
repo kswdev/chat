@@ -9,6 +9,7 @@ import net.study.messageauth.auth.token.TokenIssuer;
 import net.study.messageauth.auth.token.jwt.JwtIssuer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,11 +36,13 @@ public class SecurityConfig {
     private final TokenIssuer tokenIssuer;
 ;
     @Bean
+    @Profile("!load-test")
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
+    @Profile("!load-test")
     public AuthenticationManager authenticationManager(UserDetailsService detailsService, PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(detailsService);
