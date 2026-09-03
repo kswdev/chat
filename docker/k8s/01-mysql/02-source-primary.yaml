@@ -40,6 +40,7 @@ spec:
             - --binlog-format=ROW
             - --enforce-gtid-consistency=ON
             - --gtid-mode=ON
+            - --max_connections=500
           ports:
             - containerPort: 3306
           env:
