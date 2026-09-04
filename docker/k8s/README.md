@@ -18,13 +18,40 @@
 
 ## 전체 적용 순서
 
+
 ```bash
+# 0. metrics server
+# metrics-server 공식 매니페스트 적용
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# kind 환경 전용 우회 — kubelet 인증서가 클러스터 CA로 서명 안 돼있어서 필요
+kubectl patch deployment metrics-server -n kube-system --type='json' \
+  -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+
 # 1. 인프라
 kubectl apply -f 01-mysql/00-namespace.yaml
 kubectl apply -f 01-mysql/01-secret.yaml
 kubectl apply -f 01-mysql/  # 나머지 6개 (source/replica) 한 번에
 kubectl apply -f 02-kafka/
 kubectl apply -f 03-redis/
+
+kubectl create configmap mysql-init-source \
+  --from-file=./init-scripts-source -n chat-system
+
+kubectl create configmap mysql-init-replica \
+  --from-file=./init-scripts-replica -n chat-system
+  
+kubectl create configmap mysql-init-source-message1 \
+  --from-file=./init-scripts-source-message1 -n chat-system
+
+kubectl create configmap mysql-init-replica-message1 \
+  --from-file=./init-scripts-replica-message1 -n chat-system
+
+kubectl create configmap mysql-init-source-message2 \
+  --from-file=./init-scripts-source-message2 -n chat-system
+
+kubectl create configmap mysql-init-replica-message2 \
+  --from-file=./init-scripts-replica-message2 -n chat-system
 
 # 2. 애플리케이션 (각 폴더의 Dockerfile로 이미지 빌드 + kind load 먼저 해야 함)
 kubectl apply -f 04-message-connection-flux/
