@@ -74,7 +74,7 @@ spec:
       volumes:
         - name: init-scripts
           configMap:
-            name: mysql-init-source
+            name: mysql-init-source-message2
   # volumeClaimTemplates: StatefulSet만의 기능입니다. Deployment는 모든 Pod가 볼륨을
   # 공유하거나 아예 없는 걸 전제로 하는데, StatefulSet은 Pod마다 "자기만의" PVC를
   # 자동으로 만들어줍니다. Pod가 재시작돼도 같은 PVC에 다시 붙어서 데이터가 유지됩니다.
