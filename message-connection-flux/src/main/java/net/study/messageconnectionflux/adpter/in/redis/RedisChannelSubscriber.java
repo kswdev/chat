@@ -7,15 +7,14 @@ import net.study.messageconnectionflux.adpter.in.kafka.RecordDispatcher;
 import net.study.messageconnectionflux.application.dto.kafka.RecordInterface;
 import net.study.messageconnectionflux.config.PodIdentity;
 import net.study.messageconnectionflux.util.JsonUtil;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.ReadOffset;
-import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.connection.stream.StreamReadOptions;
+import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.data.redis.core.ReactiveStreamOperations;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 
 @Slf4j
@@ -36,26 +35,53 @@ public class RedisChannelSubscriber {
         String consumerName = podIdentity.getPodName();
 
         ReactiveStreamOperations<String, String, String> streamOps =
-                redisOperations.<String, String>opsForStream();
+                redisOperations.opsForStream();
 
-        streamOps.createGroup(channel, ReadOffset.from("0"), CONSUMER_GROUP)
-                .onErrorResume(e -> Mono.empty())
-                .thenMany(
-                        streamOps.read(
-                                Consumer.from(CONSUMER_GROUP, consumerName),
-                                StreamReadOptions.empty().count(10).block(Duration.ofSeconds(2)),
-                                StreamOffset.create(channel, ReadOffset.lastConsumed())
-                        ).repeat()
-                )
-                .flatMap(record -> {
-                    String payload = record.getValue().get("payload");
-                    log.info("received message from stream: {} recordId: {} payload: {}", channel, record.getId(), payload);
-
-                    return jsonUtil.fromJson(payload, RecordInterface.class)
-                            .flatMap(recordInterface -> Mono.fromRunnable(() -> recordDispatcher.dispatch(recordInterface)))
-                            .then(streamOps.acknowledge(CONSUMER_GROUP, record))
-                            .doOnError(e -> log.error("Error processing stream message: {}", payload, e));
-                }, 3)
+        ensureConsumerGroupExists(channel)
+                .thenMany(readStream(streamOps, channel, consumerName))
+                .doOnSubscribe(s -> log.info("Subscribed to Redis stream: {} as consumer: {}", channel, consumerName))
+                .flatMap(mapRecord -> handleRecord(streamOps, channel, mapRecord), 3)
                 .subscribe();
+    }
+
+    private Mono<String> ensureConsumerGroupExists(String channel) {
+        return redisOperations.execute(connection ->
+                        connection.streamCommands().xGroupCreate(
+                                ByteBuffer.wrap(channel.getBytes()),
+                                CONSUMER_GROUP,
+                                ReadOffset.from("0"),
+                                true   // MK_STREAM
+                        ))
+                .next()
+                .onErrorResume(this::isBusyGroup, e -> Mono.empty());
+    }
+
+    private boolean isBusyGroup(Throwable e) {
+        return e.getMessage().contains("BUSYGROUP");
+    }
+
+    private Flux<MapRecord<String, String, String>> readStream(
+            ReactiveStreamOperations<String, String, String> streamOps,
+            String channel, String consumerName
+    ) {
+        return streamOps.read(
+                Consumer.from(CONSUMER_GROUP, consumerName),
+                StreamReadOptions.empty().count(10).block(Duration.ofSeconds(2)),
+                StreamOffset.create(channel, ReadOffset.lastConsumed())
+        ).repeat();
+    }
+
+    private Mono<Void> handleRecord(
+            ReactiveStreamOperations<String, String, String> streamOps,
+            String channel, MapRecord<String, String, String> mapRecord
+    ) {
+        String payload = mapRecord.getValue().get("payload");
+        log.info("received message from stream: {} recordId: {} payload: {}", channel, mapRecord.getId(), payload);
+
+        return jsonUtil.fromJson(payload, RecordInterface.class)
+                .flatMap(recordInterface -> Mono.fromRunnable(() -> recordDispatcher.dispatch(recordInterface)))
+                .then(streamOps.acknowledge(CONSUMER_GROUP, mapRecord))
+                .doOnError(e -> log.error("Error processing stream message: {}", payload, e))
+                .then();
     }
 }
