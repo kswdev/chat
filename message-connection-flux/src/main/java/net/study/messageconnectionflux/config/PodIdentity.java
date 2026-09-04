@@ -1,5 +1,6 @@
 package net.study.messageconnectionflux.config;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PodIdentity {
 
+    @Getter
     private final String podName;
     private final String channelPrefix;
 
@@ -22,11 +24,6 @@ public class PodIdentity {
         this.channelPrefix = channelPrefix;
     }
 
-    public String getPodName() {
-        return podName;
-    }
-
-    /** message-system이 이 인스턴스로 메시지를 보낼 때 PUBLISH할 채널 이름 */
     public String getDeliveryChannel() {
         return "%s:%s".formatted(channelPrefix, podName);
     }
