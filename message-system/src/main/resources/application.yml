@@ -135,9 +135,6 @@ message-system:
         topic: message-request
         group-id: request-group
         concurrency: 3
-  # message-connection-flux의 PodIdentity가 구독하는 채널 접두어와 반드시 일치해야 합니다.
-  redis:
-    channel-prefix: ws:deliver
 
 management:
   endpoints:

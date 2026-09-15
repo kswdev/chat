@@ -36,7 +36,7 @@ public class ClientNotificationService {
         sessionService
                 .getListenTopic(userId)
                 .ifPresentOrElse(
-                        topic -> redisNotifier.publish(topic, recordInterface),
+                        deliveryChannel -> redisNotifier.publish(deliveryChannel, recordInterface),
                         () -> pushService.pushMessage(recordInterface));
     }
 
@@ -44,7 +44,7 @@ public class ClientNotificationService {
         sessionService
                 .getListenTopic(userId)
                 .ifPresentOrElse(
-                        podName -> redisNotifier.publish(podName, recordInterface),
+                        deliveryChannel -> redisNotifier.publish(deliveryChannel, recordInterface),
                         () -> pushService.pushMessage(recordInterface));
     }
 
@@ -52,7 +52,7 @@ public class ClientNotificationService {
         sessionService
                 .getListenTopic(errorResponseRecord.userId())
                 .ifPresentOrElse(
-                        podName -> redisNotifier.publish(podName, errorResponseRecord),
+                        deliveryChannel -> redisNotifier.publish(deliveryChannel, errorResponseRecord),
                         () -> log.warn("Send error failed. type: {}, error: {}, user: {}",
                                 errorResponseRecord.messageType(),
                                 errorResponseRecord.message(),

@@ -23,7 +23,7 @@ public class SessionServiceImpl implements SessionService {
     public Mono<Boolean> setOnline(UserId userId, boolean status) {
         String key = buildUserLocationKey(userId);
         if (status)
-            return cachePort.set(key, podIdentity.getPodName(), TTL);
+            return cachePort.set(key, podIdentity.getDeliveryChannel(), TTL);
         else {
             cachePort.delete(key);
             return Mono.just(true);
