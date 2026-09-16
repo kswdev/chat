@@ -10,12 +10,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 
 @Component
 public class HttpRequestFilter implements Filter {
 
     private static final String REQUIRED_HEADER = IdKey.USER_ID.getValue();
+    private static final Pattern REQUEST_ID_PATTERN = Pattern.compile("^[0-9]+$");
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -26,6 +28,11 @@ public class HttpRequestFilter implements Filter {
         String requestId = httpServletRequest.getHeader(REQUIRED_HEADER);
         if (requestId == null || requestId.isBlank()) {
             reject(httpServletResponse, HttpStatus.BAD_REQUEST, "Missing required header: " + REQUIRED_HEADER);
+            return;
+        }
+
+        if (!REQUEST_ID_PATTERN.matcher(requestId).matches()) {
+            reject(httpServletResponse, HttpStatus.BAD_REQUEST, "Invalid USER_ID value");
             return;
         }
 

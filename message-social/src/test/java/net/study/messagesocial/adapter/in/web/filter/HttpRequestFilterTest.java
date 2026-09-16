@@ -36,7 +36,7 @@ class HttpRequestFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/social");
         HttpServletResponse response = new MockHttpServletResponse();
 
-        request.addHeader(IdKey.USER_ID.getValue(), "testUser");
+        request.addHeader(IdKey.USER_ID.getValue(), "12345");
 
         // when
         requestFilter.doFilter(request, response, chain);
@@ -51,6 +51,22 @@ class HttpRequestFilterTest {
         //given
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/social");
         HttpServletResponse response = new MockHttpServletResponse();
+
+        //when
+        requestFilter.doFilter(request, response, chain);
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(400);
+        verifyNoInteractions(chain);
+    }
+
+    @Test
+    void should_not_pass_when_required_header_is_invalid() throws ServletException, IOException {
+        //given
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/social");
+        HttpServletResponse response = new MockHttpServletResponse();
+
+        request.addHeader(IdKey.USER_ID.getValue(), "invalid");
 
         //when
         requestFilter.doFilter(request, response, chain);
