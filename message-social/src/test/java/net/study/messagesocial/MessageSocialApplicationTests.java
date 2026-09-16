@@ -1,13 +1,12 @@
-package net.study.messagesocial;
+package net.study.messagesocial
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest
+import spock.lang.Specification
 
 @SpringBootTest
 class MessageSocialApplicationTests {
 
-    @Test
     void contextLoads() {
-    }
 
+    }
 }
