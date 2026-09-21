@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: message-social-config
+  namespace: chat-system
+data:
+  SOCIAL_DB_URL: "jdbc:mysql://mysql-source-social.chat-system.svc.cluster.local:3306/social?useSSL=false&allowPublicKeyRetrieval=true"
+  KAFKA_BOOTSTRAP_SERVERS: >-
+    kafka-0.kafka-headless.chat-system.svc.cluster.local:9092,
+    kafka-1.kafka-headless.chat-system.svc.cluster.local:9092,
+    kafka-2.kafka-headless.chat-system.svc.cluster.local:9092
+  REDIS_CLUSTER_NODES: >-
+    redis-cluster-0.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-1.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-2.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-3.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-4.redis-cluster-headless.chat-system.svc.cluster.local:6379,
+    redis-cluster-5.redis-cluster-headless.chat-system.svc.cluster.local:6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-social
+  namespace: chat-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: message-social
+  template:
+    metadata:
+      labels:
+        app: message-social
+    spec:
+      containers:
+        - name: message-social
+          image: message-social:local
+          ports:
+            - containerPort: 8087
+          envFrom:
+            - configMapRef:
+                name: message-social-config
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef: { name: mysql-credentials, key: MYSQL_USER }
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: mysql-credentials, key: MYSQL_PASSWORD }
+          resources:
+            requests: { cpu: "200m", memory: "384Mi" }
+            limits: { cpu: "512m", memory: "768Mi" }
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8087 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8087 }
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: message-social
+  namespace: chat-system
+  labels:
+    app: message-social
+spec:
+  selector:
+    app: message-social
+  ports:
+    - port: 8087
+      targetPort: 8087
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: message-social
+  namespace: chat-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: message-social
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 70 }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: message-social
+  namespace: chat-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: message-social
