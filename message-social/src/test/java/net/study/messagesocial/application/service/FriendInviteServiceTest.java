@@ -45,7 +45,7 @@ class FriendInviteServiceTest {
 
 
     @Test
-    void  invite_with_unknown_code_throws_and_does_not_save() {
+    void  invite_throws_and_does_not_save_when_invite_code_is_unknown() {
         //given
         Long inviter = 1L;
         String inviteCode = "ABC123";
@@ -63,7 +63,7 @@ class FriendInviteServiceTest {
 
     @ParameterizedTest
     @MethodSource("inviteDataProvider")
-    void invite_with_valid_code_should_pass(Long inviter, Long invitee, String inviteCode) {
+    void invite_creates_pending_connection_when_no_existing_connection(Long inviter, Long invitee, String inviteCode) {
         //given
         given(loadUser.getUserIdByInviteCode(inviteCode))
                 .willReturn(Optional.of(invitee));
@@ -131,7 +131,7 @@ class FriendInviteServiceTest {
 
     @ParameterizedTest
     @MethodSource("inviteDataProviderWithStatus2")
-    void invite_does_not_save_connection_when_connection_status_is_not_none_and_disconnected(
+    void invite_throws_and_does_not_save_when_already_connected_or_invited(
             Long inviter,
             Long invitee,
             String inviteCode,
