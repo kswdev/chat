@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.study.messagecommon.constant.IdKey;
 import net.study.messagesocial.adapter.in.web.dto.response.InviteResponse;
 import net.study.messagesocial.application.port.in.FriendInvite;
+import net.study.messagesocial.domain.userconnection.UserConnection;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,12 @@ public class FriendController {
             @RequestHeader HttpHeaders headers
     ) {
         Long userId = Long.valueOf(headers.getFirst(IdKey.USER_ID.getValue()));
-        friendInvite.invite(userId, inviteCode);
-        return ResponseEntity.ok(new InviteResponse(userId, inviteCode, PENDING));
+        UserConnection userConnection = friendInvite.invite(userId, inviteCode);
+
+        return ResponseEntity.ok(
+                new InviteResponse(
+                        userConnection.getInviterId(),
+                        userConnection.getInviteeId(),
+                        userConnection.getStatus().name()));
     }
 }
