@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -20,6 +21,21 @@ public class UserService {
     private final CacheService cacheService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Transactional(readOnly = true)
+    public Optional<UserEntity> getByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<UserEntity> getByInviteCode(String inviteCode) {
+        return userRepository.findByInviteCode(inviteCode);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<UserEntity> getById(Long userId) {
+        return userRepository.findById(userId);
+    }
 
     @Transactional
     public UserId addUser(String username, String password) {

@@ -6,9 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import net.study.messagecommon.constant.IdKey;
 import net.study.messageuser.dto.rest.signup.SignUpRequest;
+import net.study.messageuser.dto.rest.user.UserLookupResponse;
 import net.study.messageuser.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,5 +48,29 @@ public class UserController {
             log.error("Remove user failed. cause: {}", ex.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unregister user failed");
         }
+    }
+
+    @GetMapping("/by-username/{username}")
+    public ResponseEntity<UserLookupResponse> getByUsername(@PathVariable String username) {
+        return userService.getByUsername(username)
+                .map(UserLookupResponse::from)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/by-invite-code/{inviteCode}")
+    public ResponseEntity<UserLookupResponse> getByInviteCode(@PathVariable String inviteCode) {
+        return userService.getByInviteCode(inviteCode)
+                .map(UserLookupResponse::from)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserLookupResponse> getById(@PathVariable Long userId) {
+        return userService.getById(userId)
+                .map(UserLookupResponse::from)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

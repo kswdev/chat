@@ -43,4 +43,12 @@ public class UserEntity extends BaseEntity {
         user.userId = userId;
         return user;
     }
+
+    public static UserEntity testUser(Long userId, String username, String inviteCode) {
+        UserEntity user = new UserEntity();
+        user.userId = userId;
+        user.username = username;
+        user.inviteCode = inviteCode;
+        return user;
+    }
 }
