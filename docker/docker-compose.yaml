@@ -137,6 +137,25 @@ services:
       --enforce-gtid-consistency=ON
       --gtid-mode=ON
 
+  mysql-source-social:
+    image: mysql:8.0.40
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: social
+      MYSQL_USER: dev_user
+      MYSQL_PASSWORD: dev_password
+    ports:
+      - "13312:3306"
+    volumes:
+      - ./data/mysql-source-social:/var/lib/mysql
+      - ./init-scripts-source-social:/docker-entrypoint-initdb.d
+
   redis-node-1:
     image: bitnamilegacy/redis-cluster:7.4.1
     restart: unless-stopped
