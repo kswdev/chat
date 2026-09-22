@@ -2,4 +2,32 @@ server:
   port: 8087
 
 spring:
-  application: name=message-social
+  application:
+    name: message-social
+
+  datasource:
+    url: ${SOCIAL_DB_URL:jdbc:mysql://localhost:13312/social?useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:dev_user}
+    password: ${DB_PASSWORD:dev_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19094,localhost:19095,localhost:19096}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+message-social:
+  message-user:
+    base-url: ${MESSAGE_USER_BASE_URL:http://localhost:8082}
+  kafka:
+    topics:
+      push: push-notification
