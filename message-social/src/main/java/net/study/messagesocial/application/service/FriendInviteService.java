@@ -5,6 +5,7 @@ import net.study.messagesocial.adapter.in.web.dto.error.FriendErrorCode;
 import net.study.messagesocial.adapter.in.web.exception.AlreadyConnectedException;
 import net.study.messagesocial.adapter.in.web.exception.AlreadyInvitedException;
 import net.study.messagesocial.adapter.in.web.exception.InvalidInviteCodeException;
+import net.study.messagesocial.adapter.in.web.exception.SelfInviteException;
 import net.study.messagesocial.application.port.in.FriendInvite;
 import net.study.messagesocial.application.port.out.LoadUserConnectionPort;
 import net.study.messagesocial.application.port.out.LoadUserPort;
@@ -12,9 +13,11 @@ import net.study.messagesocial.application.port.out.SaveFriendPort;
 import net.study.messagesocial.domain.userconnection.UserConnection;
 import net.study.messagesocial.domain.userconnection.UserConnectionStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class FriendInviteService implements FriendInvite {
 
     private final LoadUserPort loadUser;
@@ -27,6 +30,9 @@ public class FriendInviteService implements FriendInvite {
         Long inviteeId = loadUser
                 .getUserIdByInviteCode(inviteCode)
                 .orElseThrow(() -> new InvalidInviteCodeException(FriendErrorCode.INVITE_CODE_NOT_FOUND));
+
+        if (inviteeId.equals(inviterId))
+            throw new SelfInviteException(FriendErrorCode.SELF_INVITE_NOT_ALLOWED);
 
         return loadUserConnection
                 .getUserConnection(inviterId, inviteeId)

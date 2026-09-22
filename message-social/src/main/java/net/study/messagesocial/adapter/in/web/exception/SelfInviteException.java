@@ -2,9 +2,9 @@ package net.study.messagesocial.adapter.in.web.exception;
 
 import net.study.messagesocial.adapter.in.web.dto.error.ErrorCode;
 
-public class InvalidInviteCodeException extends FriendException {
+public class SelfInviteException extends FriendException {
 
-    public InvalidInviteCodeException(ErrorCode errorCode) {
+    public SelfInviteException(ErrorCode errorCode) {
         super(errorCode);
     }
 }

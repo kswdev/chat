@@ -3,6 +3,7 @@ package net.study.messagesocial.application.service;
 import net.study.messagesocial.adapter.in.web.exception.AlreadyConnectedException;
 import net.study.messagesocial.adapter.in.web.exception.AlreadyInvitedException;
 import net.study.messagesocial.adapter.in.web.exception.InvalidInviteCodeException;
+import net.study.messagesocial.adapter.in.web.exception.SelfInviteException;
 import net.study.messagesocial.application.port.out.LoadUserConnectionPort;
 import net.study.messagesocial.application.port.out.LoadUserPort;
 import net.study.messagesocial.application.port.out.SaveFriendPort;
@@ -59,6 +60,23 @@ class FriendInviteServiceTest {
         then(saveFriend).should(never()).save(any());
         assertThat(thrown).isInstanceOf(InvalidInviteCodeException.class);
 
+    }
+
+    @Test
+    void invite_throws_and_does_not_save_when_inviting_self() {
+        //given
+        Long inviter = 1L;
+        String inviteCode = "OWN123";
+        given(loadUser.getUserIdByInviteCode(inviteCode))
+                .willReturn(Optional.of(inviter));
+
+        //when
+        Throwable thrown = catchThrowable(() -> friendInvite.invite(inviter, inviteCode));
+
+        //then
+        then(saveFriend).should(never()).save(any());
+        then(loadUserConnection).should(never()).getUserConnection(any(), any());
+        assertThat(thrown).isInstanceOf(SelfInviteException.class);
     }
 
     @ParameterizedTest
