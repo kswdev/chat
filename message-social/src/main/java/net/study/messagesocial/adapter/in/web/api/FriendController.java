@@ -2,12 +2,18 @@ package net.study.messagesocial.adapter.in.web.api;
 
 import lombok.RequiredArgsConstructor;
 import net.study.messagecommon.constant.IdKey;
+import net.study.messagesocial.adapter.in.web.dto.response.ConnectionsResponse;
+import net.study.messagesocial.adapter.in.web.dto.response.InviteCodeResponse;
 import net.study.messagesocial.adapter.in.web.dto.response.InviteResponse;
-import net.study.messagesocial.application.port.in.FriendInvite;
+import net.study.messagesocial.application.port.in.*;
+import net.study.messagesocial.application.service.FriendNotificationService;
 import net.study.messagesocial.domain.userconnection.UserConnection;
+import net.study.messagesocial.domain.userconnection.UserConnectionStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,21 +21,96 @@ import org.springframework.web.bind.annotation.*;
 public class FriendController {
 
     private final FriendInvite friendInvite;
-
-    private static final String PENDING = "PENDING";
+    private final FriendAccept friendAccept;
+    private final FriendReject friendReject;
+    private final FriendDisconnect friendDisconnect;
+    private final FriendConnectionQuery friendConnectionQuery;
+    private final FriendInviteCodeQuery friendInviteCodeQuery;
+    private final FriendNotificationService friendNotificationService;
 
     @PostMapping("/invite/{inviteCode}")
     public ResponseEntity<InviteResponse> invite(
             @PathVariable String inviteCode,
             @RequestHeader HttpHeaders headers
     ) {
-        Long userId = Long.valueOf(headers.getFirst(IdKey.USER_ID.getValue()));
+        Long userId = currentUserId(headers);
         UserConnection userConnection = friendInvite.invite(userId, inviteCode);
 
-        return ResponseEntity.ok(
-                new InviteResponse(
-                        userConnection.getInviterId(),
-                        userConnection.getInviteeId(),
-                        userConnection.getStatus().name()));
+        friendNotificationService.notifyInvite(userConnection.getInviteeId(), userConnection.getInviterId());
+
+        return ResponseEntity.ok(toResponse(userConnection));
+    }
+
+    @PostMapping("/accept/{username}")
+    public ResponseEntity<InviteResponse> accept(
+            @PathVariable String username,
+            @RequestHeader HttpHeaders headers
+    ) {
+        Long userId = currentUserId(headers);
+        UserConnection userConnection = friendAccept.accept(userId, username);
+
+        friendNotificationService.notifyAccept(userConnection.getInviterId(), userConnection.getInviteeId());
+
+        return ResponseEntity.ok(toResponse(userConnection));
+    }
+
+    @PostMapping("/reject/{username}")
+    public ResponseEntity<InviteResponse> reject(
+            @PathVariable String username,
+            @RequestHeader HttpHeaders headers
+    ) {
+        Long userId = currentUserId(headers);
+        UserConnection userConnection = friendReject.reject(userId, username);
+
+        return ResponseEntity.ok(toResponse(userConnection));
+    }
+
+    @PostMapping("/disconnect/{username}")
+    public ResponseEntity<InviteResponse> disconnect(
+            @PathVariable String username,
+            @RequestHeader HttpHeaders headers
+    ) {
+        Long userId = currentUserId(headers);
+        UserConnection userConnection = friendDisconnect.disconnect(userId, username);
+
+        return ResponseEntity.ok(toResponse(userConnection));
+    }
+
+    @GetMapping("/connections")
+    public ResponseEntity<ConnectionsResponse> connections(
+            @RequestParam UserConnectionStatus status,
+            @RequestHeader HttpHeaders headers
+    ) {
+        Long userId = currentUserId(headers);
+        List<UserConnection> connections = friendConnectionQuery.getConnections(userId, status);
+
+        List<ConnectionsResponse.ConnectionSummary> summaries = connections.stream()
+                .map(connection -> new ConnectionsResponse.ConnectionSummary(partnerOf(connection, userId), connection.getStatus().name()))
+                .toList();
+
+        return ResponseEntity.ok(new ConnectionsResponse(summaries));
+    }
+
+    @GetMapping("/invite-code")
+    public ResponseEntity<InviteCodeResponse> inviteCode(@RequestHeader HttpHeaders headers) {
+        Long userId = currentUserId(headers);
+        String inviteCode = friendInviteCodeQuery.getInviteCode(userId);
+
+        return ResponseEntity.ok(new InviteCodeResponse(inviteCode));
+    }
+
+    private Long currentUserId(HttpHeaders headers) {
+        return Long.valueOf(headers.getFirst(IdKey.USER_ID.getValue()));
+    }
+
+    private Long partnerOf(UserConnection connection, Long userId) {
+        return connection.getInviterId().equals(userId) ? connection.getInviteeId() : connection.getInviterId();
+    }
+
+    private InviteResponse toResponse(UserConnection userConnection) {
+        return new InviteResponse(
+                userConnection.getInviterId(),
+                userConnection.getInviteeId(),
+                userConnection.getStatus().name());
     }
 }
