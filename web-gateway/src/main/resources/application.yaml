@@ -46,6 +46,13 @@ spring:
           filters:
             - AuthorizationHeaderFilter
 
+        - id: message-channel
+          uri: http://message-system.chat-system.svc.cluster.local:8070/
+          predicates:
+            - Path=/api/v1/channel/**
+          filters:
+            - AuthorizationHeaderFilter
+
         - id: websocket-route-message
           uri: ws://message-connection-flux.chat-system.svc.cluster.local:8090/
           predicates:

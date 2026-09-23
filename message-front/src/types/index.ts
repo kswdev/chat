@@ -64,40 +64,6 @@ export interface FetchMessagesRequest extends BaseRequest {
   endMessageSeqId: number;
 }
 
-export interface CreateChannelRequest extends BaseRequest {
-  type: 'CREATE_REQUEST';
-  title: string;
-  participantUsernames: string[];
-}
-
-export interface EnterChannelRequest extends BaseRequest {
-  type: 'ENTER_REQUEST';
-  channelId: number;
-}
-
-export interface LeaveChannelRequest extends BaseRequest {
-  type: 'LEAVE_REQUEST';
-}
-
-export interface JoinChannelRequest extends BaseRequest {
-  type: 'JOIN_REQUEST';
-  inviteCode: string;
-}
-
-export interface QuitChannelRequest extends BaseRequest {
-  type: 'QUIT_REQUEST';
-  channelId: number;
-}
-
-export interface FetchChannelsRequest extends BaseRequest {
-  type: 'FETCH_CHANNELS_REQUEST';
-}
-
-export interface FetchChannelInviteCodeRequest extends BaseRequest {
-  type: 'FETCH_CHANNEL_INVITE_CODE_REQUEST';
-  channelId: number;
-}
-
 export interface KeepAliveRequest extends BaseRequest {
   type: 'KEEP_ALIVE';
 }
@@ -124,50 +90,10 @@ export interface MessageNotification extends BaseMessage {
   content: string;
 }
 
-export interface CreateResponse extends BaseMessage {
-  type: 'CREATE_RESPONSE';
-  channelId: number;
-  title: string;
-}
-
-export interface EnterResponse extends BaseMessage {
-  type: 'ENTER_RESPONSE';
-  channelId: number;
-  title: string;
-  lastReadMessageSeqId: number;
-  lastChannelMessageSeqId: number;
-}
-
-export interface LeaveResponse extends BaseMessage {
-  type: 'LEAVE_RESPONSE';
-}
-
-export interface JoinResponse extends BaseMessage {
-  type: 'JOIN_RESPONSE';
-  channelId: number;
-  title: string;
-}
-
-export interface QuitResponse extends BaseMessage {
-  type: 'QUIT_RESPONSE';
-  channelId: number;
-}
-
-export interface FetchChannelsResponse extends BaseMessage {
-  type: 'FETCH_CHANNELS_RESPONSE';
-  channels: Channel[];
-}
-
 export interface FetchMessagesResponse extends BaseMessage {
   type: 'FETCH_MESSAGES_RESPONSE';
   channelId: number;
   messages: ChatMessage[];
-}
-
-export interface FetchChannelInviteCodeResponse extends BaseMessage {
-  type: 'FETCH_CHANNEL_INVITE_CODE_RESPONSE';
-  channelId: number;
-  inviteCode: string;
 }
 
 export interface InviteNotification extends BaseMessage {
@@ -195,14 +121,7 @@ export interface ErrorResponse extends BaseMessage {
 export type InboundMessage =
   | WriteMessageAck
   | MessageNotification
-  | CreateResponse
-  | EnterResponse
-  | LeaveResponse
-  | JoinResponse
-  | QuitResponse
-  | FetchChannelsResponse
   | FetchMessagesResponse
-  | FetchChannelInviteCodeResponse
   | InviteNotification
   | AcceptNotification
   | JoinNotification

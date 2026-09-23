@@ -38,6 +38,8 @@ React + TypeScript 브라우저 클라이언트. `message-client` Java CLI 클�
 | POST | `/api/v1/auth/logout` | 로그아웃 |
 | POST | `/api/v1/user/register` | 회원가입 |
 | POST | `/api/v1/user/unregister` | 회원 탈퇴 |
+| GET/POST | `/api/v1/social/friends/**` | 친구 연결(초대/수락/거절/끊기/목록/초대코드) — `src/api/socialApi.ts` |
+| GET/POST | `/api/v1/channel/**` | 채널(생성/참가/나가기/입장/화면나가기/목록/초대코드) — `src/api/channelApi.ts` |
 
 ### WebSocket 인증
 
@@ -83,7 +85,9 @@ message-front/
     │
     ├── api/
     │   ├── axiosInstance.ts      # Axios 인스턴스 (BASE_URL, 토큰 자동 첨부 인터셉터)
-    │   └── authApi.ts            # login / logout / register / unregister
+    │   ├── authApi.ts            # login / logout / register / unregister
+    │   ├── socialApi.ts          # invite / accept / reject / disconnect / connections / invite-code
+    │   └── channelApi.ts         # create / join / quit / enter / leave / fetchChannels / invite-code
     │
     ├── contexts/
     │   ├── AuthContext.tsx       # 로그인 상태, 토큰·username (sessionStorage 저장)
@@ -121,9 +125,14 @@ message-front/
 
 | 방향 | 주요 타입 |
 |---|---|
-| 클라이언트 → 서버 | `WRITE_MESSAGE`, `CREATE_REQUEST`, `ENTER_REQUEST`, `LEAVE_REQUEST`, `JOIN_REQUEST`, `QUIT_REQUEST`, `FETCH_CHANNELS_REQUEST`, `INVITE_REQUEST`, `ACCEPT_REQUEST`, `REJECT_REQUEST`, `DISCONNECT_REQUEST`, `FETCH_USER_CONNECTIONS_REQUEST`, `FETCH_USER_INVITE_CODE_REQUEST`, `FETCH_CHANNEL_INVITE_CODE_REQUEST`, `FETCH_MESSAGES_REQUEST`, `READ_MESSAGE_ACK`, `KEEP_ALIVE` |
-| 서버 → 클라이언트 (응답) | `*_RESPONSE` 형태 |
+| 클라이언트 → 서버 | `WRITE_MESSAGE`, `FETCH_MESSAGES_REQUEST`, `READ_MESSAGE_ACK`, `KEEP_ALIVE` |
+| 서버 → 클라이언트 (응답) | `WRITE_MESSAGE_ACK`, `FETCH_MESSAGES_RESPONSE`, `ERROR` |
 | 서버 → 클라이언트 (알림) | `NOTIFY_MESSAGE`, `ASK_INVITE`, `NOTIFY_ACCEPT`, `NOTIFY_JOIN` |
+
+채널(create/join/quit/enter/leave/fetchChannels/invite-code)과 친구 연결(invite/accept/reject/
+disconnect/connections/invite-code) 액션은 더 이상 WebSocket을 쓰지 않고 REST API로 처리한다 — 위
+"REST Endpoints" 표와 `channelApi.ts`/`socialApi.ts` 참고. `NOTIFY_JOIN`(다른 참여자에게 보내는
+실시간 알림)만 여전히 WS로 수신한다.
 
 ## State Management
 

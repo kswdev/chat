@@ -9,6 +9,7 @@ import React, {
 import { useWebSocket } from './WebSocketContext';
 import { useAuth } from './AuthContext';
 import * as socialApi from '../api/socialApi';
+import * as channelApi from '../api/channelApi';
 import type {
   Channel,
   ChatMessage,
@@ -16,14 +17,7 @@ import type {
   InboundMessage,
   WriteMessageAck,
   MessageNotification,
-  CreateResponse,
-  EnterResponse,
-  LeaveResponse,
-  JoinResponse,
-  QuitResponse,
-  FetchChannelsResponse,
   FetchMessagesResponse,
-  FetchChannelInviteCodeResponse,
   InviteNotification,
   AcceptNotification,
   JoinNotification,
@@ -341,102 +335,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handlers: Array<[string, (msg: InboundMessage) => void]> = [
-      // 채널 응답
-      [
-        'CREATE_RESPONSE',
-        (msg) => {
-          const m = msg as CreateResponse;
-          dispatch({
-            type: 'ADD_CHANNEL',
-            channel: { channelId: m.channelId, title: m.title, headCount: 1 },
-          });
-          dispatch({
-            type: 'ADD_NOTIFICATION',
-            message: `채널 '${m.title}'이 생성되었습니다.`,
-          });
-        },
-      ],
-      [
-        'JOIN_RESPONSE',
-        (msg) => {
-          const m = msg as JoinResponse;
-          dispatch({
-            type: 'ADD_CHANNEL',
-            channel: { channelId: m.channelId, title: m.title, headCount: 0 },
-          });
-          dispatch({
-            type: 'ADD_NOTIFICATION',
-            message: `채널 '${m.title}'에 참가했습니다.`,
-          });
-        },
-      ],
-      [
-        'ENTER_RESPONSE',
-        (msg) => {
-          const m = msg as EnterResponse;
-          const channel = stateRef.current.channels.find((c) => c.channelId === m.channelId) ?? {
-            channelId: m.channelId,
-            title: m.title,
-            headCount: 0,
-          };
-          dispatch({ type: 'SET_CURRENT_CHANNEL', channel });
-          // 읽지 않은 메시지가 있으면 가져오기
-          if (
-            m.lastChannelMessageSeqId > 0 &&
-            m.lastChannelMessageSeqId > m.lastReadMessageSeqId
-          ) {
-            const start = m.lastReadMessageSeqId + 1;
-            const end = m.lastChannelMessageSeqId;
-            send({
-              type: 'FETCH_MESSAGES_REQUEST',
-              channelId: m.channelId,
-              startMessageSeqId: start,
-              endMessageSeqId: end,
-            });
-          }
-          dispatch({
-            type: 'SET_LAST_SEQ_ID',
-            channelId: m.channelId,
-            seqId: m.lastReadMessageSeqId,
-          });
-        },
-      ],
-      [
-        'LEAVE_RESPONSE',
-        (_msg) => {
-          void (_msg as LeaveResponse);
-          dispatch({ type: 'SET_CURRENT_CHANNEL', channel: null });
-        },
-      ],
-      [
-        'QUIT_RESPONSE',
-        (msg) => {
-          const m = msg as QuitResponse;
-          dispatch({ type: 'REMOVE_CHANNEL', channelId: m.channelId });
-          dispatch({
-            type: 'ADD_NOTIFICATION',
-            message: `채널을 나갔습니다.`,
-          });
-        },
-      ],
-      [
-        'FETCH_CHANNELS_RESPONSE',
-        (msg) => {
-          const m = msg as FetchChannelsResponse;
-          dispatch({ type: 'SET_CHANNELS', channels: m.channels });
-        },
-      ],
-      [
-        'FETCH_CHANNEL_INVITE_CODE_RESPONSE',
-        (msg) => {
-          const m = msg as FetchChannelInviteCodeResponse;
-          dispatch({
-            type: 'SET_CHANNEL_INVITE_CODE',
-            channelId: m.channelId,
-            code: m.inviteCode,
-          });
-        },
-      ],
+      // 채널 관련 요청/응답(create/join/quit/enter/leave/fetchChannels/fetchInviteCode)은
+      // message-system REST API로 이전됨 — 아래 channelApi 기반 액션 함수 참고.
+      // NOTIFY_JOIN(다른 참여자에게 보내는 실시간 알림)만 계속 WS로 수신한다.
       // 메시지
       [
         'WRITE_MESSAGE_ACK',
@@ -550,50 +451,120 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     fetchAcceptedConnections,
   ]);
 
-  // ── 채널/메시지 액션 함수들 ──────────────────────
+  // ── 채널 액션 함수들 (message-system REST API) ──────
 
   const fetchChannels = useCallback(() => {
-    send({ type: 'FETCH_CHANNELS_REQUEST' });
-  }, [send]);
+    channelApi
+      .fetchChannels()
+      .then((channels) => dispatch({ type: 'SET_CHANNELS', channels }))
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '채널 목록을 불러오지 못했습니다.' }),
+      );
+  }, []);
 
-  const createChannel = useCallback(
-    (title: string, usernames: string[]) => {
-      send({ type: 'CREATE_REQUEST', title, participantUsernames: usernames });
-    },
-    [send],
-  );
+  const createChannel = useCallback((title: string, usernames: string[]) => {
+    channelApi
+      .createChannel(title, usernames)
+      .then((channel) => {
+        dispatch({
+          type: 'ADD_CHANNEL',
+          channel: { channelId: channel.channelId, title: channel.title, headCount: 1 },
+        });
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          message: `채널 '${channel.title}'이 생성되었습니다.`,
+        });
+      })
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '채널 생성에 실패했습니다.' }),
+      );
+  }, []);
 
-  const joinChannel = useCallback(
-    (inviteCode: string) => {
-      send({ type: 'JOIN_REQUEST', inviteCode });
-    },
-    [send],
-  );
+  const joinChannel = useCallback((inviteCode: string) => {
+    channelApi
+      .joinChannel(inviteCode)
+      .then((channel) => {
+        dispatch({
+          type: 'ADD_CHANNEL',
+          channel: { channelId: channel.channelId, title: channel.title, headCount: 0 },
+        });
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          message: `채널 '${channel.title}'에 참가했습니다.`,
+        });
+      })
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '채널 참가에 실패했습니다.' }),
+      );
+  }, []);
 
   const enterChannel = useCallback(
     (channelId: number) => {
-      send({ type: 'ENTER_REQUEST', channelId });
+      channelApi
+        .enterChannel(channelId)
+        .then((entry) => {
+          const channel = stateRef.current.channels.find(
+            (c) => c.channelId === channelId,
+          ) ?? { channelId, title: entry.title, headCount: 0 };
+          dispatch({ type: 'SET_CURRENT_CHANNEL', channel });
+          // 읽지 않은 메시지가 있으면 가져오기
+          if (
+            entry.lastChannelMessageSeqId > 0 &&
+            entry.lastChannelMessageSeqId > entry.lastReadMessageSeqId
+          ) {
+            const start = entry.lastReadMessageSeqId + 1;
+            const end = entry.lastChannelMessageSeqId;
+            send({
+              type: 'FETCH_MESSAGES_REQUEST',
+              channelId,
+              startMessageSeqId: start,
+              endMessageSeqId: end,
+            });
+          }
+          dispatch({
+            type: 'SET_LAST_SEQ_ID',
+            channelId,
+            seqId: entry.lastReadMessageSeqId,
+          });
+        })
+        .catch(() =>
+          dispatch({ type: 'SET_ERROR', message: '채널 입장에 실패했습니다.' }),
+        );
     },
     [send],
   );
 
   const leaveChannel = useCallback(() => {
-    send({ type: 'LEAVE_REQUEST' });
-  }, [send]);
+    channelApi
+      .leaveChannel()
+      .then(() => dispatch({ type: 'SET_CURRENT_CHANNEL', channel: null }))
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '채널 화면 나가기에 실패했습니다.' }),
+      );
+  }, []);
 
-  const quitChannel = useCallback(
-    (channelId: number) => {
-      send({ type: 'QUIT_REQUEST', channelId });
-    },
-    [send],
-  );
+  const quitChannel = useCallback((channelId: number) => {
+    channelApi
+      .quitChannel(channelId)
+      .then(() => {
+        dispatch({ type: 'REMOVE_CHANNEL', channelId });
+        dispatch({ type: 'ADD_NOTIFICATION', message: `채널을 나갔습니다.` });
+      })
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '채널 나가기에 실패했습니다.' }),
+      );
+  }, []);
 
-  const fetchChannelInviteCode = useCallback(
-    (channelId: number) => {
-      send({ type: 'FETCH_CHANNEL_INVITE_CODE_REQUEST', channelId });
-    },
-    [send],
-  );
+  const fetchChannelInviteCode = useCallback((channelId: number) => {
+    channelApi
+      .fetchChannelInviteCode(channelId)
+      .then((code) =>
+        dispatch({ type: 'SET_CHANNEL_INVITE_CODE', channelId, code }),
+      )
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '초대 코드를 불러오지 못했습니다.' }),
+      );
+  }, []);
 
   const sendMessage = useCallback(
     (content: string): Promise<void> => {

@@ -35,8 +35,6 @@ public class ClientNotificationPush implements ClientNotificationService {
         pushMessageTypes.put(MessageType.ASK_INVITE, InviteNotificationRecord.class);
         pushMessageTypes.put(MessageType.DISCONNECT_RESPONSE, DisconnectResponseRecord.class);
         pushMessageTypes.put(MessageType.REJECT_RESPONSE, RejectResponseRecord.class);
-        pushMessageTypes.put(MessageType.CREATE_RESPONSE, CreateResponseRecord.class);
-        pushMessageTypes.put(MessageType.QUIT_RESPONSE, QuitResponseRecord.class);
     }
 
     @Override
