@@ -13,6 +13,7 @@ public class JwtToTokenUserConverter {
     public TokenUser convert(DecodedJWT jwt) {
         return new TokenUser(
                 String.valueOf(jwt.getSubject()),
+                jwt.getClaim("username").asString(),
                 extractAuthoritiesFromClaim(jwt)
         );
     }

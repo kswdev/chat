@@ -46,7 +46,7 @@ public class RestApiLoginAuthFilter extends AbstractAuthenticationProcessingFilt
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-        String token = jwtIssuer.issue(user.getUserId());
+        String token = jwtIssuer.issue(user.getUserId(), user.getUsername());
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.TEXT_PLAIN_VALUE);

@@ -4,6 +4,7 @@ import lombok.Getter;
 
 public enum IdKey {
     USER_ID("USER_ID"),
+    USERNAME("USERNAME"),
     CHANNEL_ID("channel_id");
 
     IdKey(String value) {

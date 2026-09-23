@@ -10,5 +10,6 @@ import java.util.Set;
 @AllArgsConstructor
 public class TokenUser {
     private String id;
+    private String username;
     private Set<Role> role;
 }

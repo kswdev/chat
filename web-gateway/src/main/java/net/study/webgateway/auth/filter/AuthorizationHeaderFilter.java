@@ -86,6 +86,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
         return request.mutate()
                 .header("Authorization", "Bearer ")
                 .header(IdKey.USER_ID.getValue(), tokenUser.getId())
+                .header(IdKey.USERNAME.getValue(), tokenUser.getUsername())
                 .header("X-Authorization-Role", tokenUser.getRole().stream()
                         .map(Role::getName)
                         .collect(Collectors.joining(",")))
