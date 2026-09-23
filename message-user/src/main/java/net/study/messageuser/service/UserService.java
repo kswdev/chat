@@ -42,6 +42,11 @@ public class UserService {
         return userRepository.findAllById(userIds);
     }
 
+    @Transactional(readOnly = true)
+    public List<UserEntity> getByUsernames(List<String> usernames) {
+        return userRepository.findByUsernameIn(usernames);
+    }
+
     @Transactional
     public UserId addUser(String username, String password) {
         UserEntity savedUser = userRepository.save(new UserEntity(username, passwordEncoder.encode(password)));

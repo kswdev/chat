@@ -13,7 +13,7 @@ import net.study.messagesystem.dto.kafka.ErrorResponseRecord;
 import net.study.messagesystem.dto.kafka.JoinNotificationRecord;
 import net.study.messagesystem.service.ChannelService;
 import net.study.messagesystem.service.ClientNotificationService;
-import net.study.messagesystem.service.UserService;
+import net.study.messagesystem.service.MessageUserClient;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,14 +25,14 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class CreateRequestRecordHandler implements BaseRecordHandler<CreateRequestRecord> {
 
-    private final UserService userService;
+    private final MessageUserClient messageUserClient;
     private final ChannelService channelService;
     private final ClientNotificationService clientNotificationService;
 
     @Override
     public void handleRecord(CreateRequestRecord record) {
         UserId senderUserId = record.userId();
-        List<UserId> participantIds = userService.getUserIds(record.participantUsernames());
+        List<UserId> participantIds = messageUserClient.getUserIds(record.participantUsernames());
 
         if (participantIds.isEmpty()) {
             clientNotificationService.sendMessage(

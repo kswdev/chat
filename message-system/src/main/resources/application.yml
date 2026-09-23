@@ -137,6 +137,8 @@ message-system:
         concurrency: 3
   message-social:
     base-url: ${MESSAGE_SOCIAL_BASE_URL:http://localhost:8087}
+  message-user:
+    base-url: ${MESSAGE_USER_BASE_URL:http://localhost:8082}
 
 management:
   endpoints:

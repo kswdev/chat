@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class MessageService {
 
     private final PushService pushService;
-    private final UserService userService;
+    private final MessageUserClient messageUserClient;
     private final RedisNotifier redisNotifier;
     private final SessionService sessionService;
     private final ChannelService channelService;
@@ -56,11 +56,9 @@ public class MessageService {
                 .map(proj -> new UserId(proj.getUserId()))
                 .collect(Collectors.toSet());
 
-        Pair<Map<UserId, String>, ResultType> usernameResult = userService.getUsernames(userIds);
+        Map<UserId, String> usernames = messageUserClient.getUsernames(userIds);
 
-        return usernameResult.getSecond() == ResultType.SUCCESS
-                ? Pair.of(buildMessages(messageInfos, channelId, usernameResult.getFirst()), ResultType.SUCCESS)
-                : Pair.of(List.of(), usernameResult.getSecond());
+        return Pair.of(buildMessages(messageInfos, channelId, usernames), ResultType.SUCCESS);
     }
 
     private List<Message> buildMessages(List<MessageInfoProjection> messageInfos, ChannelId channelId, Map<UserId, String> usernameMap) {

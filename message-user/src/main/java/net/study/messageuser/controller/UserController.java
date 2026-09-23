@@ -84,4 +84,12 @@ public class UserController {
                 .toList();
         return ResponseEntity.ok(users);
     }
+
+    @GetMapping("/batch-by-username")
+    public ResponseEntity<List<UserLookupResponse>> getByUsernames(@RequestParam List<String> usernames) {
+        List<UserLookupResponse> users = userService.getByUsernames(usernames).stream()
+                .map(UserLookupResponse::from)
+                .toList();
+        return ResponseEntity.ok(users);
+    }
 }
