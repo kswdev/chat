@@ -4,5 +4,5 @@ import java.util.List;
 
 public record ConnectionsResponse(List<ConnectionSummary> connections) {
 
-    public record ConnectionSummary(Long userId, String status) { }
+    public record ConnectionSummary(Long userId, String username, String status) { }
 }

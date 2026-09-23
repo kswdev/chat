@@ -3,11 +3,16 @@ package net.study.messagesocial.adapter.out.client.messageuser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagesocial.application.port.out.LoadUserPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -27,13 +32,25 @@ public class MessageUserPersistenceAdapter implements LoadUserPort {
     }
 
     @Override
-    public Optional<String> getUsername(Long userId) {
-        return lookup("/api/v1/user/{userId}", userId).map(UserLookupResponse::username);
+    public Optional<String> getInviteCode(Long userId) {
+        return lookup("/api/v1/user/{userId}", userId).map(UserLookupResponse::inviteCode);
     }
 
     @Override
-    public Optional<String> getInviteCode(Long userId) {
-        return lookup("/api/v1/user/{userId}", userId).map(UserLookupResponse::inviteCode);
+    public Map<Long, String> getUsernames(Collection<Long> userIds) {
+        if (userIds.isEmpty())
+            return Map.of();
+
+        List<UserLookupResponse> users = messageUserRestClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/api/v1/user/batch").queryParam("userIds", userIds).build())
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                });
+
+        if (users == null)
+            return Map.of();
+
+        return users.stream().collect(Collectors.toMap(UserLookupResponse::userId, UserLookupResponse::username));
     }
 
     private Optional<UserLookupResponse> lookup(String uriTemplate, Object pathVariable) {

@@ -15,9 +15,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -54,10 +56,9 @@ class FriendConnectionIntegrationTest {
         given(loadUser.getUserIdByInviteCode("BOB0001")).willReturn(Optional.of(BOB_ID));
         given(loadUser.getUserIdByInviteCode("ALICE01")).willReturn(Optional.of(ALICE_ID));
         given(loadUser.getUserIdByInviteCode("NOPE")).willReturn(Optional.empty());
-        given(loadUser.getUsername(ALICE_ID)).willReturn(Optional.of("alice"));
-        given(loadUser.getUsername(BOB_ID)).willReturn(Optional.of("bob"));
         given(loadUser.getInviteCode(ALICE_ID)).willReturn(Optional.of("ALICE01"));
         given(loadUser.getInviteCode(BOB_ID)).willReturn(Optional.of("BOB0001"));
+        given(loadUser.getUsernames(any())).willReturn(Map.of(ALICE_ID, "alice", BOB_ID, "bob"));
     }
 
     @Test
@@ -76,11 +77,13 @@ class FriendConnectionIntegrationTest {
         mockMvc.perform(asUser(get("/api/v1/social/friends/connections").param("status", "ACCEPTED"), ALICE_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.connections[0].userId").value(BOB_ID))
+                .andExpect(jsonPath("$.connections[0].username").value("bob"))
                 .andExpect(jsonPath("$.connections[0].status").value("ACCEPTED"));
 
         mockMvc.perform(asUser(get("/api/v1/social/friends/connections").param("status", "ACCEPTED"), BOB_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.connections[0].userId").value(ALICE_ID))
+                .andExpect(jsonPath("$.connections[0].username").value("alice"))
                 .andExpect(jsonPath("$.connections[0].status").value("ACCEPTED"));
     }
 
@@ -165,6 +168,14 @@ class FriendConnectionIntegrationTest {
     }
 
     private MockHttpServletRequestBuilder asUser(MockHttpServletRequestBuilder builder, Long userId) {
-        return builder.header(IdKey.USER_ID.getValue(), userId);
+        return builder
+                .header(IdKey.USER_ID.getValue(), userId)
+                .header(IdKey.USERNAME.getValue(), usernameOf(userId));
+    }
+
+    private String usernameOf(Long userId) {
+        if (userId.equals(ALICE_ID)) return "alice";
+        if (userId.equals(BOB_ID)) return "bob";
+        throw new IllegalArgumentException("Unknown test userId: " + userId);
     }
 }

@@ -7,6 +7,7 @@ import net.study.messagesocial.adapter.in.web.dto.response.InviteCodeResponse;
 import net.study.messagesocial.adapter.in.web.dto.response.InviteResponse;
 import net.study.messagesocial.application.port.in.*;
 import net.study.messagesocial.application.service.FriendNotificationService;
+import net.study.messagesocial.domain.userconnection.FriendConnectionSummary;
 import net.study.messagesocial.domain.userconnection.UserConnection;
 import net.study.messagesocial.domain.userconnection.UserConnectionStatus;
 import org.springframework.http.HttpHeaders;
@@ -34,9 +35,10 @@ public class FriendController {
             @RequestHeader HttpHeaders headers
     ) {
         Long userId = currentUserId(headers);
+        String username = currentUsername(headers);
         UserConnection userConnection = friendInvite.invite(userId, inviteCode);
 
-        friendNotificationService.notifyInvite(userConnection.getInviteeId(), userConnection.getInviterId());
+        friendNotificationService.notifyInvite(userConnection.getInviteeId(), username);
 
         return ResponseEntity.ok(toResponse(userConnection));
     }
@@ -47,9 +49,10 @@ public class FriendController {
             @RequestHeader HttpHeaders headers
     ) {
         Long userId = currentUserId(headers);
+        String accepterUsername = currentUsername(headers);
         UserConnection userConnection = friendAccept.accept(userId, username);
 
-        friendNotificationService.notifyAccept(userConnection.getInviterId(), userConnection.getInviteeId());
+        friendNotificationService.notifyAccept(userConnection.getInviterId(), accepterUsername);
 
         return ResponseEntity.ok(toResponse(userConnection));
     }
@@ -82,10 +85,11 @@ public class FriendController {
             @RequestHeader HttpHeaders headers
     ) {
         Long userId = currentUserId(headers);
-        List<UserConnection> connections = friendConnectionQuery.getConnections(userId, status);
+        List<FriendConnectionSummary> connections = friendConnectionQuery.getConnections(userId, status);
 
         List<ConnectionsResponse.ConnectionSummary> summaries = connections.stream()
-                .map(connection -> new ConnectionsResponse.ConnectionSummary(partnerOf(connection, userId), connection.getStatus().name()))
+                .map(connection -> new ConnectionsResponse.ConnectionSummary(
+                        connection.partnerId(), connection.partnerUsername(), connection.status().name()))
                 .toList();
 
         return ResponseEntity.ok(new ConnectionsResponse(summaries));
@@ -103,8 +107,8 @@ public class FriendController {
         return Long.valueOf(headers.getFirst(IdKey.USER_ID.getValue()));
     }
 
-    private Long partnerOf(UserConnection connection, Long userId) {
-        return connection.getInviterId().equals(userId) ? connection.getInviteeId() : connection.getInviterId();
+    private String currentUsername(HttpHeaders headers) {
+        return headers.getFirst(IdKey.USERNAME.getValue());
     }
 
     private InviteResponse toResponse(UserConnection userConnection) {

@@ -6,9 +6,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -77,19 +80,6 @@ class MessageUserPersistenceAdapterTest {
     }
 
     @Test
-    void getUsername_returnsUsername_whenMessageUserFindsIt() {
-        mockServer.expect(requestTo(BASE_URL + "/api/v1/user/1"))
-                .andRespond(withSuccess(
-                        "{\"userId\":1,\"username\":\"alice\",\"inviteCode\":\"ALICE01\"}",
-                        MediaType.APPLICATION_JSON));
-
-        Optional<String> result = adapter.getUsername(1L);
-
-        assertThat(result).contains("alice");
-        mockServer.verify();
-    }
-
-    @Test
     void getInviteCode_returnsInviteCode_whenMessageUserFindsIt() {
         mockServer.expect(requestTo(BASE_URL + "/api/v1/user/1"))
                 .andRespond(withSuccess(
@@ -103,13 +93,23 @@ class MessageUserPersistenceAdapterTest {
     }
 
     @Test
-    void getUsername_returnsEmpty_whenMessageUserReturns404() {
-        mockServer.expect(requestTo(BASE_URL + "/api/v1/user/999"))
-                .andRespond(withStatus(NOT_FOUND));
+    void getUsernames_returnsMapOfUserIdToUsername_forGivenIds() {
+        mockServer.expect(requestTo(containsString("/api/v1/user/batch")))
+                .andRespond(withSuccess(
+                        "[{\"userId\":1,\"username\":\"alice\",\"inviteCode\":\"ALICE01\"},"
+                                + "{\"userId\":2,\"username\":\"bob\",\"inviteCode\":\"BOB0001\"}]",
+                        MediaType.APPLICATION_JSON));
 
-        Optional<String> result = adapter.getUsername(999L);
+        Map<Long, String> result = adapter.getUsernames(List.of(1L, 2L));
+
+        assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of(1L, "alice", 2L, "bob"));
+        mockServer.verify();
+    }
+
+    @Test
+    void getUsernames_returnsEmptyMap_withoutCallingMessageUser_whenNoIdsGiven() {
+        Map<Long, String> result = adapter.getUsernames(List.of());
 
         assertThat(result).isEmpty();
-        mockServer.verify();
     }
 }

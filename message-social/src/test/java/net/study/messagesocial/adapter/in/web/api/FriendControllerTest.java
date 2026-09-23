@@ -7,6 +7,7 @@ import net.study.messagesocial.adapter.in.web.exception.ConnectionNotFoundExcept
 import net.study.messagesocial.adapter.in.web.exception.InvalidConnectionStatusException;
 import net.study.messagesocial.application.port.in.*;
 import net.study.messagesocial.application.service.FriendNotificationService;
+import net.study.messagesocial.domain.userconnection.FriendConnectionSummary;
 import net.study.messagesocial.domain.userconnection.UserConnection;
 import net.study.messagesocial.domain.userconnection.UserConnectionStatus;
 import org.junit.jupiter.api.Test;
@@ -71,14 +72,14 @@ class FriendControllerTest {
                 .willReturn(userConnection);
 
         // when & then
-        mockMvc.perform(withValidHeaders(post("/api/v1/social/friends/invite/{inviteCode}", inviteCode), inviterUserId))
+        mockMvc.perform(withValidHeaders(post("/api/v1/social/friends/invite/{inviteCode}", inviteCode), inviterUserId, "inviter"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.inviter").value(inviterUserId))
                 .andExpect(jsonPath("$.invitee").value(inviteeUserId))
                 .andExpect(jsonPath("$.status").value("PENDING"));
 
         verify(friendInvite).invite(inviterUserId, inviteCode);
-        verify(friendNotificationService).notifyInvite(inviteeUserId, inviterUserId);
+        verify(friendNotificationService).notifyInvite(inviteeUserId, "inviter");
     }
 
     @Test
@@ -108,11 +109,11 @@ class FriendControllerTest {
 
         given(friendAccept.accept(accepterUserId, inviterUsername)).willReturn(userConnection);
 
-        mockMvc.perform(withValidHeaders(post("/api/v1/social/friends/accept/{username}", inviterUsername), accepterUserId))
+        mockMvc.perform(withValidHeaders(post("/api/v1/social/friends/accept/{username}", inviterUsername), accepterUserId, "accepter"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACCEPTED"));
 
-        verify(friendNotificationService).notifyAccept(inviterUserId, accepterUserId);
+        verify(friendNotificationService).notifyAccept(inviterUserId, "accepter");
     }
 
     @Test
@@ -163,16 +164,15 @@ class FriendControllerTest {
     @Test
     void shouldReturnConnectionsForGivenStatus() throws Exception {
         Long userId = 456L;
-        UserConnection connection = UserConnection.builder()
-                .inviterId(userId).inviteeId(789L).status(UserConnectionStatus.ACCEPTED).build();
 
         given(friendConnectionQuery.getConnections(userId, UserConnectionStatus.ACCEPTED))
-                .willReturn(List.of(connection));
+                .willReturn(List.of(new FriendConnectionSummary(789L, "bob", UserConnectionStatus.ACCEPTED)));
 
         mockMvc.perform(withValidHeaders(
                         get("/api/v1/social/friends/connections").param("status", "ACCEPTED"), userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.connections[0].userId").value(789))
+                .andExpect(jsonPath("$.connections[0].username").value("bob"))
                 .andExpect(jsonPath("$.connections[0].status").value("ACCEPTED"));
     }
 
@@ -187,8 +187,13 @@ class FriendControllerTest {
     }
 
     private MockHttpServletRequestBuilder withValidHeaders(MockHttpServletRequestBuilder builder, Long userId) {
+        return withValidHeaders(builder, userId, "tester");
+    }
+
+    private MockHttpServletRequestBuilder withValidHeaders(MockHttpServletRequestBuilder builder, Long userId, String username) {
         return builder
-                .header(IdKey.USER_ID.getValue(), userId);
+                .header(IdKey.USER_ID.getValue(), userId)
+                .header(IdKey.USERNAME.getValue(), username);
     }
 
 }
