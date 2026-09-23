@@ -26,3 +26,7 @@ node_modules/
 
 # macOS
 .DS_Store
+
+# local-only working docs
+/MESSAGE_SYSTEM_MSA_PLAN.md
+/message-social/PHASE2_PROGRESS.md
