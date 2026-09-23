@@ -25,6 +25,12 @@ public class HttpRequestFilter implements Filter {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
+        // k8s readiness/liveness probe, Prometheus 스크레이핑은 인증 헤더 없이 호출하므로 제외
+        if (httpServletRequest.getRequestURI().startsWith("/actuator")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String requestId = httpServletRequest.getHeader(REQUIRED_HEADER);
         if (requestId == null || requestId.isBlank()) {
             reject(httpServletResponse, HttpStatus.BAD_REQUEST, "Missing required header: " + REQUIRED_HEADER);

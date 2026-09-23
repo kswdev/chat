@@ -22,3 +22,6 @@ data:
   REPLICA_MESSAGE1_DB_URL: "jdbc:mysql://mysql-replica-message1.chat-system.svc.cluster.local:3306/chat?useSSL=false&allowPublicKeyRetrieval=true"
   SOURCE_MESSAGE2_DB_URL: "jdbc:mysql://mysql-source-message2.chat-system.svc.cluster.local:3306/chat?useSSL=false&allowPublicKeyRetrieval=true"
   REPLICA_MESSAGE2_DB_URL: "jdbc:mysql://mysql-replica-message2.chat-system.svc.cluster.local:3306/chat?useSSL=false&allowPublicKeyRetrieval=true"
+
+  MESSAGE_SOCIAL_BASE_URL: "http://message-social.chat-system.svc.cluster.local:8087"
+  MESSAGE_USER_BASE_URL: "http://message-user.chat-system.svc.cluster.local:8082"
