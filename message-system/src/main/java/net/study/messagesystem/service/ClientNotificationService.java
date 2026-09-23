@@ -20,14 +20,8 @@ public class ClientNotificationService {
     @PostConstruct
     private void init() {
         pushService.registerPushMessageType(MessageType.NOTIFY_JOIN, JoinNotificationRecord.class);
-        pushService.registerPushMessageType(MessageType.NOTIFY_ACCEPT, AcceptNotificationRecord.class);
         pushService.registerPushMessageType(MessageType.NOTIFY_MESSAGE, MessageNotificationRecord.class);
         pushService.registerPushMessageType(MessageType.JOIN_RESPONSE, JoinResponseRecord.class);
-        pushService.registerPushMessageType(MessageType.INVITE_RESPONSE, InviteResponseRecord.class);
-        pushService.registerPushMessageType(MessageType.ACCEPT_RESPONSE, AcceptResponseRecord.class);
-        pushService.registerPushMessageType(MessageType.ASK_INVITE, InviteNotificationRecord.class);
-        pushService.registerPushMessageType(MessageType.DISCONNECT_RESPONSE, DisconnectResponseRecord.class);
-        pushService.registerPushMessageType(MessageType.REJECT_RESPONSE, RejectResponseRecord.class);
         pushService.registerPushMessageType(MessageType.CREATE_RESPONSE, CreateResponseRecord.class);
         pushService.registerPushMessageType(MessageType.QUIT_RESPONSE, QuitResponseRecord.class);
     }

@@ -11,19 +11,6 @@ CREATE TABLE IF NOT EXISTS user (
     UNIQUE KEY unique_invite_code  (invite_code)
 );
 
-CREATE TABLE IF NOT EXISTS user_connection (
-    partner_a_user_id BIGINT NOT NULL,
-    partner_b_user_id BIGINT NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    inviter_user_id BIGINT NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    PRIMARY KEY (partner_a_user_id, partner_b_user_id),
-    INDEX idx_partner_b_user_id (partner_b_user_id),
-    INDEX idx_partner_a_user_id_status (partner_a_user_id, status),
-    INDEX idx_partner_b_user_id_status (partner_b_user_id, status)
-);
-
 CREATE TABLE IF NOT EXISTS channel (
     channel_id BIGINT AUTO_INCREMENT,
     title VARCHAR(255) NOT NULL,
