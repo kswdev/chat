@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.study.messagecommon.constant.KeyPrefix;
 import net.study.messagesystem.constant.ResultType;
-import net.study.messagecommon.constant.UserConnectionStatus;
 import net.study.messagesystem.domain.channel.Channel;
 import net.study.messagesystem.domain.channel.ChannelEntry;
 import net.study.messagesystem.domain.channel.ChannelId;
@@ -38,7 +37,7 @@ public class ChannelService {
     private final CacheService cacheService;
     private final SessionService sessionService;
     private final MessageShardService messageShardService;
-    private final UserConnectionService userConnectionService;
+    private final SocialConnectionClient socialConnectionClient;
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
 
@@ -227,7 +226,7 @@ public class ChannelService {
     }
 
     private Pair<Optional<ResultType>, ResultType> validateUserConnections(UserId senderUserId, List<UserId> participantUserIds) {
-        boolean allAccepted = userConnectionService.countConnectionStatus(senderUserId, participantUserIds, UserConnectionStatus.ACCEPTED)
+        boolean allAccepted = socialConnectionClient.countAcceptedConnections(senderUserId, participantUserIds)
                 == participantUserIds.size();
 
         if (!allAccepted) {

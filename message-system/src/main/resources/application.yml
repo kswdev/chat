@@ -135,6 +135,8 @@ message-system:
         topic: message-request
         group-id: request-group
         concurrency: 3
+  message-social:
+    base-url: ${MESSAGE_SOCIAL_BASE_URL:http://localhost:8087}
 
 management:
   endpoints:
