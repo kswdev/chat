@@ -154,6 +154,7 @@ public class ChannelService {
                         userChannelRepository.deleteByUserIdAndChannelId(userId.id(), channelId.id());
                         cacheService.delete(cacheService.buildKey(KeyPrefix.CHANNEL, entity.getInviteCode()));
                         cacheService.delete(cacheService.buildKey(KeyPrefix.CHANNELS, userId.id().toString()));
+                        cacheService.delete(cacheService.buildKey(KeyPrefix.JOINED_CHANNEL, channelId.id().toString(), userId.id().toString()));
                     }, () -> {
                         throw new EntityNotFoundException("Channel does not exists. channelId: " + channelId);
                     });
@@ -162,6 +163,7 @@ public class ChannelService {
         } catch (IllegalArgumentException e) {
             log.error("Quit channel on error. channelId: {}, cause: {}", channelId.id(), e.getMessage());
             userChannelRepository.deleteByUserIdAndChannelId(userId.id(), channelId.id());
+            cacheService.delete(cacheService.buildKey(KeyPrefix.JOINED_CHANNEL, channelId.id().toString(), userId.id().toString()));
             return ResultType.SUCCESS;
         }
     }
