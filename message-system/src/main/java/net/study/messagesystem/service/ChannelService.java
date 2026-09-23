@@ -23,6 +23,7 @@ import net.study.messagesystem.repository.channel.UserChannelRepository;
 import net.study.messagesystem.util.JsonUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +41,7 @@ public class ChannelService {
     private final SocialConnectionClient socialConnectionClient;
     private final UserChannelRepository userChannelRepository;
     private final ChannelRepository channelRepository;
+    private final TransactionTemplate transactionTemplate;
 
     @Transactional(readOnly = true)
     public Optional<Channel> getChannel(InviteCode inviteCode) {
@@ -194,7 +196,6 @@ public class ChannelService {
         }
     }
 
-    @Transactional
     public Pair<Optional<Channel>, ResultType> create(UserId senderUserId, List<UserId> participantUserIds, String title) {
         return validateCreateRequest(title)
                 .map(validationResult -> validateUserConnections(senderUserId, participantUserIds))
@@ -239,14 +240,15 @@ public class ChannelService {
 
     private Pair<Optional<Channel>, ResultType> executeChannelCreation(UserId senderUserId, List<UserId> participantUserIds, String title) {
         try {
-            int headCount = participantUserIds.size() + 1;
-            ChannelEntity channelEntity = channelRepository.save(ChannelEntity.create(title, headCount));
+            return transactionTemplate.execute(status -> {
+                int headCount = participantUserIds.size() + 1;
+                ChannelEntity channelEntity = channelRepository.save(ChannelEntity.create(title, headCount));
 
-            createUserChannelEntries(senderUserId, participantUserIds, channelEntity.getChannelId());
+                createUserChannelEntries(senderUserId, participantUserIds, channelEntity.getChannelId());
 
-            Channel channel = new Channel(new ChannelId(channelEntity.getChannelId()), title, headCount);
-            return Pair.of(Optional.of(channel), ResultType.SUCCESS);
-
+                Channel channel = new Channel(new ChannelId(channelEntity.getChannelId()), title, headCount);
+                return Pair.of(Optional.of(channel), ResultType.SUCCESS);
+            });
         } catch (IllegalArgumentException iae) {
             log.warn("Over limit of channel. participantIds count={}, title={}", participantUserIds.size(), title);
             return Pair.of(Optional.empty(), ResultType.OVER_LIMIT);

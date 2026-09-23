@@ -47,7 +47,8 @@ public class CreateRequestRecordHandler implements BaseRecordHandler<CreateReque
         try {
             result = channelService.create(senderUserId, participantIds, record.title());
         } catch (Exception e) {
-            clientNotificationService.sendError(new ErrorResponseRecord(senderUserId, e.getMessage(), MessageType.CREATE_REQUEST));
+            log.error("Failed to create channel. senderUserId: {}, cause: {}", senderUserId, e.getMessage(), e);
+            clientNotificationService.sendError(new ErrorResponseRecord(senderUserId, ResultType.FAILED.getMessage(), MessageType.CREATE_REQUEST));
             return;
         }
 
