@@ -7,6 +7,7 @@ import net.study.messageconnectionflux.domain.user.UserId;
 
 public record WriteMessageRecord(
         UserId userId,
+        String username,
         ChannelId channelId,
         String content,
         Long serial,

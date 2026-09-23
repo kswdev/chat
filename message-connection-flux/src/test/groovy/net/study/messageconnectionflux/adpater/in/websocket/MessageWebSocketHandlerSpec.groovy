@@ -10,6 +10,7 @@ import net.study.messageconnectionflux.application.port.in.SessionService
 import net.study.messageconnectionflux.adpter.out.persistence.redis.WebSocketSessionManager
 import net.study.messageconnectionflux.util.JsonUtil
 import org.reactivestreams.Publisher
+import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.socket.HandshakeInfo
 import org.springframework.web.reactive.socket.WebSocketMessage
 import org.springframework.web.reactive.socket.WebSocketSession
@@ -37,9 +38,15 @@ class MessageWebSocketHandlerSpec extends Specification {
         handler = new MessageWebSocketHandler(jsonUtil, dispatcher, sessionManager, cacheService)
         def handshakeInfo = Mock(HandshakeInfo)
         def attributes = Map.of(IdKey.USER_ID.getValue(), new UserId(0L))
+        def headers = new HttpHeaders()
+        headers.add(IdKey.USER_ID.getValue(), "0")
+        headers.add(IdKey.USERNAME.getValue(), "test-user")
 
         handshakeInfo.getAttributes() >> attributes
+        handshakeInfo.getHeaders() >> headers
         session.getHandshakeInfo() >> handshakeInfo
+        session.getAttributes() >> new HashMap<String, Object>()
+        cacheService.setOnline(_, _) >> Mono.just(true)
     }
 
     def "메시지 수신 → 파싱 → dispatcher 호출"() {

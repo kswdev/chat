@@ -30,6 +30,7 @@ public class MessageWebSocketHandler implements WebSocketHandler {
     @Override
     public Mono<Void> handle(WebSocketSession session) {
         UserId userId = getUserId(session);
+        getUsername(session);
 
         Many<String> sink = sessionManager.create(userId);
         Flux<WebSocketMessage> output = sink
@@ -72,5 +73,12 @@ public class MessageWebSocketHandler implements WebSocketHandler {
         UserId currentUserId = new UserId(Long.valueOf(userId));
         session.getAttributes().put(IdKey.USER_ID.getValue(), currentUserId);
         return currentUserId;
+    }
+
+    private String getUsername(WebSocketSession session) {
+        String username = session.getHandshakeInfo().getHeaders().getFirst(IdKey.USERNAME.getValue());
+        String currentUsername = username != null ? username : "unknown";
+        session.getAttributes().put(IdKey.USERNAME.getValue(), currentUsername);
+        return currentUsername;
     }
 }

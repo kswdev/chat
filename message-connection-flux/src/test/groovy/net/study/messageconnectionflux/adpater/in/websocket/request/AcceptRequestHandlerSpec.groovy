@@ -27,13 +27,14 @@ class AcceptRequestHandlerSpec extends Specification {
         given:
         UserId accepterUserId = new UserId(1L)
         String username = "test"
+        String accepterUsername = "accepter"
         AcceptRequest request = new AcceptRequest(username)
 
         when:
         acceptRequestHandler.handleRequest(senderSession, request).block()
 
         then:
-        1 * senderSession.getAttributes() >> Map.of(IdKey.USER_ID.getValue(), accepterUserId)
-        1 * eventProducer.sendRequest(new AcceptRequestRecord(accepterUserId, username), _ as Runnable) >> Mono.empty()
+        1 * senderSession.getAttributes() >> Map.of(IdKey.USER_ID.getValue(), accepterUserId, IdKey.USERNAME.getValue(), accepterUsername)
+        1 * eventProducer.sendRequest(new AcceptRequestRecord(accepterUserId, username, accepterUsername), _ as Runnable) >> Mono.empty()
     }
 }

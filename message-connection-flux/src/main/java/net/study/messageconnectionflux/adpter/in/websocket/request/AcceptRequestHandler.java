@@ -24,10 +24,12 @@ public class AcceptRequestHandler implements BaseRequestHandler<AcceptRequest> {
 
     @Override
     public Mono<Void> handleRequest(WebSocketSession senderSession, AcceptRequest request) {
-        UserId accepterUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
+        var attributes = senderSession.getAttributes();
+        UserId accepterUserId = (UserId) attributes.get(IdKey.USER_ID.getValue());
+        String accepterUsername = (String) attributes.get(IdKey.USERNAME.getValue());
 
         return eventProducer.sendRequest(
-                new AcceptRequestRecord(accepterUserId, request.getUsername()),
+                new AcceptRequestRecord(accepterUserId, request.getUsername(), accepterUsername),
                 () -> clientNotificationService.sendError(accepterUserId, new ErrorResponse(MessageType.ACCEPT_REQUEST, "accept request failed.")));
     }
 

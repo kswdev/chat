@@ -28,24 +28,26 @@ public class WriteMessageHandler implements BaseRequestHandler<WriteMessage> {
 
     @Override
     public Mono<Void> handleRequest(WebSocketSession senderSession, WriteMessage request) {
-        UserId senderUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
+        var attributes = senderSession.getAttributes();
+        UserId senderUserId = (UserId) attributes.get(IdKey.USER_ID.getValue());
+        String senderUsername = (String) attributes.get(IdKey.USERNAME.getValue());
         ChannelId channelId = request.getChannelId();
         Runnable errorCallback = () -> clientNotificationService.sendError(senderUserId, new ErrorResponse(MessageType.WRITE_MESSAGE, "Write message failed."));
 
         return messageSeqIdGenerator
                 .getNextMessageSeqId(channelId)
-                .flatMap(sequenceId -> sendKafkaMessageEvent(request, channelId, senderUserId, sequenceId, errorCallback));
+                .flatMap(sequenceId -> sendKafkaMessageEvent(request, channelId, senderUserId, senderUsername, sequenceId, errorCallback));
     }
 
-    private Mono<Void> sendKafkaMessageEvent(WriteMessage request, ChannelId channelId, UserId senderUserId, MessageSeqId messageSeqId, Runnable errorCallback) {
+    private Mono<Void> sendKafkaMessageEvent(WriteMessage request, ChannelId channelId, UserId senderUserId, String senderUsername, MessageSeqId messageSeqId, Runnable errorCallback) {
         return kafkaProducer.sendMessageUsingPartitionKey(
                         channelId, senderUserId,
-                        createWriteMessageRecord(request, channelId, senderUserId, messageSeqId),
+                        createWriteMessageRecord(request, channelId, senderUserId, senderUsername, messageSeqId),
                         errorCallback);
     }
 
-    private static WriteMessageRecord createWriteMessageRecord(WriteMessage request, ChannelId channelId, UserId senderUserId, MessageSeqId messageSeqId) {
-        return new WriteMessageRecord(senderUserId, channelId, request.getContent(), request.getSerial(), messageSeqId);
+    private static WriteMessageRecord createWriteMessageRecord(WriteMessage request, ChannelId channelId, UserId senderUserId, String senderUsername, MessageSeqId messageSeqId) {
+        return new WriteMessageRecord(senderUserId, senderUsername, channelId, request.getContent(), request.getSerial(), messageSeqId);
     }
 
     @Override

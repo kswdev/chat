@@ -24,10 +24,12 @@ public class InviteRequestHandler implements BaseRequestHandler<InviteRequest> {
 
     @Override
     public Mono<Void> handleRequest(WebSocketSession senderSession, InviteRequest request) {
-        UserId inviterUserId = (UserId) senderSession.getAttributes().get(IdKey.USER_ID.getValue());
+        var attributes = senderSession.getAttributes();
+        UserId inviterUserId = (UserId) attributes.get(IdKey.USER_ID.getValue());
+        String inviterUsername = (String) attributes.get(IdKey.USERNAME.getValue());
 
         return eventProducer.sendRequest(
-                new InviteRequestRecord(inviterUserId, request.getUserInviteCode()),
+                new InviteRequestRecord(inviterUserId, inviterUsername, request.getUserInviteCode()),
                 () -> clientNotificationService.sendError(inviterUserId, new ErrorResponse(MessageType.INVITE_REQUEST, "invite request failed.")));
     }
 
