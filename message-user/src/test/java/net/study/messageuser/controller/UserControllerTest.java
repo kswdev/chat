@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.BDDMockito.given;
@@ -79,5 +80,19 @@ class UserControllerTest {
 
         mockMvc.perform(get("/api/v1/user/{userId}", 999L))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getByIds_returns200WithMatchingUsers() throws Exception {
+        UserEntity alice = UserEntity.testUser(1L, "alice", "ALICE01");
+        UserEntity bob = UserEntity.testUser(2L, "bob", "BOB0001");
+        given(userService.getByIds(List.of(1L, 2L))).willReturn(List.of(alice, bob));
+
+        mockMvc.perform(get("/api/v1/user/batch").param("userIds", "1", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].userId").value(1))
+                .andExpect(jsonPath("$[0].username").value("alice"))
+                .andExpect(jsonPath("$[1].userId").value(2))
+                .andExpect(jsonPath("$[1].username").value("bob"));
     }
 }
