@@ -5,6 +5,7 @@ metadata:
   namespace: chat-system
 data:
   SOCIAL_DB_URL: "jdbc:mysql://mysql-source-social.chat-system.svc.cluster.local:3306/social?useSSL=false&allowPublicKeyRetrieval=true"
+  MESSAGE_USER_BASE_URL: "http://message-user.chat-system.svc.cluster.local:8082"
   KAFKA_BOOTSTRAP_SERVERS: >-
     kafka-0.kafka-headless.chat-system.svc.cluster.local:9092,
     kafka-1.kafka-headless.chat-system.svc.cluster.local:9092,
