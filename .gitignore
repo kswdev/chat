@@ -30,3 +30,4 @@ node_modules/
 # local-only working docs
 /MESSAGE_SYSTEM_MSA_PLAN.md
 /message-social/PHASE2_PROGRESS.md
+/ANTIPATTERN_ANALYSIS.md
