@@ -10,13 +10,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kafka-exporter
+      app: kafka-exporter # Deployment가 어떤 Pod를 자기 것으로 관리할지 결정.
   template:
     metadata:
-      labels:
+      labels: # Deployment가 생성할 Pod의 Label.
         app: kafka-exporter
     spec:
-      containers:
+      containers: # Pod 안에 실행할 Container 이름.
         - name: kafka-exporter
           image: danielqsj/kafka-exporter:latest
           args:
@@ -34,25 +34,62 @@ metadata:
   namespace: monitoring
   labels:
     release: prometheus-stack
+    app: kafka-exporter
 spec:
   selector:
-    app: kafka-exporter
+    app: kafka-exporter # app=kafka-exporter Label을 가진 Pod에게 트래픽을 전달.
   ports:
     - name: metrics
       port: 9308
       targetPort: 9308
----
+--- # Prometheus Operator 계열에서 제공하는 CRD.
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: kafka-exporter
   namespace: monitoring
   labels:
-    release: prometheus-stack
+    release: prometheus-stack # kube-prometheus-stack의 Prometheus가 ServiceMonitor를 찾도록 설정
+    app: kafka-exporter
 spec:
   selector:
     matchLabels:
-      app: kafka-exporter
+      app: kafka-exporter # ServiceMonitor가 어떤 Service를 모니터링할지 결정
   endpoints:
     - port: metrics
       interval: 15s
+
+
+#        Kubernetes
+#  ┌─────────────────────────────────────────────┐
+#  │                                             │
+#  │  chat-system namespace                      │
+#  │                                             │
+#  │   kafka-0 ───────┐                          │
+#  │   kafka-1 ───────┼── Kafka                  │
+#  │   kafka-2 ───────┘                          │
+#  │                                             │
+#  │                                             │
+#  │  monitoring namespace                       │
+#  │                                             │
+#  │   ┌──────────────────┐                      │
+#  │   │ kafka-exporter   │                      │
+#  │   │                  │                      │
+#  │   │ :9308 /metrics   │                      │
+#  │   └────────┬─────────┘                      │
+#  │            │                                │
+#  │            │ Service                        │
+#  │            ↓                                │
+#  │   ┌──────────────────┐                      │
+#  │   │ kafka-exporter   │                      │
+#  │   │ :9308            │                      │
+#  │   └────────┬─────────┘                      │
+#  │            │                                │
+#  │            │ ServiceMonitor                 │
+#  │            ↓                                │
+#  │       Prometheus                            │
+#  │            │                                │
+#  │            ↓                                │
+#  │         Grafana                             │
+#  │                                             │
+#  └─────────────────────────────────────────────┘
