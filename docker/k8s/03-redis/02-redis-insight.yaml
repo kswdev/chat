@@ -5,7 +5,7 @@ metadata:
   name: redis-insight
   namespace: chat-system
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: redis-insight

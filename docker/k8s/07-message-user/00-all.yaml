@@ -44,6 +44,8 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef: { name: mysql-credentials, key: MYSQL_PASSWORD }
+            - name: SPRING_PROFILES_ACTIVE
+              value: load-test
           resources:
             requests: { cpu: "200m", memory: "384Mi" }
             limits: { cpu: "800m", memory: "1024Mi" }
@@ -81,7 +83,7 @@ spec:
     kind: Deployment
     name: message-user
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 6
   metrics:
     - type: Resource
       resource:
