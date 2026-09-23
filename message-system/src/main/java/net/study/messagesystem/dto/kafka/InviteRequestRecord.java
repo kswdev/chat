@@ -4,7 +4,7 @@ import net.study.messagecommon.constant.MessageType;
 import net.study.messagesystem.domain.user.InviteCode;
 import net.study.messagesystem.domain.user.UserId;
 
-public record InviteRequestRecord(UserId userId, InviteCode userInviteCode) implements RecordInterface {
+public record InviteRequestRecord(UserId userId, String username, InviteCode userInviteCode) implements RecordInterface {
 
     @Override
     public String type() {

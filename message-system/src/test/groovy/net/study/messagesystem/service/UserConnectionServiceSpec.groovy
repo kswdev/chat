@@ -26,7 +26,6 @@ class UserConnectionServiceSpec extends Specification {
     def "사용자 연결 신청에 대한 테스트"() {
         given:
         userService.getUserIdName(inviteCodeOfTargetUser) >> Optional.of(new User(targetUserId, targetUsername))
-        userService.getUsername(senderUserId) >> Optional.of(senderUsername)
         userService.getUserReference(senderUserId) >> UserEntity.testUser(senderUserId.id())
         userService.getUserReference(targetUserId) >> UserEntity.testUser(targetUserId.id())
         userConnectionRepository.findUserConnectionStatusByPartnerAUser_userIdAndPartnerBUser_userId(_ as Long, _ as Long) >> {
@@ -36,7 +35,7 @@ class UserConnectionServiceSpec extends Specification {
         }
 
         when:
-        Pair<Optional<UserId>, String> result = userConnectionService.invite(senderUserId, usedInviteCode)
+        Pair<Optional<UserId>, String> result = userConnectionService.invite(senderUserId, senderUsername, usedInviteCode)
 
         then:
         result == expectedResult
@@ -55,7 +54,6 @@ class UserConnectionServiceSpec extends Specification {
     def "사용자 연결 신청에 대한 요청 수락 테스트"() {
         given:
         userService.getUserId(targetUsername) >> Optional.of(targetUserId)
-        userService.getUsername(senderUserId) >> Optional.of(senderUsername)
 
         userConnectionRepository.findInviterUserIdByPartnerAUser_userIdAndPartnerBUser_userId(
                 Math.min(targetUserId.id(), senderUserId.id()),
@@ -93,7 +91,7 @@ class UserConnectionServiceSpec extends Specification {
         }
 
         when:
-        Pair<Optional<UserId>, String> result = userConnectionService.accept(senderUserId, targetUsername)
+        Pair<Optional<UserId>, String> result = userConnectionService.accept(senderUserId, targetUsername, senderUsername)
 
         then:
         result == expectedResult

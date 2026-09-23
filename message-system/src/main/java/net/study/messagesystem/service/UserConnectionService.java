@@ -24,6 +24,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * 주의: message-social로 이관된 기능의 구버전이지만 아직 삭제 금지.
+ * message-front(ChatContext.tsx)/message-client(CommandHandler.java)가 여전히
+ * WebSocket 경로(INVITE_REQUEST 등)로 이 코드를 호출하는 유일하게 살아있는 경로다.
+ * message-social의 HTTP API로 클라이언트 마이그레이션(MESSAGE_SYSTEM_MSA_PLAN.md Phase 2f)이
+ * 끝나기 전까지는 지우지 말 것.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,19 +46,19 @@ public class UserConnectionService {
     private final UserConnectionRepository userConnectionRepository;
 
     @Transactional
-    public Pair<Optional<UserId>, String> invite(UserId inviterUserId, InviteCode inviteCode) {
+    public Pair<Optional<UserId>, String> invite(UserId inviterUserId, String inviterUsername, InviteCode inviteCode) {
         return userService.getUserIdName(inviteCode).or(Optional::empty)
                 .filter(partner -> isNotSameUser(inviterUserId, partner.userId()))
-                .map(partner -> tryInvite(inviterUserId, partner))
+                .map(partner -> tryInvite(inviterUserId, inviterUsername, partner))
                 .orElseGet(() -> Pair.of(Optional.empty(), "Invite failed."));
     }
 
     @Transactional
-    public Pair<Optional<UserId>, String> accept(UserId accepterUserId, String inviterUsername) {
+    public Pair<Optional<UserId>, String> accept(UserId accepterUserId, String inviterUsername, String accepterUsername) {
         return userService.getUserId(inviterUsername).or(Optional::empty)
                 .filter(inviterUserId -> isNotSameUser(accepterUserId, inviterUserId))
                 .filter(inviterUserId -> isValidInvitation(accepterUserId, inviterUserId))
-                .map(inviterUserId -> tryConnect(accepterUserId, inviterUserId))
+                .map(inviterUserId -> tryConnect(accepterUserId, inviterUserId, accepterUsername))
                 .orElseGet(() -> Pair.of(Optional.empty(), "accept failed."));
     }
 
@@ -124,11 +131,11 @@ public class UserConnectionService {
         return true;
     }
 
-    private Pair<Optional<UserId>, String> tryInvite(UserId inviterUserId, User partner) {
+    private Pair<Optional<UserId>, String> tryInvite(UserId inviterUserId, String inviterUsername, User partner) {
         UserConnectionStatus connectionStatus = getConnectionStatus(inviterUserId, partner.userId());
 
         return switch (connectionStatus) {
-            case NONE, DISCONNECTED -> processInvite(inviterUserId, partner.userId());
+            case NONE, DISCONNECTED -> processInvite(inviterUserId, inviterUsername, partner.userId());
             case PENDING, REJECTED  -> Pair.of(Optional.empty(), "Already Invited to " + partner.username());
             case ACCEPTED           -> Pair.of(Optional.empty(), "Already connected with " + partner.username());
         };
@@ -178,14 +185,7 @@ public class UserConnectionService {
                 .orElse(UserConnectionStatus.NONE);
     }
 
-    private Pair<Optional<UserId>, String> processInvite(UserId inviterUserId, UserId partnerUserId) {
-        Optional<String> username = userService.getUsername(inviterUserId);
-
-        if (username.isEmpty()) {
-            log.warn("inviter not found: {}", inviterUserId);
-            return Pair.of(Optional.empty(), "User not found");
-        }
-
+    private Pair<Optional<UserId>, String> processInvite(UserId inviterUserId, String inviterUsername, UserId partnerUserId) {
         UserEntity inviter = userService.getUserReference(inviterUserId);
         UserEntity partner = userService.getUserReference(partnerUserId);
 
@@ -195,19 +195,13 @@ public class UserConnectionService {
 
         userConnectionRepository.save(userConnection);
 
-        return Pair.of(Optional.of(partnerUserId), username.get());
+        return Pair.of(Optional.of(partnerUserId), inviterUsername);
     }
 
-    private Pair<Optional<UserId>, String> tryConnect(UserId accepterUserId, UserId inviterUserId) {
-        Optional<String> accepterUsername = userService.getUsername(accepterUserId);
-        if (accepterUsername.isEmpty()) {
-            log.error("Invalid userId: {}", accepterUserId);
-            return Pair.of(Optional.empty(), "Invalid userId");
-        }
-
+    private Pair<Optional<UserId>, String> tryConnect(UserId accepterUserId, UserId inviterUserId, String accepterUsername) {
         try {
             userConnectionLimitService.connect(accepterUserId, inviterUserId);
-            return Pair.of(Optional.of(inviterUserId), accepterUsername.get());
+            return Pair.of(Optional.of(inviterUserId), accepterUsername);
         } catch (IllegalStateException e) {
             if (TransactionSynchronizationManager.isActualTransactionActive())
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

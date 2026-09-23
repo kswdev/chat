@@ -7,6 +7,7 @@ import net.study.messagesystem.domain.user.UserId;
 
 public record WriteMessageRecord(
         UserId userId,
+        String username,
         ChannelId channelId,
         String content,
         Long serial,

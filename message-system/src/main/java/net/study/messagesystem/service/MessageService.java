@@ -89,7 +89,7 @@ public class MessageService {
         UserId senderUserId = record.userId();
         ChannelId channelId = record.channelId();
         MessageSeqId messageSeqId = record.messageSeqId();
-        String senderUsername = userService.getUsername(senderUserId).orElse("unknown");
+        String senderUsername = record.username();
         String content = record.content();
         Long serial = record.serial();
 

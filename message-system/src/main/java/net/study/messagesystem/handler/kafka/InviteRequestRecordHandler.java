@@ -16,6 +16,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+/**
+ * 주의: message-social로 이관된 기능의 구버전이지만 아직 삭제 금지.
+ * message-front(ChatContext.tsx)/message-client(CommandHandler.java)가 여전히
+ * WebSocket 경로(INVITE_REQUEST 등)로 이 코드를 호출하는 유일하게 살아있는 경로다.
+ * message-social의 HTTP API로 클라이언트 마이그레이션(MESSAGE_SYSTEM_MSA_PLAN.md Phase 2f)이
+ * 끝나기 전까지는 지우지 말 것.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -27,7 +34,7 @@ public class InviteRequestRecordHandler implements BaseRecordHandler<InviteReque
     @Override
     public void handleRecord(InviteRequestRecord record) {
         UserId inviterUserId = record.userId();
-        Pair<Optional<UserId>, String> result = userConnectionService.invite(inviterUserId, record.userInviteCode());
+        Pair<Optional<UserId>, String> result = userConnectionService.invite(inviterUserId, record.username(), record.userInviteCode());
 
         result.getFirst()
                 .ifPresentOrElse(partnerUserId -> {
