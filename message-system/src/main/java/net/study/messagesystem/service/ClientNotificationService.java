@@ -24,6 +24,7 @@ public class ClientNotificationService {
         pushService.registerPushMessageType(MessageType.JOIN_RESPONSE, JoinResponseRecord.class);
         pushService.registerPushMessageType(MessageType.CREATE_RESPONSE, CreateResponseRecord.class);
         pushService.registerPushMessageType(MessageType.QUIT_RESPONSE, QuitResponseRecord.class);
+        pushService.registerPushMessageType(MessageType.FETCH_MESSAGES_RESPONSE, FetchMessagesResponseRecord.class);
     }
 
     public void sendMessage(UserId userId, RecordInterface recordInterface) {

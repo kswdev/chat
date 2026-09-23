@@ -2,6 +2,7 @@ package net.study.messagesystem.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.study.messagecommon.constant.IdKey;
 import net.study.messagesystem.domain.user.UserId;
 import net.study.messagesystem.dto.client.social.ConnectionAcceptedCountResponse;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,7 @@ public class SocialConnectionClient {
                         .queryParam("userId", userId.id())
                         .queryParam("partnerIds", partnerIds)
                         .build())
+                .header(IdKey.USER_ID.getValue(), String.valueOf(userId.id()))
                 .retrieve()
                 .body(ConnectionAcceptedCountResponse.class);
 
