@@ -107,6 +107,7 @@ public class FriendController {
     /**
      * 서비스 간 내부 호출 전용(web-gateway를 거치지 않음) — message-system이 채널 생성 시
      * 참여자들의 친구 연결 여부를 확인하기 위해 직접 호출한다. userId를 헤더가 아닌 쿼리 파라미터로 받는다.
+     * {@link net.study.messagesocial.adapter.in.web.filter.InternalApiKeyFilter}가 API 키를 검증한다.
      */
     @GetMapping("/connections/accepted-count")
     public ResponseEntity<ConnectionAcceptedCountResponse> acceptedConnectionCount(

@@ -137,6 +137,7 @@ message-system:
         concurrency: 3
   message-social:
     base-url: ${MESSAGE_SOCIAL_BASE_URL:http://localhost:8087}
+    api-key: ${INTERNAL_API_KEY:dev-only-internal-api-key}
   message-user:
     base-url: ${MESSAGE_USER_BASE_URL:http://localhost:8082}
 

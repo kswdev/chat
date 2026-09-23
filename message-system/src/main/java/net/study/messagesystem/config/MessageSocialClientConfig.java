@@ -1,5 +1,6 @@
 package net.study.messagesystem.config;
 
+import net.study.messagecommon.constant.IdKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
@@ -18,13 +19,17 @@ import java.util.Map;
 public class MessageSocialClientConfig {
 
     @Bean
-    public RestClient messageSocialRestClient(@Value("${message-system.message-social.base-url}") String baseUrl) {
+    public RestClient messageSocialRestClient(
+            @Value("${message-system.message-social.base-url}") String baseUrl,
+            @Value("${message-system.message-social.api-key}") String apiKey
+    ) {
         ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings.defaults()
                 .withConnectTimeout(Duration.ofSeconds(2))
                 .withReadTimeout(Duration.ofSeconds(3));
 
         return RestClient.builder()
                 .baseUrl(baseUrl)
+                .defaultHeader(IdKey.INTERNAL_API_KEY.getValue(), apiKey)
                 .requestFactory(ClientHttpRequestFactoryBuilder.detect().build(settings))
                 .build();
     }
