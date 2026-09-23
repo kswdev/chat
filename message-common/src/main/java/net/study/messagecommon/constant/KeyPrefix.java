@@ -6,6 +6,7 @@ public class KeyPrefix {
     public static final String USERNAME = "message:username";
     public static final String USER_ID = "message:user_id";
     public static final String USER_INVITECODE = "message:user_invitecode";
+    public static final String INVITECODE_USER_ID = "message:invitecode:user_id";
 
     public static final String CONNECTION_STATUS = "message:connection:status";
     public static final String CONNECTIONS_STATUS = "message:connections:status";
