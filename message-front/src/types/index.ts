@@ -16,6 +16,7 @@ export interface ChatMessage {
 }
 
 export interface Connection {
+  userId: number;
   username: string;
   status: 'ACCEPTED' | 'PENDING' | 'NONE' | 'REJECTED' | 'DISCONNECTED';
 }
@@ -97,35 +98,6 @@ export interface FetchChannelInviteCodeRequest extends BaseRequest {
   channelId: number;
 }
 
-export interface InviteUserRequest extends BaseRequest {
-  type: 'INVITE_REQUEST';
-  inviteCode: string;
-}
-
-export interface AcceptUserRequest extends BaseRequest {
-  type: 'ACCEPT_REQUEST';
-  username: string;
-}
-
-export interface RejectUserRequest extends BaseRequest {
-  type: 'REJECT_REQUEST';
-  username: string;
-}
-
-export interface DisconnectUserRequest extends BaseRequest {
-  type: 'DISCONNECT_REQUEST';
-  username: string;
-}
-
-export interface FetchUserConnectionsRequest extends BaseRequest {
-  type: 'FETCH_USER_CONNECTIONS_REQUEST';
-  status: 'ACCEPTED' | 'PENDING';
-}
-
-export interface FetchUserInviteCodeRequest extends BaseRequest {
-  type: 'FETCH_USER_INVITE_CODE_REQUEST';
-}
-
 export interface KeepAliveRequest extends BaseRequest {
   type: 'KEEP_ALIVE';
 }
@@ -198,39 +170,6 @@ export interface FetchChannelInviteCodeResponse extends BaseMessage {
   inviteCode: string;
 }
 
-export interface InviteResponse extends BaseMessage {
-  type: 'INVITE_RESPONSE';
-  inviteCode: string;
-  status: string;
-}
-
-export interface AcceptResponse extends BaseMessage {
-  type: 'ACCEPT_RESPONSE';
-  username: string;
-}
-
-export interface RejectResponse extends BaseMessage {
-  type: 'REJECT_RESPONSE';
-  username: string;
-  status: string;
-}
-
-export interface DisconnectResponse extends BaseMessage {
-  type: 'DISCONNECT_RESPONSE';
-  username: string;
-  status: string;
-}
-
-export interface FetchUserConnectionsResponse extends BaseMessage {
-  type: 'FETCH_USER_CONNECTIONS_RESPONSE';
-  connections: Connection[];
-}
-
-export interface FetchUserInviteCodeResponse extends BaseMessage {
-  type: 'FETCH_USER_INVITE_CODE_RESPONSE';
-  inviteCode: string;
-}
-
 export interface InviteNotification extends BaseMessage {
   type: 'ASK_INVITE';
   username: string;
@@ -264,12 +203,6 @@ export type InboundMessage =
   | FetchChannelsResponse
   | FetchMessagesResponse
   | FetchChannelInviteCodeResponse
-  | InviteResponse
-  | AcceptResponse
-  | RejectResponse
-  | DisconnectResponse
-  | FetchUserConnectionsResponse
-  | FetchUserInviteCodeResponse
   | InviteNotification
   | AcceptNotification
   | JoinNotification

@@ -16,7 +16,9 @@ const makeMessage = (channelId: number, seqId: number, username = 'user'): ChatM
   content: `메시지 ${seqId}`,
 });
 
+let connectionUserIdSeq = 0;
 const makeConnection = (username: string, status: Connection['status'] = 'ACCEPTED'): Connection => ({
+  userId: ++connectionUserIdSeq,
   username,
   status,
 });

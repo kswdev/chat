@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { useWebSocket } from './WebSocketContext';
 import { useAuth } from './AuthContext';
+import * as socialApi from '../api/socialApi';
 import type {
   Channel,
   ChatMessage,
@@ -23,12 +24,6 @@ import type {
   FetchChannelsResponse,
   FetchMessagesResponse,
   FetchChannelInviteCodeResponse,
-  InviteResponse,
-  AcceptResponse,
-  RejectResponse,
-  DisconnectResponse,
-  FetchUserConnectionsResponse,
-  FetchUserInviteCodeResponse,
   InviteNotification,
   AcceptNotification,
   JoinNotification,
@@ -211,7 +206,7 @@ interface ChatContextValue extends ChatState {
   // 메시지 액션
   sendMessage: (content: string) => Promise<void>;
   fetchMessages: (channelId: number, start: number, end: number) => void;
-  // 연결 액션
+  // 연결 액션 (message-social REST API)
   fetchAcceptedConnections: () => void;
   fetchPendingConnections: () => void;
   inviteUser: (inviteCode: string) => void;
@@ -245,6 +240,102 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  // ── 연결(친구) 액션 함수들 (message-social REST API) ──────
+
+  const fetchAcceptedConnections = useCallback(() => {
+    socialApi
+      .fetchConnections('ACCEPTED')
+      .then((connections) =>
+        dispatch({ type: 'SET_ACCEPTED_CONNECTIONS', connections }),
+      )
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '연결 목록을 불러오지 못했습니다.' }),
+      );
+  }, []);
+
+  const fetchPendingConnections = useCallback(() => {
+    socialApi
+      .fetchConnections('PENDING')
+      .then((connections) =>
+        dispatch({ type: 'SET_PENDING_CONNECTIONS', connections }),
+      )
+      .catch(() =>
+        dispatch({
+          type: 'SET_ERROR',
+          message: '대기 중인 초대를 불러오지 못했습니다.',
+        }),
+      );
+  }, []);
+
+  const inviteUser = useCallback((inviteCode: string) => {
+    socialApi
+      .invite(inviteCode)
+      .then(() => {
+        dispatch({ type: 'ADD_NOTIFICATION', message: '초대 요청을 보냈습니다.' });
+      })
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '초대 요청에 실패했습니다.' }),
+      );
+  }, []);
+
+  const acceptUser = useCallback(
+    (username: string) => {
+      socialApi
+        .accept(username)
+        .then(() => {
+          dispatch({
+            type: 'ADD_NOTIFICATION',
+            message: `${username} 님과 연결되었습니다.`,
+          });
+          dispatch({ type: 'REMOVE_PENDING_CONNECTION', username });
+          fetchAcceptedConnections();
+        })
+        .catch(() =>
+          dispatch({ type: 'SET_ERROR', message: '초대 수락에 실패했습니다.' }),
+        );
+    },
+    [fetchAcceptedConnections],
+  );
+
+  const rejectUser = useCallback((username: string) => {
+    socialApi
+      .reject(username)
+      .then(() => {
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          message: `${username} 님의 초대를 거절했습니다.`,
+        });
+        dispatch({ type: 'REMOVE_PENDING_CONNECTION', username });
+      })
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '초대 거절에 실패했습니다.' }),
+      );
+  }, []);
+
+  const disconnectUser = useCallback((username: string) => {
+    socialApi
+      .disconnect(username)
+      .then(() => {
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          message: `${username} 님과 연결이 끊어졌습니다.`,
+        });
+        dispatch({ type: 'REMOVE_ACCEPTED_CONNECTION', username });
+      })
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '연결 끊기에 실패했습니다.' }),
+      );
+  }, []);
+
+  const fetchUserInviteCode = useCallback(() => {
+    socialApi
+      .fetchInviteCode()
+      .then((code) => dispatch({ type: 'SET_USER_INVITE_CODE', code }))
+      .catch(() =>
+        dispatch({ type: 'SET_ERROR', message: '초대 코드를 불러오지 못했습니다.' }),
+      );
+  }, []);
 
   // ── WebSocket 핸들러 등록 ──────────────────────
 
@@ -403,74 +494,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           });
         },
       ],
-      // 연결 관련
-      [
-        'INVITE_RESPONSE',
-        (msg) => {
-          const m = msg as InviteResponse;
-          dispatch({
-            type: 'ADD_NOTIFICATION',
-            message: `초대 요청 전송됨 (상태: ${m.status})`,
-          });
-        },
-      ],
-      [
-        'ACCEPT_RESPONSE',
-        (msg) => {
-          const m = msg as AcceptResponse;
-          dispatch({
-            type: 'ADD_NOTIFICATION',
-            message: `${m.username} 님과 연결되었습니다.`,
-          });
-          dispatch({ type: 'REMOVE_PENDING_CONNECTION', username: m.username });
-          // 수락 후 연결 목록 갱신
-          send({ type: 'FETCH_USER_CONNECTIONS_REQUEST', status: 'ACCEPTED' });
-        },
-      ],
-      [
-        'REJECT_RESPONSE',
-        (msg) => {
-          const m = msg as RejectResponse;
-          dispatch({
-            type: 'ADD_NOTIFICATION',
-            message: `${m.username} 님의 초대를 거절했습니다.`,
-          });
-          dispatch({ type: 'REMOVE_PENDING_CONNECTION', username: m.username });
-        },
-      ],
-      [
-        'DISCONNECT_RESPONSE',
-        (msg) => {
-          const m = msg as DisconnectResponse;
-          dispatch({
-            type: 'ADD_NOTIFICATION',
-            message: `${m.username} 님과 연결이 끊어졌습니다.`,
-          });
-          dispatch({ type: 'REMOVE_ACCEPTED_CONNECTION', username: m.username });
-        },
-      ],
-      [
-        'FETCH_USER_CONNECTIONS_RESPONSE',
-        (msg) => {
-          const m = msg as FetchUserConnectionsResponse;
-          const accepted = m.connections.filter((c) => c.status === 'ACCEPTED');
-          const pending = m.connections.filter((c) => c.status === 'PENDING');
-          if (accepted.length > 0) {
-            dispatch({ type: 'SET_ACCEPTED_CONNECTIONS', connections: accepted });
-          }
-          if (pending.length > 0) {
-            dispatch({ type: 'SET_PENDING_CONNECTIONS', connections: pending });
-          }
-        },
-      ],
-      [
-        'FETCH_USER_INVITE_CODE_RESPONSE',
-        (msg) => {
-          const m = msg as FetchUserInviteCodeResponse;
-          dispatch({ type: 'SET_USER_INVITE_CODE', code: m.inviteCode });
-        },
-      ],
-      // 알림
+      // 연결 관련 알림 (invite/accept/reject/disconnect/connections/invite-code 자체는
+      // message-social REST API로 이전됨 — 위 socialApi 기반 액션 함수 참고.
+      // 상대방에게 보내는 실시간 알림 2종만 계속 WS로 수신한다.)
       [
         'ASK_INVITE',
         (msg) => {
@@ -480,7 +506,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             message: `${m.username} 님이 연결 초대를 보냈습니다.`,
           });
           // 대기 초대 갱신
-          send({ type: 'FETCH_USER_CONNECTIONS_REQUEST', status: 'PENDING' });
+          fetchPendingConnections();
         },
       ],
       [
@@ -491,7 +517,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             type: 'ADD_NOTIFICATION',
             message: `${m.username} 님이 연결 초대를 수락했습니다.`,
           });
-          send({ type: 'FETCH_USER_CONNECTIONS_REQUEST', status: 'ACCEPTED' });
+          fetchAcceptedConnections();
         },
       ],
       [
@@ -516,9 +542,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     handlers.forEach(([type, handler]) => addHandler(type, handler));
     return () => handlers.forEach(([type]) => removeHandler(type));
-  }, [addHandler, removeHandler, send]);
+  }, [
+    addHandler,
+    removeHandler,
+    send,
+    fetchPendingConnections,
+    fetchAcceptedConnections,
+  ]);
 
-  // ── 액션 함수들 ──────────────────────────────
+  // ── 채널/메시지 액션 함수들 ──────────────────────
 
   const fetchChannels = useCallback(() => {
     send({ type: 'FETCH_CHANNELS_REQUEST' });
@@ -611,46 +643,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     },
     [send],
   );
-
-  const fetchAcceptedConnections = useCallback(() => {
-    send({ type: 'FETCH_USER_CONNECTIONS_REQUEST', status: 'ACCEPTED' });
-  }, [send]);
-
-  const fetchPendingConnections = useCallback(() => {
-    send({ type: 'FETCH_USER_CONNECTIONS_REQUEST', status: 'PENDING' });
-  }, [send]);
-
-  const inviteUser = useCallback(
-    (inviteCode: string) => {
-      send({ type: 'INVITE_REQUEST', inviteCode });
-    },
-    [send],
-  );
-
-  const acceptUser = useCallback(
-    (username: string) => {
-      send({ type: 'ACCEPT_REQUEST', username });
-    },
-    [send],
-  );
-
-  const rejectUser = useCallback(
-    (username: string) => {
-      send({ type: 'REJECT_REQUEST', username });
-    },
-    [send],
-  );
-
-  const disconnectUser = useCallback(
-    (username: string) => {
-      send({ type: 'DISCONNECT_REQUEST', username });
-    },
-    [send],
-  );
-
-  const fetchUserInviteCode = useCallback(() => {
-    send({ type: 'FETCH_USER_INVITE_CODE_REQUEST' });
-  }, [send]);
 
   const clearError = useCallback(() => {
     dispatch({ type: 'SET_ERROR', message: null });
