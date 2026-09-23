@@ -42,10 +42,7 @@ public class MessageWebSocketHandler implements WebSocketHandler {
                 .flatMap(payload -> jsonUtil.fromJson(payload, BaseRequest.class))
                 .flatMap(request -> dispatcher.dispatch(session, request))
 
-                .doOnError(e -> {
-                    closeSession(userId);
-                    log.error("Transport error: [{}], from {}", e.getMessage(), session.getId());
-                })
+                .doOnError(e -> log.error("Transport error: [{}], from {}", e.getMessage(), session.getId()))
 
                 .doFinally(signalType -> {
                     closeSession(userId);
@@ -62,8 +59,11 @@ public class MessageWebSocketHandler implements WebSocketHandler {
     }
 
     private void closeSession(UserId userId) {
-        sessionService.setOnline(userId, false);
-        sessionService.deActiveChannel(userId);
+        sessionService.setOnline(userId, false)
+                .then(sessionService.deActiveChannel(userId))
+                .doOnError(e -> log.error("Failed to close session. userId: {}, cause: {}", userId, e.getMessage()))
+                .onErrorResume(e -> Mono.empty())
+                .subscribe();
         sessionManager.remove(userId);
     }
 

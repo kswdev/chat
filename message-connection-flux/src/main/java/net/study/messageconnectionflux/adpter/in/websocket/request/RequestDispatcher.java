@@ -26,10 +26,14 @@ public class RequestDispatcher {
     }
 
     public Mono<Void> dispatch(WebSocketSession session, BaseRequest request) {
-        return Mono.justOrEmpty(this.getHandler(request))
-                .map(this::castToSpecificHandler)
-                .flatMap(handler -> handler.handleRequest(session, request))
-                .onErrorContinue((err, __) -> loggingIfNoSuchHandler(request));
+        BaseRequestHandler<? extends BaseRequest> handler = getHandler(request);
+
+        if (handler == null) {
+            loggingIfNoSuchHandler(request);
+            return Mono.empty();
+        }
+
+        return castToSpecificHandler(handler).handleRequest(session, request);
     }
 
     private BaseRequestHandler<? extends BaseRequest> getHandler(BaseRequest request) {

@@ -12,6 +12,7 @@ import net.study.messageconnectionflux.application.port.out.ClientNotificationSe
 import net.study.messageconnectionflux.domain.user.UserId;
 import net.study.messageconnectionflux.util.JsonUtil;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 
@@ -71,7 +72,10 @@ public class ClientNotificationPush implements ClientNotificationService {
     public void pushMessage(RecordInterface recordInterface) {
         String messageType = recordInterface.type();
         if (pushMessageTypes.containsKey(messageType)) {
-            kafkaProducer.sendPushNotification(recordInterface);
+            kafkaProducer.sendPushNotification(recordInterface)
+                    .doOnError(e -> log.error("Failed to send push notification. type: {}, cause: {}", messageType, e.getMessage()))
+                    .onErrorResume(e -> Mono.empty())
+                    .subscribe();
         } else {
             log.error("Invalid push message type: {}", messageType);
         }
