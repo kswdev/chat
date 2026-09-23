@@ -22,3 +22,7 @@ data/
 
 # npm
 node_modules/
+/message-front/package-lock.json
+
+# macOS
+.DS_Store
