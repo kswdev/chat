@@ -87,4 +87,24 @@ class FriendConnectionQueryServiceTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void countAccepted_delegates_to_port_with_accepted_status() {
+        Long userId = 1L;
+        List<Long> partnerIds = List.of(2L, 3L);
+
+        given(loadUserConnection.countByUserIdAndPartnerIdsAndStatus(userId, partnerIds, UserConnectionStatus.ACCEPTED))
+                .willReturn(2L);
+
+        long result = friendConnectionQuery.countAccepted(userId, partnerIds);
+
+        assertThat(result).isEqualTo(2L);
+    }
+
+    @Test
+    void countAccepted_returns_zero_without_calling_port_when_partnerIds_empty() {
+        long result = friendConnectionQuery.countAccepted(1L, List.of());
+
+        assertThat(result).isEqualTo(0L);
+    }
 }

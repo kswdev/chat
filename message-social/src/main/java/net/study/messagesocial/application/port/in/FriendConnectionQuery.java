@@ -9,4 +9,5 @@ import java.util.List;
 @Service
 public interface FriendConnectionQuery {
     List<FriendConnectionSummary> getConnections(Long userId, UserConnectionStatus status);
+    long countAccepted(Long userId, List<Long> partnerIds);
 }

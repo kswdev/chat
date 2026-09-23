@@ -2,6 +2,7 @@ package net.study.messagesocial.adapter.in.web.api;
 
 import lombok.RequiredArgsConstructor;
 import net.study.messagecommon.constant.IdKey;
+import net.study.messagesocial.adapter.in.web.dto.response.ConnectionAcceptedCountResponse;
 import net.study.messagesocial.adapter.in.web.dto.response.ConnectionsResponse;
 import net.study.messagesocial.adapter.in.web.dto.response.InviteCodeResponse;
 import net.study.messagesocial.adapter.in.web.dto.response.InviteResponse;
@@ -101,6 +102,20 @@ public class FriendController {
         String inviteCode = friendInviteCodeQuery.getInviteCode(userId);
 
         return ResponseEntity.ok(new InviteCodeResponse(inviteCode));
+    }
+
+    /**
+     * 서비스 간 내부 호출 전용(web-gateway를 거치지 않음) — message-system이 채널 생성 시
+     * 참여자들의 친구 연결 여부를 확인하기 위해 직접 호출한다. userId를 헤더가 아닌 쿼리 파라미터로 받는다.
+     */
+    @GetMapping("/connections/accepted-count")
+    public ResponseEntity<ConnectionAcceptedCountResponse> acceptedConnectionCount(
+            @RequestParam Long userId,
+            @RequestParam List<Long> partnerIds
+    ) {
+        long count = friendConnectionQuery.countAccepted(userId, partnerIds);
+
+        return ResponseEntity.ok(new ConnectionAcceptedCountResponse(count));
     }
 
     private Long currentUserId(HttpHeaders headers) {

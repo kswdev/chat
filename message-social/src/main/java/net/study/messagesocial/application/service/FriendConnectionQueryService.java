@@ -36,6 +36,15 @@ public class FriendConnectionQueryService implements FriendConnectionQuery {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public long countAccepted(Long userId, List<Long> partnerIds) {
+        if (partnerIds.isEmpty())
+            return 0;
+
+        return loadUserConnection.countByUserIdAndPartnerIdsAndStatus(userId, partnerIds, UserConnectionStatus.ACCEPTED);
+    }
+
     private Long partnerOf(UserConnection connection, Long userId) {
         return connection.getInviterId().equals(userId) ? connection.getInviteeId() : connection.getInviterId();
     }
