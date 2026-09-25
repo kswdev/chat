@@ -6,21 +6,8 @@ import net.study.messagecommon.constant.MessageType;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = RejectRequestRecord.class, name = MessageType.REJECT_REQUEST),
-        @JsonSubTypes.Type(value = RejectResponseRecord.class, name = MessageType.REJECT_RESPONSE),
-        @JsonSubTypes.Type(value = InviteRequestRecord.class, name = MessageType.INVITE_REQUEST),
-        @JsonSubTypes.Type(value = InviteResponseRecord.class, name = MessageType.INVITE_RESPONSE),
-        @JsonSubTypes.Type(value = AcceptRequestRecord.class, name = MessageType.ACCEPT_REQUEST),
-        @JsonSubTypes.Type(value = AcceptResponseRecord.class, name = MessageType.ACCEPT_RESPONSE),
-        @JsonSubTypes.Type(value = AcceptNotificationRecord.class, name = MessageType.NOTIFY_ACCEPT),
-        @JsonSubTypes.Type(value = DisconnectRequestRecord.class, name = MessageType.DISCONNECT_REQUEST),
-        @JsonSubTypes.Type(value = DisconnectResponseRecord.class, name = MessageType.DISCONNECT_RESPONSE),
         @JsonSubTypes.Type(value = FetchMessagesRequestRecord.class, name = MessageType.FETCH_MESSAGES_REQUEST),
         @JsonSubTypes.Type(value = FetchMessagesResponseRecord.class, name = MessageType.FETCH_MESSAGES_RESPONSE),
-        @JsonSubTypes.Type(value = FetchUserInviteCodeRequestRecord.class, name = MessageType.FETCH_USER_INVITE_CODE_REQUEST),
-        @JsonSubTypes.Type(value = FetchUserInviteCodeResponseRecord.class, name = MessageType.FETCH_USER_INVITE_CODE_RESPONSE),
-        @JsonSubTypes.Type(value = FetchUserConnectionsRequestRecord.class, name = MessageType.FETCH_USER_CONNECTIONS_REQUEST),
-        @JsonSubTypes.Type(value = FetchUserConnectionsResponseRecord.class, name = MessageType.FETCH_USER_CONNECTIONS_RESPONSE),
 
         @JsonSubTypes.Type(value = InviteNotificationRecord.class, name = MessageType.ASK_INVITE),
         @JsonSubTypes.Type(value = JoinNotificationRecord.class, name = MessageType.NOTIFY_JOIN),

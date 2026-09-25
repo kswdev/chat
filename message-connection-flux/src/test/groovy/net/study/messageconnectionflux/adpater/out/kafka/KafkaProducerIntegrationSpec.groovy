@@ -3,7 +3,9 @@ package net.study.messageconnectionflux.adpater.out.kafka
 import lombok.extern.slf4j.Slf4j
 import net.study.messageconnectionflux.application.port.out.EventProducer
 import net.study.messageconnectionflux.domain.user.UserId
-import net.study.messageconnectionflux.application.dto.kafka.AcceptRequestRecord
+import net.study.messageconnectionflux.application.dto.kafka.FetchMessagesRequestRecord
+import net.study.messageconnectionflux.domain.channel.ChannelId
+import net.study.messageconnectionflux.domain.message.MessageSeqId
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,11 +44,10 @@ class KafkaProducerIntegrationSpec extends Specification {
         receiver = KafkaReceiver.create(options)
     }
 
-    def "AcceptRequest 요청 카프카 이벤트 처리."() {
+    def "FetchMessagesRequest 요청 카프카 이벤트 처리."() {
         given:
         UserId userId = new UserId(1L)
-        String username = "test"
-        AcceptRequestRecord record = new AcceptRequestRecord(userId, username)
+        FetchMessagesRequestRecord record = new FetchMessagesRequestRecord(userId, new ChannelId(1L), new MessageSeqId(0L), new MessageSeqId(10L))
 
         when:
         kafkaProducer.sendRequest(record, _ as Runnable).block()
@@ -57,7 +58,7 @@ class KafkaProducerIntegrationSpec extends Specification {
                         .map(r -> r.value())
                         .take(1)
         )
-                .expectNextMatches(value -> value.contains("test"))
+                .expectNextMatches(value -> value.contains("FETCH_MESSAGES_REQUEST"))
                 .verifyComplete()
     }
 }

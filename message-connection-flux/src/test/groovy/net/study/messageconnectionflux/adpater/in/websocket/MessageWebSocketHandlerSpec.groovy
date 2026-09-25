@@ -3,7 +3,7 @@ package net.study.messageconnectionflux.adpater.in.websocket
 import net.study.messagecommon.constant.IdKey
 import net.study.messageconnectionflux.adpter.in.websocket.MessageWebSocketHandler
 import net.study.messageconnectionflux.domain.user.UserId
-import net.study.messageconnectionflux.application.dto.websocket.inbound.AcceptRequest
+import net.study.messageconnectionflux.application.dto.websocket.inbound.KeepAliveRequest
 import net.study.messageconnectionflux.application.dto.websocket.inbound.BaseRequest
 import net.study.messageconnectionflux.adpter.in.websocket.request.RequestDispatcher
 import net.study.messageconnectionflux.application.port.in.SessionService
@@ -51,14 +51,14 @@ class MessageWebSocketHandlerSpec extends Specification {
 
     def "메시지 수신 → 파싱 → dispatcher 호출"() {
         given:
-        def payload = '{"type":"ACCEPT_REQUEST","username":"test1"}'
+        def payload = '{"type":"KEEP_ALIVE"}'
         def message = Stub(WebSocketMessage) {
             getPayloadAsText() >> payload
         }
 
         session.receive() >> Flux.just(message)
 
-        BaseRequest request = new AcceptRequest("test1")
+        BaseRequest request = new KeepAliveRequest()
 
         when:
         handler.handle(session)
