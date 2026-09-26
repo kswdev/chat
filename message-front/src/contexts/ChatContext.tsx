@@ -223,10 +223,18 @@ const MAX_SERIAL_WAIT_MS = 3000;
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { send, addHandler, removeHandler } = useWebSocket();
-  useAuth();
+  const { username } = useAuth();
   const stateRef = useRef(state);
   const pendingSerials = useRef<
-    Map<number, { resolve: () => void; reject: (r: string) => void }>
+    Map<
+      number,
+      {
+        channelId: number;
+        content: string;
+        resolve: () => void;
+        reject: (r: string) => void;
+      }
+    >
   >(new Map());
   const serialCounter = useRef(0);
 
@@ -345,6 +353,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const m = msg as WriteMessageAck;
           const entry = pendingSerials.current.get(m.serial);
           if (entry) {
+            dispatch({
+              type: 'ADD_MESSAGE',
+              message: {
+                channelId: entry.channelId,
+                messageSeqId: m.messageSeqId,
+                username: username ?? '',
+                content: entry.content,
+              },
+            });
             entry.resolve();
             pendingSerials.current.delete(m.serial);
           }
@@ -507,19 +524,32 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             (c) => c.channelId === channelId,
           ) ?? { channelId, title: entry.title, headCount: 0 };
           dispatch({ type: 'SET_CURRENT_CHANNEL', channel });
-          // 읽지 않은 메시지가 있으면 가져오기
-          if (
-            entry.lastChannelMessageSeqId > 0 &&
-            entry.lastChannelMessageSeqId > entry.lastReadMessageSeqId
-          ) {
-            const start = entry.lastReadMessageSeqId + 1;
-            const end = entry.lastChannelMessageSeqId;
-            send({
-              type: 'FETCH_MESSAGES_REQUEST',
-              channelId,
-              startMessageSeqId: start,
-              endMessageSeqId: end,
-            });
+
+          const hasLocalHistory =
+            (stateRef.current.messages[channelId] ?? []).length > 0;
+
+          if (entry.lastChannelMessageSeqId > 0) {
+            if (!hasLocalHistory) {
+              // 새로고침 등으로 로컬에 메시지 이력이 없는 상태 → 최근 이력을 다시 조회
+              const start = Math.max(1, entry.lastChannelMessageSeqId - 29);
+              const end = entry.lastChannelMessageSeqId;
+              send({
+                type: 'FETCH_MESSAGES_REQUEST',
+                channelId,
+                startMessageSeqId: start,
+                endMessageSeqId: end,
+              });
+            } else if (entry.lastChannelMessageSeqId > entry.lastReadMessageSeqId) {
+              // 읽지 않은 메시지만 가져오기
+              const start = entry.lastReadMessageSeqId + 1;
+              const end = entry.lastChannelMessageSeqId;
+              send({
+                type: 'FETCH_MESSAGES_REQUEST',
+                channelId,
+                startMessageSeqId: start,
+                endMessageSeqId: end,
+              });
+            }
           }
           dispatch({
             type: 'SET_LAST_SEQ_ID',
@@ -580,10 +610,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }, MAX_SERIAL_WAIT_MS);
 
         pendingSerials.current.set(serial, {
+          channelId,
+          content,
           resolve: () => {
             clearTimeout(timeoutId);
-            // 내가 보낸 메시지는 NOTIFY_MESSAGE로 돌아오지 않을 수 있으므로
-            // ACK 시점에 로컬에 추가 (username 포함)
             resolve();
           },
           reject: (r) => {
