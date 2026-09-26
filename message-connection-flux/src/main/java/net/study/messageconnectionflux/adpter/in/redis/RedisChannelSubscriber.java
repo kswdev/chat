@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.ReactiveStreamOperations;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -28,6 +29,8 @@ public class RedisChannelSubscriber {
     private final JsonUtil jsonUtil;
 
     private static final String CONSUMER_GROUP = "flux-consumer-group";
+    private static final Duration RETRY_MIN_BACKOFF = Duration.ofSeconds(1);
+    private static final Duration RETRY_MAX_BACKOFF = Duration.ofSeconds(30);
 
     @PostConstruct
     public void subscribe() {
@@ -41,7 +44,16 @@ public class RedisChannelSubscriber {
                 .thenMany(readStream(streamOps, channel, consumerName))
                 .doOnSubscribe(s -> log.info("Subscribed to Redis stream: {} as consumer: {}", channel, consumerName))
                 .flatMap(mapRecord -> handleRecord(streamOps, channel, mapRecord), 3)
-                .subscribe();
+                .retryWhen(Retry.backoff(Long.MAX_VALUE, RETRY_MIN_BACKOFF)
+                        .maxBackoff(RETRY_MAX_BACKOFF)
+                        .doBeforeRetry(signal -> log.error(
+                                "Redis stream subscription failed, retrying. channel={} consumer={} attempt={}",
+                                channel, consumerName, signal.totalRetries() + 1, signal.failure())))
+                .subscribe(
+                        v -> { },
+                        error -> log.error(
+                                "Redis stream subscription terminated permanently. channel={} consumer={}",
+                                channel, consumerName, error));
     }
 
     private Mono<String> ensureConsumerGroupExists(String channel) {
@@ -57,7 +69,14 @@ public class RedisChannelSubscriber {
     }
 
     private boolean isBusyGroup(Throwable e) {
-        return e.getMessage().contains("BUSYGROUP");
+        Throwable cause = e;
+        while (cause != null) {
+            if (cause.getMessage() != null && cause.getMessage().contains("BUSYGROUP")) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 
     private Flux<MapRecord<String, String, String>> readStream(
@@ -81,7 +100,11 @@ public class RedisChannelSubscriber {
         return jsonUtil.fromJson(payload, RecordInterface.class)
                 .flatMap(recordInterface -> Mono.fromRunnable(() -> recordDispatcher.dispatch(recordInterface)))
                 .then(streamOps.acknowledge(CONSUMER_GROUP, mapRecord))
-                .doOnError(e -> log.error("Error processing stream message: {}", payload, e))
-                .then();
+                .then()
+                .onErrorResume(e -> {
+                    log.error("Error processing stream message, leaving unacked for retry/inspection. channel={} recordId={} payload={}",
+                            channel, mapRecord.getId(), payload, e);
+                    return Mono.empty();
+                });
     }
 }
