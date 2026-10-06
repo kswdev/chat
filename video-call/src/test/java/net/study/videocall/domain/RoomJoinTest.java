@@ -19,7 +19,7 @@ class RoomJoinTest {
     @Test
     void when_a_peer_joins_room_then_rooms_size_should_one() {
         // given
-        Peer peer = Peer.create("first");
+        Peer peer = createPeer(1L, "first");
 
         // when
         boolean joined = room.join(peer);
@@ -33,8 +33,8 @@ class RoomJoinTest {
     @Test
     void when_two_peers_join_room_then_rooms_size_should_two() {
         // given
-        Peer first = Peer.create("first");
-        Peer second = Peer.create("second");
+        Peer first = createPeer(1L, "first");
+        Peer second = createPeer(2L, "second");
 
         // when
         boolean firstJoined = room.join(first);
@@ -50,9 +50,9 @@ class RoomJoinTest {
     @Test
     void when_room_is_full_then_join_should_reject() {
         // given
-        Peer first = Peer.create("first");
-        Peer second = Peer.create("second");
-        Peer third = Peer.create("third");
+        Peer first = createPeer(1L, "first");
+        Peer second = createPeer(2L, "second");
+        Peer third = createPeer(3L, "third");
 
         boolean firstJoined = room.join(first);
         boolean secondJoined = room.join(second);
@@ -72,7 +72,7 @@ class RoomJoinTest {
     @Test
     void when_joined_peer_again_request_join_then_room_size_is_not_change() {
         // given
-        Peer first = Peer.create("first");
+        Peer first = createPeer(1L, "first");
 
         boolean firstJoined = room.join(first);
 
@@ -84,5 +84,9 @@ class RoomJoinTest {
         assertThat(firstJoinedAgainResult).isTrue();
 
         assertThat(room.size()).isEqualTo(1);
+    }
+
+    private Peer createPeer(Long id, String name) {
+        return Peer.create(id, name);
     }
 }

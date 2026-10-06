@@ -21,8 +21,8 @@ class RoomPeerListTest {
     @Test
     void when_inquire_peer_list_then_get_peer_list_except_me() {
         // given
-        Peer me = Peer.create("me");
-        Peer other = Peer.create("other");
+        Peer me = createPeer(1L, "me");
+        Peer other = createPeer(2L, "other");
 
         room.join(me);
         room.join(other);
@@ -36,4 +36,7 @@ class RoomPeerListTest {
         assertThat(list).contains(other);
     }
 
+    private Peer createPeer(Long id, String name) {
+        return Peer.create(id, name);
+    }
 }

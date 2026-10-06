@@ -10,13 +10,17 @@ import lombok.ToString;
 public class Peer {
 
     @Getter
+    private final Long id;
+
+    @Getter
     private final String name;
 
-    private Peer(String name) {
+    private Peer(Long id, String name) {
+        this.id = id;
         this.name = name;
     }
 
-    public static Peer create(String name) {
-        return new Peer(name);
+    public static Peer create(Long id, String name) {
+        return new Peer(id, name);
     }
 }
