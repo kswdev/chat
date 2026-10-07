@@ -1,5 +1,7 @@
 package net.study.videocall.domain;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +9,10 @@ public class Room {
 
     private static final int MAX_PEER = 2;
 
+    @Getter
     private final String id;
+
+    @Getter
     private final String name;
 
     private List<Peer> peers = new ArrayList<>();
