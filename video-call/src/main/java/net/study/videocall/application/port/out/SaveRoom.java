@@ -4,5 +4,5 @@ import net.study.videocall.domain.model.Room;
 import reactor.core.publisher.Mono;
 
 public interface SaveRoom {
-    Mono<String> save(Room room);
+    Mono<Room> save(Room room);
 }

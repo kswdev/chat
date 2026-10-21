@@ -8,8 +8,6 @@ import net.study.videocall.domain.model.Room;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,6 +15,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.AdditionalAnswers.answer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -33,33 +32,30 @@ class RoomManagerTest {
     @InjectMocks
     RoomManager manager;
 
-    @Captor
-    ArgumentCaptor<Room> roomCaptor;
-
-    @DisplayName("방을 만들면 방을 저장하고 아이디를 반환한다.")
+    @DisplayName("방을 만들면 방을 저장하고 방을 반환한다.")
     @Test
     void when_create_room_then_save_room_and_return_id() {
         // given
+        String roomId = "generated-id";
         String roomName = "test-room-name";
-        String generatedId = "generated-id";
+        Peer creator = createPeer(0L, "creator");
 
-        given(generator.create()).willReturn(generatedId);
-        given(saveRoom.save(any())).willReturn(Mono.just(generatedId));
+        given(generator.create()).willReturn(roomId);
+        given(saveRoom.save(any())).willAnswer(answer(Mono::just));
 
         // when
-        Mono<String> result = manager.create(roomName);
+        Mono<Room> result = manager.create(roomName, creator);
 
         // then
         StepVerifier.create(result)
-                .expectNext(generatedId)
+                .assertNext(room -> {
+                    assertThat(room.getId()).isEqualTo(roomId);
+                    assertThat(room.getName()).isEqualTo(roomName);
+                })
                 .verifyComplete();
 
-        then(saveRoom).should().save(roomCaptor.capture());
+        then(saveRoom).should().save(any(Room.class));
         then(saveRoom).shouldHaveNoMoreInteractions();
-
-        Room saved = roomCaptor.getValue();
-        assertThat(saved.getId()).isEqualTo(generatedId);
-        assertThat(saved.getName()).isEqualTo(roomName);
     }
 
     @DisplayName("방 아이디로 방에 입장할 수 있다.")
@@ -83,9 +79,10 @@ class RoomManagerTest {
     void when_create_room_then_creator_should_be_participant() {
         // given
         String roomName = "test-room-name";
+        Peer creator = createPeer(1L, "test=user");
 
         // when
-        Mono<String> result = manager.create(roomName);
+        Mono<Room> result = manager.create(roomName, creator);
 
         // then
     }
