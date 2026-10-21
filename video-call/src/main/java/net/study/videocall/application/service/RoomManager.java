@@ -3,6 +3,7 @@ package net.study.videocall.application.service;
 import lombok.RequiredArgsConstructor;
 import net.study.videocall.application.port.in.CreateRoomUseCase;
 import net.study.videocall.application.port.in.EnterRoomUseCase;
+import net.study.videocall.application.port.out.LoadRoom;
 import net.study.videocall.application.port.out.RoomIdGenerator;
 import net.study.videocall.application.port.out.SaveRoom;
 import net.study.videocall.domain.model.Peer;
@@ -18,13 +19,19 @@ public class RoomManager implements
 
     private final RoomIdGenerator generator;
     private final SaveRoom saveRoom;
+    private final LoadRoom loadRoom;
 
     public Mono<Room> create(String roomName, Peer creator) {
         Room room = Room.create(generator.create(), roomName, creator);
         return saveRoom.save(room);
     }
 
-    public Mono<Boolean> enter(String roomId, Peer alice) {
+    public Mono<Room> enter(String roomId, Peer peer) {
+        return loadRoom.loadById(roomId)
+                .map(room -> room.join(peer))
+                .flatMap(saveRoom::save);
+    }
+    public Mono<Boolean> quit(String roomId, Peer peer) {
         return Mono.just(true);
     }
 }

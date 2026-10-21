@@ -35,14 +35,23 @@ public class Room {
         return peers.isEmpty();
     }
 
-    public boolean join(Peer peer) {
-        if (isAlreadyJoined(peer))
-            return true;
+    public Room join(Peer peer) {
+        if (isJoined(peer))
+            return this;
 
         if (isFull())
-            return false;
+            throw new IllegalStateException("방이 가득 찼습니다.");
 
-        return peers.add(peer);
+        peers.add(peer);
+        return this;
+    }
+
+    public Room quit(Peer peer) {
+        if (!isJoined(peer))
+            throw new IllegalArgumentException("방 참여자가 아닙니다. : " + peer.getId());
+
+        peers.remove(peer);
+        return this;
     }
 
     public int size() {
@@ -59,7 +68,7 @@ public class Room {
         return peers.size() == MAX_PEER;
     }
 
-    private boolean isAlreadyJoined(Peer peer) {
+    public boolean isJoined(Peer peer) {
         return peers.contains(peer);
     }
 }

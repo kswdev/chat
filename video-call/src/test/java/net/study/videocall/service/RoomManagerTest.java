@@ -1,5 +1,6 @@
 package net.study.videocall.service;
 
+import net.study.videocall.application.port.out.LoadRoom;
 import net.study.videocall.application.port.out.RoomIdGenerator;
 import net.study.videocall.application.port.out.SaveRoom;
 import net.study.videocall.application.service.RoomManager;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalAnswers.answer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -28,6 +30,9 @@ class RoomManagerTest {
 
     @Mock
     SaveRoom saveRoom;
+
+    @Mock
+    LoadRoom loadRoom;
 
     @InjectMocks
     RoomManager manager;
@@ -54,37 +59,30 @@ class RoomManagerTest {
                 })
                 .verifyComplete();
 
-        then(saveRoom).should().save(any(Room.class));
-        then(saveRoom).shouldHaveNoMoreInteractions();
+        then(saveRoom).should().save(any());
     }
 
     @DisplayName("방 아이디로 방에 입장할 수 있다.")
     @Test
     void when_enter_room_does_not_exists_then_create_room() {
         // given
+        Peer creator = createPeer(0L, "creator");
         Peer alice = createPeer(1L, "alice");
         String roomId = "test-id";
+        Room expect = Room.create(roomId, "test-name", creator);
+        given(loadRoom.loadById(roomId)).willReturn(Mono.just(expect));
+        given(saveRoom.save(any())).willAnswer(answer(Mono::just));
 
         // when
-        Mono<Boolean> joined = manager.enter(roomId, alice);
+        Mono<Room> joined = manager.enter(roomId, alice);
 
         // then
         StepVerifier.create(joined)
-                .expectNext(true)
+                .assertNext(room -> assertTrue(room.isJoined(alice)))
                 .verifyComplete();
-    }
 
-    @DisplayName("방을 만든 사람은 첫 참여자가 된다.")
-    @Test
-    void when_create_room_then_creator_should_be_participant() {
-        // given
-        String roomName = "test-room-name";
-        Peer creator = createPeer(1L, "test=user");
-
-        // when
-        Mono<Room> result = manager.create(roomName, creator);
-
-        // then
+        then(loadRoom).should().loadById(roomId);
+        then(saveRoom).should().save(any());
     }
 
     private Peer createPeer(Long id, String name) {

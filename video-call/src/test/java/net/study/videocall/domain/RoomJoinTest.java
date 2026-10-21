@@ -7,6 +7,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 
 class RoomJoinTest {
 
@@ -25,10 +27,10 @@ class RoomJoinTest {
         Peer peer = createPeer(1L, "first");
 
         // when
-        boolean joined = room.join(peer);
+        room.join(peer);
 
         // then
-        assertThat(joined).isTrue();
+        assertTrue(room.isJoined(peer));
         assertThat(room.size()).isEqualTo(2);
     }
 
@@ -39,14 +41,12 @@ class RoomJoinTest {
         Peer first = createPeer(1L, "first");
         Peer second = createPeer(2L, "second");
 
-        // when
-        boolean firstJoined = room.join(first);
-        boolean secondJoined = room.join(second);
+        // when & then
+        room.join(first);
 
-        // then
-        assertThat(firstJoined).isTrue();
-        assertThat(secondJoined).isFalse();
-        assertThat(room.size()).isEqualTo(2);
+        assertThatThrownBy(() -> room.join(second))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("방이 가득 찼습니다.");
     }
 
     @DisplayName("같은 참가자가 두 번 참가해도 참가 인원은 변하지 않는다.")
@@ -54,17 +54,17 @@ class RoomJoinTest {
     void when_joined_peer_again_request_join_then_room_size_is_not_change() {
         // given
         Peer first = createPeer(1L, "first");
-
-        boolean firstJoined = room.join(first);
+        room.join(first);
+        int previousJoinCount = room.size();
 
         // when
-        boolean firstJoinedAgainResult = room.join(first);
+        room.join(first);
+        int afterDuplicatelyJoinCount = room.size();
 
         // then
-        assertThat(firstJoined).isTrue();
-        assertThat(firstJoinedAgainResult).isTrue();
-
+        assertTrue(room.isJoined(first));
         assertThat(room.size()).isEqualTo(2);
+        assertEquals(previousJoinCount, afterDuplicatelyJoinCount);
     }
 
     private Peer createPeer(Long id, String name) {
