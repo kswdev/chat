@@ -13,28 +13,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RoomPeerListTest {
 
     private Room room;
+    private Peer creator;
 
     @BeforeEach
     void setRoom() {
-        room = Room.create("test-id", "test-name");
+        creator = createPeer(0L, "creator");
+        room = Room.create("test-id", "test-name", creator);
     }
 
     @DisplayName("나를 제외한 참여자만 조회한다.")
     @Test
     void when_inquire_peer_list_then_get_peer_list_except_me() {
         // given
-        Peer me = createPeer(1L, "me");
         Peer other = createPeer(2L, "other");
 
-        room.join(me);
         room.join(other);
 
         // when
-        List<Peer> list = room.otherThan(me);
+        List<Peer> list = room.otherThan(creator);
 
         // then
         assertThat(list).hasSize(1);
-        assertThat(list).doesNotContain(me);
+        assertThat(list).doesNotContain(creator);
         assertThat(list).contains(other);
     }
 

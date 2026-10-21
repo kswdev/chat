@@ -22,10 +22,13 @@ public class Room {
         this.name = name;
     }
 
-    public static Room create(String id, String name) {
+    public static Room create(String id, String name, Peer peer) {
         if (name == null || name.isBlank())
             throw new IllegalArgumentException("방 이름이 비어있습니다. : " + name);
-        return new Room(id, name);
+
+        Room room = new Room(id, name);
+        room.join(peer);
+        return room;
     }
 
     public boolean isEmpty() {
@@ -33,11 +36,11 @@ public class Room {
     }
 
     public boolean join(Peer peer) {
-        if (isFull())
-            return false;
-
         if (isAlreadyJoined(peer))
             return true;
+
+        if (isFull())
+            return false;
 
         return peers.add(peer);
     }

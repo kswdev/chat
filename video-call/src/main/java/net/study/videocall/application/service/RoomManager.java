@@ -19,8 +19,8 @@ public class RoomManager implements
     private final RoomIdGenerator generator;
     private final SaveRoom saveRoom;
 
-    public Mono<String> create(String roomName) {
-        Room room = Room.create(generator.create(), roomName);
+    public Mono<Room> create(String roomName, Peer creator) {
+        Room room = Room.create(generator.create(), roomName, creator);
         return saveRoom.save(room);
     }
 

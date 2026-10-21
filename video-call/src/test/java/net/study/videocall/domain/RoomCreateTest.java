@@ -1,6 +1,7 @@
 package net.study.videocall.domain;
 
 
+import net.study.videocall.domain.model.Peer;
 import net.study.videocall.domain.model.Room;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,27 +16,30 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RoomCreateTest {
 
-    @DisplayName("새로 만든 방은 비어있다.")
+    @DisplayName("새로 만든 방은 만든 사람 한 명이 있다..")
     @Test
     void when_room_is_created_then_room_is_empty() {
         // given
         String roomId = "test-id";
         String name = "test-name";
+        Peer creator = createPeer(1L, name);
 
         // when
-        Room room = Room.create(roomId, name);
+        Room room = Room.create(roomId, name, creator);
 
         // then
-        assertThat(room.isEmpty()).isTrue();
+        assertThat(room.size()).isEqualTo(1);
     }
 
     @DisplayName("이름 없이는 방을 만들 수 없다.")
     @ParameterizedTest
     @MethodSource("invalidRoomName")
     void when_room_is_created_then_name_should_exists(String roomId, String name) {
+        // given
+        Peer creator = createPeer(1L, name);
 
         // when & then
-        assertThatThrownBy(() -> Room.create(roomId, name))
+        assertThatThrownBy(() -> Room.create(roomId, name, creator))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("방 이름");
     }
@@ -48,5 +52,7 @@ class RoomCreateTest {
         );
     }
 
-
+    private Peer createPeer(Long id, String name) {
+        return Peer.create(id, name);
+    }
 }

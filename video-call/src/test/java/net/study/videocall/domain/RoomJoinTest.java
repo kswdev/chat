@@ -14,12 +14,13 @@ class RoomJoinTest {
 
     @BeforeEach
     void setRoom() {
-        this.room = Room.create("test-1", "test-name");
+        Peer creator = createPeer(0L, "creator");
+        this.room = Room.create("test-1", "test-name", creator);
     }
 
-    @DisplayName("한 명이 입장하면 인원이 1이 된다.")
+    @DisplayName("한 명이 입장하면 인원이 2가 된다.")
     @Test
-    void when_a_peer_joins_room_then_rooms_size_should_one() {
+    void when_a_peer_joins_room_then_rooms_size_should_two() {
         // given
         Peer peer = createPeer(1L, "first");
 
@@ -28,10 +29,10 @@ class RoomJoinTest {
 
         // then
         assertThat(joined).isTrue();
-        assertThat(room.size()).isEqualTo(1);
+        assertThat(room.size()).isEqualTo(2);
     }
 
-    @DisplayName("두 명이 입장하면 인원이 2이 된다.")
+    @DisplayName("두 명이 입장해도 총 인원을 넘길 수 없어 인원은 여전히 2가 된다.")
     @Test
     void when_two_peers_join_room_then_rooms_size_should_two() {
         // given
@@ -44,29 +45,7 @@ class RoomJoinTest {
 
         // then
         assertThat(firstJoined).isTrue();
-        assertThat(secondJoined).isTrue();
-        assertThat(room.size()).isEqualTo(2);
-    }
-
-    @DisplayName("세 명이 입장하면 인원이 2이 된다.")
-    @Test
-    void when_room_is_full_then_join_should_reject() {
-        // given
-        Peer first = createPeer(1L, "first");
-        Peer second = createPeer(2L, "second");
-        Peer third = createPeer(3L, "third");
-
-        boolean firstJoined = room.join(first);
-        boolean secondJoined = room.join(second);
-
-        // when
-        boolean thirdJoined = room.join(third);
-
-        // then
-        assertThat(firstJoined).isTrue();
-        assertThat(secondJoined).isTrue();
-        assertThat(thirdJoined).isFalse();
-
+        assertThat(secondJoined).isFalse();
         assertThat(room.size()).isEqualTo(2);
     }
 
@@ -85,7 +64,7 @@ class RoomJoinTest {
         assertThat(firstJoined).isTrue();
         assertThat(firstJoinedAgainResult).isTrue();
 
-        assertThat(room.size()).isEqualTo(1);
+        assertThat(room.size()).isEqualTo(2);
     }
 
     private Peer createPeer(Long id, String name) {
