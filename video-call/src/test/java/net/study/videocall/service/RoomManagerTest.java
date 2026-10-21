@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalAnswers.answer;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,7 +65,7 @@ class RoomManagerTest {
 
     @DisplayName("방 아이디로 방에 입장할 수 있다.")
     @Test
-    void when_enter_room_does_not_exists_then_create_room() {
+    void when_enter_room_then_enter_success() {
         // given
         Peer creator = createPeer(0L, "creator");
         Peer alice = createPeer(1L, "alice");
@@ -79,6 +80,31 @@ class RoomManagerTest {
         // then
         StepVerifier.create(joined)
                 .assertNext(room -> assertTrue(room.isJoined(alice)))
+                .verifyComplete();
+
+        then(loadRoom).should().loadById(roomId);
+        then(saveRoom).should().save(any());
+    }
+
+    @DisplayName("방 아이디로 방에서 퇴장할 수 있다.")
+    @Test
+    void when_quit_room_then_quit_success() {
+        // given
+        Peer creator = createPeer(0L, "creator");
+        Peer alice = createPeer(1L, "alice");
+        String roomId = "test-id";
+        Room created = Room.create(roomId, "test-name", creator);
+        created.join(alice);
+
+        given(loadRoom.loadById(roomId)).willReturn(Mono.just(created));
+        given(saveRoom.save(any())).willAnswer(answer(Mono::just));
+
+        // when
+        Mono<Room> joined = manager.quit(roomId, alice);
+
+        // then
+        StepVerifier.create(joined)
+                .assertNext(room -> assertFalse(room.isJoined(alice)))
                 .verifyComplete();
 
         then(loadRoom).should().loadById(roomId);

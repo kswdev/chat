@@ -31,7 +31,9 @@ public class RoomManager implements
                 .map(room -> room.join(peer))
                 .flatMap(saveRoom::save);
     }
-    public Mono<Boolean> quit(String roomId, Peer peer) {
-        return Mono.just(true);
+    public Mono<Room> quit(String roomId, Peer peer) {
+        return loadRoom.loadById(roomId)
+                .map(room -> room.quit(peer))
+                .flatMap(saveRoom::save);
     }
 }

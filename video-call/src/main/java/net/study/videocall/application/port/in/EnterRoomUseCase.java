@@ -5,5 +5,5 @@ import net.study.videocall.domain.model.Room;
 import reactor.core.publisher.Mono;
 
 public interface EnterRoomUseCase {
-    Mono<Room> enter(String roomId, Peer alice);
+    Mono<Room> enter(String roomId, Peer enterer);
 }
