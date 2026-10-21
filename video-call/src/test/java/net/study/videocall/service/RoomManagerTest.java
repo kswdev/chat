@@ -1,5 +1,6 @@
 package net.study.videocall.service;
 
+import net.study.videocall.application.port.out.DeleteRoom;
 import net.study.videocall.application.port.out.LoadRoom;
 import net.study.videocall.application.port.out.RoomIdGenerator;
 import net.study.videocall.application.port.out.SaveRoom;
@@ -34,6 +35,9 @@ class RoomManagerTest {
 
     @Mock
     LoadRoom loadRoom;
+
+    @Mock
+    DeleteRoom deleteRoom;
 
     @InjectMocks
     RoomManager manager;
@@ -109,6 +113,28 @@ class RoomManagerTest {
 
         then(loadRoom).should().loadById(roomId);
         then(saveRoom).should().save(any());
+    }
+
+    @DisplayName("마지막 사용자가 방에서 퇴장하면 사용자는 퇴장에 성공하고 방은 삭제된다..")
+    @Test
+    void when_a_last_peer_quit_room_then_quit_success_and_room_is_deleted() {
+        // given
+        Peer creator = createPeer(0L, "creator");
+        String roomId = "test-id";
+        Room created = Room.create(roomId, "test-name", creator);
+
+        given(loadRoom.loadById(roomId)).willReturn(Mono.just(created));
+        given(deleteRoom.delete(roomId)).willReturn(Mono.empty());
+        // when
+        Mono<Room> joined = manager.quit(roomId, creator);
+
+        // then
+        StepVerifier.create(joined)
+                .assertNext(room -> assertFalse(room.isJoined(creator)))
+                .verifyComplete();
+
+        then(loadRoom).should().loadById(roomId);
+        then(deleteRoom).should().delete(any());
     }
 
     private Peer createPeer(Long id, String name) {
