@@ -3,8 +3,8 @@ package net.study.videocall.service;
 import net.study.videocall.application.port.out.RoomIdGenerator;
 import net.study.videocall.application.port.out.SaveRoom;
 import net.study.videocall.application.service.RoomManager;
-import net.study.videocall.domain.Peer;
-import net.study.videocall.domain.Room;
+import net.study.videocall.domain.model.Peer;
+import net.study.videocall.domain.model.Room;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +36,7 @@ class RoomManagerTest {
     @Captor
     ArgumentCaptor<Room> roomCaptor;
 
+    @DisplayName("방을 만들면 방을 저장하고 아이디를 반환한다.")
     @Test
     void when_create_room_then_save_room_and_return_id() {
         // given
@@ -75,6 +76,18 @@ class RoomManagerTest {
         StepVerifier.create(joined)
                 .expectNext(true)
                 .verifyComplete();
+    }
+
+    @DisplayName("방을 만든 사람은 첫 참여자가 된다.")
+    @Test
+    void when_create_room_then_creator_should_be_participant() {
+        // given
+        String roomName = "test-room-name";
+
+        // when
+        Mono<String> result = manager.create(roomName);
+
+        // then
     }
 
     private Peer createPeer(Long id, String name) {

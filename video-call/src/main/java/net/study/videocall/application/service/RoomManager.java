@@ -5,8 +5,8 @@ import net.study.videocall.application.port.in.CreateRoomUseCase;
 import net.study.videocall.application.port.in.EnterRoomUseCase;
 import net.study.videocall.application.port.out.RoomIdGenerator;
 import net.study.videocall.application.port.out.SaveRoom;
-import net.study.videocall.domain.Peer;
-import net.study.videocall.domain.Room;
+import net.study.videocall.domain.model.Peer;
+import net.study.videocall.domain.model.Room;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 

@@ -1,4 +1,4 @@
-package net.study.videocall.domain;
+package net.study.videocall.domain.model;
 
 
 import lombok.EqualsAndHashCode;

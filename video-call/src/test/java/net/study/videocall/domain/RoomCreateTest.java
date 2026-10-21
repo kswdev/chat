@@ -1,6 +1,7 @@
 package net.study.videocall.domain;
 
 
+import net.study.videocall.domain.model.Room;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
