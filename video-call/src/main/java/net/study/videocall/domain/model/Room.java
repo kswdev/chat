@@ -65,7 +65,7 @@ public class Room {
     }
 
     private boolean isFull() {
-        return peers.size() == MAX_PEER;
+        return peers.size() >= MAX_PEER;
     }
 
     public boolean isJoined(Peer peer) {
