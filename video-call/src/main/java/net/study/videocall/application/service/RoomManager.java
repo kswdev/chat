@@ -3,6 +3,7 @@ package net.study.videocall.application.service;
 import lombok.RequiredArgsConstructor;
 import net.study.videocall.application.port.in.CreateRoomUseCase;
 import net.study.videocall.application.port.in.EnterRoomUseCase;
+import net.study.videocall.application.port.in.QuitRoomUseCase;
 import net.study.videocall.application.port.out.DeleteRoom;
 import net.study.videocall.application.port.out.LoadRoom;
 import net.study.videocall.application.port.out.RoomIdGenerator;
@@ -16,7 +17,9 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class RoomManager implements
         CreateRoomUseCase,
-        EnterRoomUseCase {
+        EnterRoomUseCase,
+        QuitRoomUseCase
+{
 
     private final RoomIdGenerator generator;
     private final SaveRoom saveRoom;
