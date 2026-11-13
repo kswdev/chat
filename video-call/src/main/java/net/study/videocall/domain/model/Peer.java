@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-@EqualsAndHashCode(of = "name")
+@EqualsAndHashCode(of = "id")
 @ToString(of = "name")
 public class Peer {
 
