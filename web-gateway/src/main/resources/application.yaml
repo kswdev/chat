@@ -1,6 +1,8 @@
 spring:
   application:
     name: web-gateway
+  profiles:
+    default: local
   cloud:
     config.enabled: false
     gateway:
@@ -21,6 +23,99 @@ spring:
             preLogger: true
             postLogger: true
 
+### jwt
+security.jwt:
+  secret-key: 1234
+  expiration-time: 3600000
+
+### logging
+logging:
+  level:
+    org.springframework.cloud.gateway: info
+    reactor.netty: info
+
+### actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+  metrics:
+    tags:
+      application: web-gateway
+
+  endpoint:
+    prometheus:
+      access: unrestricted
+
+--- # local
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    gateway:
+      routes:
+        - id: message-auth
+          uri: http://localhost:8081/
+          predicates:
+            - Path=/api/v1/auth/**
+
+        - id: message-user-register
+          uri: http://localhost:8082/
+          predicates:
+            - Path=/api/v1/user/register
+
+        - id: message-user-unregister
+          uri: http://localhost:8082/
+          predicates:
+            - Path=/api/v1/user/unregister
+          filters:
+            - AuthorizationHeaderFilter
+
+        - id: message-social
+          uri: http://localhost:8087/
+          predicates:
+            - Path=/api/v1/social/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        - id: message-channel
+          uri: http://localhost:8070/
+          predicates:
+            - Path=/api/v1/channel/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        - id: websocket-route-message
+          uri: ws://localhost:8090/
+          predicates:
+            - Path=/ws/v1/message
+          filters:
+            - AuthorizationHeaderFilter
+
+        - id: video-call-room
+          uri: http://localhost:8091/
+          predicates:
+            - Path=/api/v1/video-call/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        - id: websocket-route-video-call
+          uri: ws://localhost:8091/
+          predicates:
+            - Path=/ws/v1/video-call/**
+          filters:
+            - AuthorizationHeaderFilter
+
+--- # dev
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    gateway:
       routes:
         - id: message-auth
           uri: http://message-auth.chat-system.svc.cluster.local:8081/
@@ -60,36 +155,16 @@ spring:
           filters:
             - AuthorizationHeaderFilter
 
+        - id: video-call-room
+          uri: http://video-call.chat-system.svc.cluster.local:8091/
+          predicates:
+            - Path=/api/v1/video-call/**
+          filters:
+            - AuthorizationHeaderFilter
 
-### jwt
-security.jwt:
-  secret-key: 1234
-  expiration-time: 3600000
-
-### logging
-logging:
-  level:
-    org.springframework.cloud.gateway: info
-    reactor.netty: info
-
-### actuator
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-
-  metrics:
-    tags:
-      application: web-gateway
-
-  endpoint:
-    prometheus:
-      access: unrestricted
-
-  tracing:
-    sampling:
-      probability: 1.0   # 개발/테스트 중엔 100% 샘플링, 운영에선 0.1 등으로 낮춤
-  otlp:
-    tracing:
-      endpoint: http://tempo.monitoring.svc.cluster.local:4318/v1/traces
+        - id: websocket-route-video-call
+          uri: ws://video-call.chat-system.svc.cluster.local:8091/
+          predicates:
+            - Path=/ws/v1/video-call/**
+          filters:
+            - AuthorizationHeaderFilter
