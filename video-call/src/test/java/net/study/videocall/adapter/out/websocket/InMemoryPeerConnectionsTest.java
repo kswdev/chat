@@ -1,6 +1,8 @@
 package net.study.videocall.adapter.out.websocket;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.study.videocall.domain.model.Signal;
 import net.study.videocall.domain.model.SignalType;
 import net.study.videocall.util.JsonUtil;
@@ -18,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 class InMemoryPeerConnectionsTest {
 
     private JsonUtil jsonUtil;
+    private ObjectMapper om = new ObjectMapper();
     private InMemoryPeerConnections connections;
 
     private static final Long ALICE = 1L;
@@ -36,11 +39,11 @@ class InMemoryPeerConnectionsTest {
     }
 
     private Signal offerFrom(Long senderId) {
-        return new Signal(
-                senderId, SignalType.OFFER,
-                """
-                {"type":"OFFER","sdp":"v=0"}"""
-        );
+        ObjectNode payload = om.createObjectNode()
+                .put("type", "OFFER")
+                .put("sdp", "v=0");
+
+        return new Signal(senderId, SignalType.OFFER, payload);
     }
 
     @Nested
@@ -109,7 +112,7 @@ class InMemoryPeerConnectionsTest {
             assertThat(bobReceived).hasSize(1);
             assertThat(bobReceived.getFirst())
                     .isEqualTo("""
-                            {"type":"OFFER","sdp":"v=0"}""");
+                            {"senderId":1,"type":"OFFER","payload":{"type":"OFFER","sdp":"v=0"}}""");
         }
 
         @DisplayName("다른 사람의 연결로는 전달되지 않는다.")

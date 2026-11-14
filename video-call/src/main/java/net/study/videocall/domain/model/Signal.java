@@ -1,4 +1,6 @@
 package net.study.videocall.domain.model;
 
-public record Signal(Long senderId, SignalType type, String payload) {
+import com.fasterxml.jackson.databind.JsonNode;
+
+public record Signal(Long senderId, SignalType type, JsonNode payload) {
 }

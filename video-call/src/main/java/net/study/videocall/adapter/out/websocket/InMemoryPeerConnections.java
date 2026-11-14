@@ -42,7 +42,8 @@ public class InMemoryPeerConnections implements PeerConnections {
                 return;
             }
 
-            connection.accept(signal.payload());
+            jsonUtil.toJson(signal)
+                    .ifPresent(connection);
         });
     }
 }
