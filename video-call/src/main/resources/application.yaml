@@ -1,3 +1,6 @@
 spring:
   application:
     name: video-call
+
+server:
+  port: 8091
