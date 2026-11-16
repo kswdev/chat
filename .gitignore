@@ -4,6 +4,8 @@
 .gradle/
 gradle/
 build/
+out/
+generated/
 settings.gradle
 gradlew
 gradlew.bat
