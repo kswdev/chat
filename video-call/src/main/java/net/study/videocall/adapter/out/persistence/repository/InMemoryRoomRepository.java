@@ -2,6 +2,7 @@ package net.study.videocall.adapter.out.persistence.repository;
 
 import net.study.videocall.domain.model.Room;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -28,5 +29,10 @@ public class InMemoryRoomRepository implements RoomRepository {
     @Override
     public Mono<Void> delete(String roomId) {
         return Mono.fromRunnable(() -> rooms.remove(roomId));
+    }
+
+    @Override
+    public Flux<Room> findAll() {
+        return Flux.fromIterable(rooms.values());
     }
 }

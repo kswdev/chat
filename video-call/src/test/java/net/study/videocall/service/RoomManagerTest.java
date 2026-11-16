@@ -1,6 +1,7 @@
 package net.study.videocall.service;
 
 import net.study.videocall.application.port.out.DeleteRoom;
+import net.study.videocall.application.port.out.ListRooms;
 import net.study.videocall.application.port.out.LoadRoom;
 import net.study.videocall.application.port.out.RoomIdGenerator;
 import net.study.videocall.application.port.out.SaveRoom;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -38,6 +40,9 @@ class RoomManagerTest {
 
     @Mock
     DeleteRoom deleteRoom;
+
+    @Mock
+    ListRooms listRooms;
 
     @InjectMocks
     RoomManager manager;
@@ -135,6 +140,24 @@ class RoomManagerTest {
 
         then(loadRoom).should().loadById(roomId);
         then(deleteRoom).should().delete(any());
+    }
+
+    @DisplayName("현재 존재하는 모든 방을 조회한다.")
+    @Test
+    void when_list_rooms_then_return_all_rooms() {
+        // given
+        Room room1 = Room.create("room-1", "room-one", createPeer(0L, "creator1"));
+        Room room2 = Room.create("room-2", "room-two", createPeer(1L, "creator2"));
+
+        given(listRooms.list()).willReturn(Flux.just(room1, room2));
+
+        // when
+        Flux<Room> result = manager.list();
+
+        // then
+        StepVerifier.create(result)
+                .expectNext(room1, room2)
+                .verifyComplete();
     }
 
     private Peer createPeer(Long id, String name) {

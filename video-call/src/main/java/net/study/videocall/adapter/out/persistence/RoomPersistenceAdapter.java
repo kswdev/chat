@@ -3,10 +3,12 @@ package net.study.videocall.adapter.out.persistence;
 import lombok.RequiredArgsConstructor;
 import net.study.videocall.adapter.out.persistence.repository.RoomRepository;
 import net.study.videocall.application.port.out.DeleteRoom;
+import net.study.videocall.application.port.out.ListRooms;
 import net.study.videocall.application.port.out.LoadRoom;
 import net.study.videocall.application.port.out.SaveRoom;
 import net.study.videocall.domain.model.Room;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -14,7 +16,8 @@ import reactor.core.publisher.Mono;
 public class RoomPersistenceAdapter implements
         LoadRoom,
         SaveRoom,
-        DeleteRoom
+        DeleteRoom,
+        ListRooms
 {
 
     private final RoomRepository roomRepository;
@@ -32,5 +35,10 @@ public class RoomPersistenceAdapter implements
     @Override
     public Mono<Room> save(Room room) {
         return roomRepository.save(room);
+    }
+
+    @Override
+    public Flux<Room> list() {
+        return roomRepository.findAll();
     }
 }
