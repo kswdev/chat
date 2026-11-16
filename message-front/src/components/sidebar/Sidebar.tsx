@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWebSocket } from '../../contexts/WebSocketContext';
 import { useChat } from '../../contexts/ChatContext';
+import { useVideoCall } from '../../contexts/VideoCallContext';
 import ChannelList from './ChannelList';
 import ConnectionList from './ConnectionList';
 import PendingInviteList from './PendingInviteList';
@@ -10,6 +11,7 @@ export default function Sidebar() {
   const { username, logout, unregister } = useAuth();
   const { status } = useWebSocket();
   const { fetchChannels, fetchAcceptedConnections, fetchPendingConnections } = useChat();
+  const { openLobby } = useVideoCall();
 
   // 연결 직후 초기 데이터 로드
   useEffect(() => {
@@ -37,8 +39,15 @@ export default function Sidebar() {
   return (
     <aside className="w-60 flex-shrink-0 bg-gray-800 flex flex-col h-full border-r border-gray-700">
       {/* 앱 헤더 */}
-      <div className="px-4 py-3 border-b border-gray-700 flex items-center gap-2">
+      <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between gap-2">
         <span className="text-lg font-bold text-white">💬 Message</span>
+        <button
+          onClick={openLobby}
+          title="화상통화"
+          className="text-gray-400 hover:text-white text-lg leading-none"
+        >
+          📹
+        </button>
       </div>
 
       {/* 스크롤 영역 */}

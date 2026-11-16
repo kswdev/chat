@@ -128,6 +128,31 @@ export type InboundMessage =
   | ErrorResponse;
 
 // ──────────────────────────────────────────────
+// Video Call
+// ──────────────────────────────────────────────
+
+export interface RoomSummary {
+  roomId: string;
+  name: string;
+  peerCount: number;
+}
+
+export type SignalType = 'OFFER' | 'ANSWER' | 'CANDIDATE' | 'MEDIA_STATE';
+
+/** 클라이언트 → 서버 (video-call 시그널링 WS로 보내는 메시지) */
+export interface SignalCommand {
+  type: SignalType;
+  payload: unknown;
+}
+
+/** 서버 → 클라이언트 (video-call 시그널링 WS로 받는 메시지) */
+export interface Signal {
+  senderId: number;
+  type: SignalType;
+  payload: unknown;
+}
+
+// ──────────────────────────────────────────────
 // UI State Types
 // ──────────────────────────────────────────────
 
